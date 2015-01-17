@@ -1,21 +1,39 @@
 <!--#include file = "includes/inc.first.asp"--><%
 '-----------------------------------------------------------------
-' <IVT>
-' IVT@package		Carnival
-' IVT@packver		1.0b.0 <20080312>
-' IVT@author		Simone Cingano <simonecingano@imente.org>
-' IVT@copyright		(c) 2008 Simone Cingano
-' IVT@licence		GNU GPL v2 <http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt>
-' IVT@version		photo.asp 0 20080312120000
-' </IVT>
-'
-'  >>> QUESTO FILE E' PARTE INTEGRANTE DEL PACCHETTO "CARNIVAL"
-'  >>> E' possibile utilizzare, modificare e ridistribuire CARNIVAL
-'  >>> liberamente a patto che si mantenga la licenza originale e
-'  >>> che non venga utilizzato per scopi commerciali.
-'  >>> L'applicazione è inoltre distribuita senza alcun tipo di garanzia.
-'
+' ******************** HELLO THIS IS CARNIVAL ********************
 '-----------------------------------------------------------------
+' Copyright (c) 2007-2008 Simone Cingano
+' 
+' Permission is hereby granted, free of charge, to any person
+' obtaining a copy of this software and associated documentation
+' files (the "Software"), to deal in the Software without
+' restriction, including without limitation the rights to use,
+' copy, modify, merge, publish, distribute, sublicense, and/or sell
+' copies of the Software, and to permit persons to whom the
+' Software is furnished to do so, subject to the following
+' conditions:
+' 
+' The above copyright notice and this permission notice shall be
+' included in all copies or substantial portions of the Software.
+' 
+' THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+' EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+' OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+' NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+' HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+' WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+' FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+' OTHER DEALINGS IN THE SOFTWARE.
+'-----------------------------------------------------------------
+' * @category        Carnival
+' * @package         Carnival
+' * @author          Simone Cingano <simonecingano@imente.org>
+' * @copyright       2007-2008 Simone Cingano
+' * @license         http://www.opensource.org/licenses/mit-license.php
+' * @version         SVN: $Id: photo.asp 18 2008-06-29 02:54:08Z imente $
+' * @home            http://www.carnivals.it
+'-----------------------------------------------------------------
+
 crnPopupTagCloud = true
 crnIsPhotoPage = true
 
@@ -30,69 +48,84 @@ crnTagName = request.QueryString("tag")
 if crnTagName = "(NEW)" then crnTagName = ""
 crnTagId = 0
 
+crnSetId = cleanLong(request.QueryString("set"))
+crnSetName = ""
+
 if crnTagName <> "" then
 	SQL = "SELECT tag_id, tag_name,tag_photos FROM tba_tag WHERE tag_name = '" & replace(crnTagName,"'","''") & "'"
-	set rs = conn.execute(SQL)
+	set rs = dbManager.conn.execute(SQL)
 	if rs.eof then response.Redirect("default.asp")
 	crnTagId = rs("tag_id")
 	crnTagName = rs("tag_name")
 	crn_photoPhotos = rs("tag_photos")
 	'crnTitle = replace(crnLang_photo_title_tag,"%s",crnTagName) & replace(crnLang_photo_title_photos,"%n",crn_photoPhotos)
+elseif crnSetId > 0 then
+	SQL = "SELECT set_id,set_name, set_photos FROM tba_set WHERE set_id = " & crnSetId
+	set rs = dbManager.conn.execute(SQL)
+	if rs.eof then response.Redirect("default.asp")
+	crnSetId = rs("set_id")
+	crnSetName = rs("set_name")
+	crn_photoPhotos = rs("set_photos")
 else
 	SQL = "SELECT Count(*) AS photos FROM tba_photo WHERE photo_active = 1"
-	set rs = conn.execute(SQL)
+	set rs = dbManager.conn.execute(SQL)
 	crn_photoPhotos = rs("photos")
 	'crnTitle = crnLang_photo_title_all & replace(crnLang_photo_title_photos,"%n",crn_photoPhotos)
 end if
 if crnPhotoId = 0 then
-	if crnTagId = 0 then
-		SQL = "SELECT TOP 1 photo_id FROM tba_photo WHERE photo_active = 1 ORDER BY photo_id DESC"
-	else
+	if crnTagId > 0 then
 		SQL = "SELECT TOP 1 tba_photo.photo_id, tba_photo.photo_title, tba_photo.photo_description " & _
 			  "FROM tba_rel INNER JOIN tba_photo ON tba_rel.rel_photo = tba_photo.photo_id " & _
 			  "WHERE tba_rel.rel_tag=" & crnTagId & " AND tba_photo.photo_active = 1 ORDER BY tba_rel.rel_photo DESC"
+	elseif crnSetId > 0 then
+		SQL = "SELECT TOP 1 photo_id FROM tba_photo WHERE photo_active = 1 AND photo_set = " & crnSetId & " ORDER BY photo_order, photo_id DESC"
+	else
+		SQL = "SELECT TOP 1 photo_id FROM tba_photo WHERE photo_active = 1 ORDER BY photo_id DESC"
 	end if
-	set rs = conn.execute(SQL)
+	set rs = dbManager.conn.execute(SQL)
 	if rs.eof then
-		if crnTagId = 0 then response.redirect("errors.asp?c=photo0")
+		if crnTagId = 0 and crnSetId = 0 then response.redirect("errors.asp?c=photo0")
 		response.Redirect("default.asp")
 	end if
-	set rs = conn.execute(SQL)
+	set rs = dbManager.conn.execute(SQL)
 	crnPhotoId = rs("photo_id")
 end if
 
 call checkPhoto(crnPhotoId)
 
-if crnTagId = 0 then
-	SQL = "SELECT photo_title, photo_description, photo_pub FROM tba_photo WHERE photo_id = " & crnPhotoId & " AND photo_active = 1"
-else
-	SQL = "SELECT tba_photo.photo_id, tba_photo.photo_title, tba_photo.photo_description, tba_photo.photo_pub " & _
+if crnTagId > 0 then
+	SQL = "SELECT tba_photo.photo_id, tba_photo.photo_title, tba_photo.photo_description, tba_photo.photo_pub, tba_photo.photo_order " & _
 		  "FROM tba_rel INNER JOIN tba_photo ON tba_rel.rel_photo = tba_photo.photo_id " & _
 		  "WHERE tba_rel.rel_tag=" & crnTagId & " AND tba_rel.rel_photo = " & crnPhotoId & " AND tba_photo.photo_active = 1"
+else 'sia photo che set
+	SQL = "SELECT photo_title, photo_description, photo_pub, photo_order FROM tba_photo WHERE photo_id = " & crnPhotoId & " AND photo_active = 1"
 end if
-set rs = conn.execute(SQL)
+set rs = dbManager.conn.execute(SQL)
 'se la foto non esiste manda default.asp (carica l'ultima foto)
 if rs.eof then response.redirect "default.asp"
 
 crnPhotoTitle = server.HTMLEncode(rs("photo_title"))
 crnPhotoDescription = server.HTMLEncode(rs("photo_description"))
 crnPhotoPub = formatGMTDate(rs("photo_pub"),0,"dd/mm/yyyy")
+crnPhotoOrder = cleanLong(rs("photo_order"))
 
 dim crn_photoCommentsCount
 crn_photoCommentsCount = 0
 SQL = "SELECT Count(comment_id) AS commentscount FROM tba_comment WHERE comment_photo = " & crnPhotoId
-set rs = conn.execute(SQL)
+set rs = dbManager.conn.execute(SQL)
 crn_photoCommentsCount = rs("commentscount")
 crnMenuComment = crnLang_menu_comments & " (" & crn_photoCommentsCount & ")"
 	
-if crnTagId = 0 then
-	SQL = "SELECT TOP 1 photo_id, photo_title FROM tba_photo WHERE photo_id < " & crnPhotoId & " AND photo_active = 1 ORDER BY photo_id DESC"
-else
+if crnTagId > 0 then
 	SQL = "SELECT TOP 1 tba_photo.photo_id, tba_photo.photo_title " & _
 		  "FROM tba_rel INNER JOIN tba_photo ON tba_rel.rel_photo = tba_photo.photo_id " & _
 		  "WHERE tba_rel.rel_tag=" & crnTagId & " AND tba_rel.rel_photo < " & crnPhotoId & " AND tba_photo.photo_active = 1 ORDER BY tba_rel.rel_photo  DESC"
+elseif crnSetId > 0 then
+	SQL = "SELECT TOP 1 photo_id, photo_title FROM tba_photo WHERE ((photo_id < " & crnPhotoId & " AND photo_order = " & crnPhotoOrder & ") OR (photo_order > " & crnPhotoOrder & ")) AND (photo_active = 1) AND (photo_set = " & crnSetId & ") ORDER BY photo_order ASC, photo_id DESC"
+else
+	SQL = "SELECT TOP 1 photo_id, photo_title FROM tba_photo WHERE photo_id < " & crnPhotoId & " AND photo_active = 1 ORDER BY photo_id DESC"
 end if
-set rs = conn.execute(SQL)
+set rs = dbManager.conn.execute(SQL)
 if rs.eof then
 	crn_photoPrevId = 0
 	crn_photoPrevTitle = "-"
@@ -100,14 +133,16 @@ else
 	crn_photoPrevId = rs("photo_id")
 	crn_photoPrevTitle = rs("photo_title")
 end if
-if crnTagId = 0 then
-SQL = "SELECT TOP 1 photo_id, photo_title FROM tba_photo WHERE photo_id > " & crnPhotoId & " AND photo_active = 1"
-else
+if crnTagId > 0 then
 	SQL = "SELECT TOP 1 tba_photo.photo_id, tba_photo.photo_title " & _
 		  "FROM tba_rel INNER JOIN tba_photo ON tba_rel.rel_photo = tba_photo.photo_id " & _
 		  "WHERE tba_rel.rel_tag=" & crnTagId & " AND tba_rel.rel_photo > " & crnPhotoId & " AND tba_photo.photo_active = 1 ORDER BY tba_rel.rel_photo ASC"
+elseif crnSetId > 0 then
+	SQL = "SELECT TOP 1 photo_id, photo_title FROM tba_photo WHERE ((photo_id > " & crnPhotoId & " AND photo_order = " & crnPhotoOrder & ") OR (photo_order < " & crnPhotoOrder & ")) AND (photo_active = 1) AND (photo_set = " & crnSetId & ") ORDER BY photo_order DESC, photo_id ASC"
+else
+	SQL = "SELECT TOP 1 photo_id, photo_title FROM tba_photo WHERE photo_id > " & crnPhotoId & " AND photo_active = 1 ORDER BY photo_id ASC"
 end if
-set rs = conn.execute(SQL)
+set rs = dbManager.conn.execute(SQL)
 if rs.eof then
 	crn_photoNextId = 0
 	crn_photoNextTitle = "-"
@@ -125,6 +160,7 @@ crnPageTitle = carnival_title '& " ::: " & crnLang_photo_title & " > """ & crnPh
 var title = String('<%=cleanJSOutputString(carnival_title)%>')
 var selected = Number(<%=crnPhotoId%>);
 var tag = Number(<%=crnTagId%>);
+var set = Number(<%=crnSetId%>);
 var pathimages = '<%=carnival_pathimages%>';
 var lastviewedphoto = Number(<%=crnLastViewedPhoto%>);
 var baloons = true;
@@ -157,7 +193,7 @@ document.onmouseout = function() { bodyOnMouseOut(); };
 if (!is_ie) window.onresize = function() { resizeWin(); };
 /* ]]> */</script>
 <% end if %>
-<div id="photo-header-nojs"><div id="photo-date"><%=crnPhotoPub%></div><div id="photo-tag"><% if crnTagName <> "" then response.write "( " & crnTagName & " )" %></div><div id="photo-new"><% if clng(crnLastViewedPhoto) < clng(crnPhotoId) and crnLastViewedPhoto <> 0 then%><%=crnLang_photo_new%><% end if %></div><div id="photo-title"><span class="number">#<%=crnPhotoId%></span> <%=crnPhotoTitle%></div></div>
+<div id="photo-header-nojs"><div id="photo-date"><%=crnPhotoPub%></div><div id="photo-tag"><% if crnTagName <> "" then response.write "( " & crnTagName & " )" %><% if crnSetName <> "" then response.write "( " & crnSetName & " )" %></div><div id="photo-new"><% if clng(crnLastViewedPhoto) < clng(crnPhotoId) and crnLastViewedPhoto <> 0 then%><%=crnLang_photo_new%><% end if %></div><div id="photo-title"><span class="number">#<%=crnPhotoId%></span> <%=crnPhotoTitle%></div></div>
 <div id="photo-box-nojs">
 	<div id="photo-overlay-open"></div>
 	<div id="photo-overlay"></div>

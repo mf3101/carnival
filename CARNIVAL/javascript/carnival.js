@@ -1,7 +1,10 @@
-/***************************************************************
+/****************************************************************************
  *	CARNIVAL CORE 1.0
  *	developed by Simone Cingano (http://www.imente.it)
- ***************************************************************/
+ ****************************************************************************
+ * @license         http://www.opensource.org/licenses/mit-license.php
+ * @version         SVN: $Id: carnival.js 18 2008-06-29 02:54:08Z imente $
+ ****************************************************************************/
 
 /***************************************************************
  VARIABILI DI APPLICAZIONE
@@ -197,7 +200,7 @@ function loadXML(id,tag,type) {
 	}
 	s_type = type;
 	xmlDoc.onreadystatechange = function() { parseXML(); }
-	xmlDoc.open("GET", xmlUrl+"?id="+String(id)+"&tag="+String(tag), true);
+	xmlDoc.open("GET", xmlUrl+"?id="+String(id)+"&tag="+String(tag)+"&set="+String(set), true);
     xmlDoc.send('');
 	
 }
@@ -334,7 +337,7 @@ function editDom() {
 	Element.setAttribute('previmg','src',pathimages+'lay-photo-nav-prev.gif');
 	Element.setAttribute('nextimg','src',pathimages+'lay-photo-nav-next.gif');
 	
-	//***** SAFARI BUGFIX
+	/***** SAFARI 3.0win BUGFIX
 	if (is_safari) {
 		$('photo-overlay-details').style.overflow = 'visible';
 		$('photo-overlay-details').style.backgroundColor = '#000';
@@ -342,7 +345,7 @@ function editDom() {
 		$('photo-overlay-comments').style.overflow = 'visible';
 		$('photo-overlay-comments').style.backgroundColor = '#000';
 		$('photo-overlay-comments').style.height = '';
-	}
+	}*/
 
 }
 
@@ -385,8 +388,8 @@ function showOverlayContent(what,showall) {
 	loadOverlayContent(what,showall);
 	if (!(Element.isVisible('photo-overlay'))) {
 		//se lo sfondo semi-trasparente non è visibile lo rende visibile (nessuna scheda aperta)
-		if (!is_safari) Element.fxOpacity('photo-overlay').setOpacity(0.7);
-		else Element.fxOpacity('photo-overlay').setOpacity(1);
+		/*if (!is_safari)*/ Element.fxOpacity('photo-overlay').setOpacity(0.7);
+		/*else Element.fxOpacity('photo-overlay').setOpacity(1); //SAFARI 3.0win BUGFIX*/
 		Element.show('photo-overlay');
 		Element.show('photo-overlay-buttons');
 		overlayButtons('hide');
@@ -653,9 +656,9 @@ function resizeInfo(width,height) {
 	if (height <= 0) height = 480;	
 	Element.setWidth('photo-header',width)
 	Element.setWidth('photo-overlay-comments',width-50)
-	if (!is_safari) Element.setHeight('photo-overlay-comments',height-20)
+	/*if (!is_safari)*/ Element.setHeight('photo-overlay-comments',height-20) //SAFARI 3.0win BUGFIX
 	Element.setWidth('photo-overlay-details',width-50)
-	if (!is_safari) Element.setHeight('photo-overlay-details',height-20)
+	/*if (!is_safari)*/ Element.setHeight('photo-overlay-details',height-20) //SAFARI 3.0win BUGFIX
 	Element.setWidth('photo-overlay',width)
 	Element.setHeight('photo-overlay',height)
 }

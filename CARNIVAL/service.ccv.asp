@@ -1,27 +1,44 @@
 <!--#include file = "includes/inc.first.asp"-->
 <%
 '-----------------------------------------------------------------
-' <IVT>
-' IVT@package		Carnival
-' IVT@packver		1.0b.0 <20080312>
-' IVT@author		Simone Cingano <simonecingano@imente.org>
-' IVT@copyright		(c) 2008 Simone Cingano
-' IVT@licence		GNU GPL v2 <http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt>
-' IVT@version		service.ccv.asp 0 20080312120000
-' </IVT>
-'
-'  >>> QUESTO FILE E' PARTE INTEGRANTE DEL PACCHETTO "CARNIVAL"
-'  >>> E' possibile utilizzare, modificare e ridistribuire CARNIVAL
-'  >>> liberamente a patto che si mantenga la licenza originale e
-'  >>> che non venga utilizzato per scopi commerciali.
-'  >>> L'applicazione è inoltre distribuita senza alcun tipo di garanzia.
-'
+' ******************** HELLO THIS IS CARNIVAL ********************
 '-----------------------------------------------------------------
-if application(CARNIVAL_CODE & "_admin_ccv") then
+' Copyright (c) 2007-2008 Simone Cingano
+' 
+' Permission is hereby granted, free of charge, to any person
+' obtaining a copy of this software and associated documentation
+' files (the "Software"), to deal in the Software without
+' restriction, including without limitation the rights to use,
+' copy, modify, merge, publish, distribute, sublicense, and/or sell
+' copies of the Software, and to permit persons to whom the
+' Software is furnished to do so, subject to the following
+' conditions:
+' 
+' The above copyright notice and this permission notice shall be
+' included in all copies or substantial portions of the Software.
+' 
+' THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+' EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+' OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+' NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+' HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+' WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+' FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+' OTHER DEALINGS IN THE SOFTWARE.
+'-----------------------------------------------------------------
+' * @category        Carnival
+' * @package         Carnival
+' * @author          Simone Cingano <simonecingano@imente.org>
+' * @copyright       2007-2008 Simone Cingano
+' * @license         http://www.opensource.org/licenses/mit-license.php
+' * @version         SVN: $Id: service.ccv.asp 27 2008-07-04 12:22:52Z imente $
+' * @home            http://www.carnivals.it
+'-----------------------------------------------------------------
+if application(CARNIVAL_CODE & "_admin_c"&"cv") then
 	Dim xml, url, res, data, status
 
-	SQL = "SELECT config_title, config_ccv FROM tba_config WHERE config_id = 1"
-	set rs = conn.execute(SQL)
+	SQL = "SELECT config_title, config_c"&"cv FROM tba_config"
+	set rs = dbManager.conn.execute(SQL)
 	
 	url = server.URLEncode(request.ServerVariables("HTTP_REFERER"))
 	if url = "" then url = CARNIVAL_HOME
@@ -34,12 +51,12 @@ if application(CARNIVAL_CODE & "_admin_ccv") then
 	
 	on error resume next
 	
-	xml.Open "POST", "http://www.carni"&"vals.it/chec"&"kvers"&"ion.a"&"sp", False
+	xml.Open "POST", "ht"&"tp://ww"&"w.carni"&"vals.i"&"t/chec"&"kvers"&"ion.a"&"sp", False
 	xml.setRequestHeader "Content-type" , "application/x-www-form-urlencoded"
 	xml.setRequestHeader "Connection", "close"
 	xml.Send data
 	
-	if cleanBool(rs("config_ccv")) then
+	if cleanBool(rs("config_c"&"cv")) then
 	
 		status = xml.status
 		
@@ -53,7 +70,7 @@ if application(CARNIVAL_CODE & "_admin_ccv") then
 		if res <> "" then
 		%>
 		if (confirm("CARNIVAL\nE' disponibile un aggiornamento per carnival\nL'ultima versione disponibile è la <%=res%>, tu stai utilizzando la versione <%=CARNIVAL_VERSION%>\nVuoi collegarti al sito ufficiale per scaricare l'aggiornamento?")) {
-			window.location.href = 'http://www.carni'+'vals.it/downloads?c=<%=CARNIVAL_VERSION%>&u=<%=res%>';
+			window.location.href = 'ht'+'tp://ww'+'w.carni'+'vals.i'+'t/dow'+'nloads?c=<%=CARNIVAL_VERSION%>&u=<%=res%>';
 		}
 		<%
 		end if
@@ -63,6 +80,6 @@ if application(CARNIVAL_CODE & "_admin_ccv") then
 	Set xml = Nothing
 	
 	
-	application(CARNIVAL_CODE & "_admin_ccv") = false
+	application(CARNIVAL_CODE & "_admin_c"&"cv") = false
 	
 end if %>

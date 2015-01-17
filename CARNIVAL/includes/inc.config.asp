@@ -1,20 +1,37 @@
 <%
 '-----------------------------------------------------------------
-' <IVT>
-' IVT@package		Carnival
-' IVT@packver		1.0b.0 <20080312>
-' IVT@author		Simone Cingano <simonecingano@imente.org>
-' IVT@copyright		(c) 2008 Simone Cingano
-' IVT@licence		GNU GPL v2 <http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt>
-' IVT@version		inc.config.asp 0 20080312120000
-' </IVT>
-'
-'  >>> QUESTO FILE E' PARTE INTEGRANTE DEL PACCHETTO "CARNIVAL"
-'  >>> E' possibile utilizzare, modificare e ridistribuire CARNIVAL
-'  >>> liberamente a patto che si mantenga la licenza originale e
-'  >>> che non venga utilizzato per scopi commerciali.
-'  >>> L'applicazione è inoltre distribuita senza alcun tipo di garanzia.
-'
+' ******************** HELLO THIS IS CARNIVAL ********************
+'-----------------------------------------------------------------
+' Copyright (c) 2007-2008 Simone Cingano
+' 
+' Permission is hereby granted, free of charge, to any person
+' obtaining a copy of this software and associated documentation
+' files (the "Software"), to deal in the Software without
+' restriction, including without limitation the rights to use,
+' copy, modify, merge, publish, distribute, sublicense, and/or sell
+' copies of the Software, and to permit persons to whom the
+' Software is furnished to do so, subject to the following
+' conditions:
+' 
+' The above copyright notice and this permission notice shall be
+' included in all copies or substantial portions of the Software.
+' 
+' THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+' EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+' OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+' NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+' HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+' WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+' FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+' OTHER DEALINGS IN THE SOFTWARE.
+'-----------------------------------------------------------------
+' * @category        Carnival
+' * @package         Carnival
+' * @author          Simone Cingano <simonecingano@imente.org>
+' * @copyright       2007-2008 Simone Cingano
+' * @license         http://www.opensource.org/licenses/mit-license.php
+' * @version         SVN: $Id: inc.config.asp 29 2008-07-04 14:03:45Z imente $
+' * @home            http://www.carnivals.it
 '-----------------------------------------------------------------
 
 ' ***************************************************************************
@@ -32,7 +49,15 @@
 '	PERCORSO ASSOLUTO:
 '		es: /db/carnival.mdb (si trova nella cartella DB presente alla radice del sito)
 ' 	il percorso assoluto è necessario nel caso in cui Carnival sia installato in una sottocartella del sito
-const CARNIVAL_DATABASE = 	"database/carnival.mdb"
+const CARNIVAL_DATABASE = 	"/db/carnival.mdb"
+
+' *** CARTELLA DI CARNIVAL
+'   se hai installato carnival direttamente nella root indica "/"
+'	se l'hai installato in una sottocartella (es: "carnival") indica "/carnival"
+'   (ti consiglio in questo caso di indicare percorsi assoluti)
+'	[ LE PATH DEVONO SEMPRE TERMINARE CON IL CARATTERE "/" ]
+'	[ INDICA IL PERCORSO ASSOLUTO COMINCIANDO CON "/" ]
+const CARNIVAL_MAIN = 	"/"
 
 ' *** CARTELLA PUBBLICA DI CARNIVAL
 '   la seguente cartella deve possedere permessi di lettura e scrittura
@@ -42,7 +67,7 @@ const CARNIVAL_DATABASE = 	"database/carnival.mdb"
 '	una sottocartella chiamata CARNIVAL (come nel valore di default)
 '	[ LE PATH DEVONO SEMPRE TERMINARE CON IL CARATTERE "/" ]
 '	[ SU SERVER WINDOWS 2003 LE PATH NON DEVONO CONTENERE "../" ]
-const CARNIVAL_PUBLIC = 	"carnival/"
+const CARNIVAL_PUBLIC = 	"/public/carnival/"
 
 ' *** SOTTOCARTELLE PUBBLICHE
 '	le seguenti cartelle si troveranno dentro a CARNIVAL_PUBLIC
@@ -56,7 +81,7 @@ const CARNIVAL_FEED = 		"feed/"
 ' *** CARTELLA DEI LOGHI
 '   è la cartella dove dovrai caricare le immagini logo da visualizzare
 '   nel layout. non necessita di alcun permesso particolare
-const CARNIVAL_LOGOS = "logos/"
+const CARNIVAL_LOGOS = "/logos/"
 
 ' *** POSTFISSI E PREFISSI DELLE IMMAGINI
 '   tutte le immagini caricate verranno nominate secondo il seguente schema
@@ -119,5 +144,12 @@ const CARNIVAL_LANG = "it-it"
 '    procedere comunque con il setup e seguire le istruzioni)
 '   es: http://www.miophotoblog.it/
 '   es: http://www.miosito.it/photoblog/
-const CARNIVAL_HOME = "http://demo.carnivals.it/"
+const CARNIVAL_HOME = ""
+
+
+' *** VERSIONE IN DEBUG
+'	ti consiglio di lasciare a FALSE la seguente costante
+'	è necessaria a me mentre sviluppo
+const CARNIVAL_DEBUGMODE = false
+
 %>

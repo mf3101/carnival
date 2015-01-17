@@ -1,21 +1,38 @@
 <%@LANGUAGE="VBSCRIPT" CODEPAGE="1252"%>
 <%
 '-----------------------------------------------------------------
-' <IVT>
-' IVT@package		Carnival
-' IVT@packver		1.0b.0 <20080312>
-' IVT@author		Simone Cingano <simonecingano@imente.org>
-' IVT@copyright		(c) 2008 Simone Cingano
-' IVT@licence		GNU GPL v2 <http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt>
-' IVT@version		inc.first.asp 0 20080312120000
-' </IVT>
-'
-'  >>> QUESTO FILE E' PARTE INTEGRANTE DEL PACCHETTO "CARNIVAL"
-'  >>> E' possibile utilizzare, modificare e ridistribuire CARNIVAL
-'  >>> liberamente a patto che si mantenga la licenza originale e
-'  >>> che non venga utilizzato per scopi commerciali.
-'  >>> L'applicazione è inoltre distribuita senza alcun tipo di garanzia.
-'
+' ******************** HELLO THIS IS CARNIVAL ********************
+'-----------------------------------------------------------------
+' Copyright (c) 2007-2008 Simone Cingano
+' 
+' Permission is hereby granted, free of charge, to any person
+' obtaining a copy of this software and associated documentation
+' files (the "Software"), to deal in the Software without
+' restriction, including without limitation the rights to use,
+' copy, modify, merge, publish, distribute, sublicense, and/or sell
+' copies of the Software, and to permit persons to whom the
+' Software is furnished to do so, subject to the following
+' conditions:
+' 
+' The above copyright notice and this permission notice shall be
+' included in all copies or substantial portions of the Software.
+' 
+' THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+' EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+' OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+' NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+' HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+' WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+' FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+' OTHER DEALINGS IN THE SOFTWARE.
+'-----------------------------------------------------------------
+' * @category        Carnival
+' * @package         Carnival
+' * @author          Simone Cingano <simonecingano@imente.org>
+' * @copyright       2007-2008 Simone Cingano
+' * @license         http://www.opensource.org/licenses/mit-license.php
+' * @version         SVN: $Id: inc.first.asp 27 2008-07-04 12:22:52Z imente $
+' * @home            http://www.carnivals.it
 '-----------------------------------------------------------------
 
 '* impostazioni di esecuzione
@@ -23,7 +40,7 @@ option explicit
 response.buffer = true
 
 '* variabili di servizio
-dim crnOscillator, crnCounter
+dim crnOscillator, crnCounter, crnPaginationLooper
 
 '* variabili per il calcolo del tempo impiegato
 '* per l'esecuzione della pagina
@@ -38,6 +55,7 @@ crnTimerStart = timer
 <!--#include file = "inc.set.asp"-->
 <!--#include file = "inc.dba.asp"-->
 <!--#include file = "inc.func.asp"-->
+<!--#include file = "inc.utils.asp"-->
 <!--#include file = "inc.func.file.asp"--><%
 
 '* connette al db
@@ -54,14 +72,20 @@ crnTimerStart = timer
 	dim crnTitle
 	crnTitle = ""
 	
+	'// recordsperpage
+	dim crnPaginationPerPage
+	crnPaginationPerPage = 20
+	
 	'// showTop
 	dim crnShowTop
 	crnShowTop = 20
 	'// photo
-	dim crnPhotoId, crnPhotoTitle, crnPhotoDescription, crnPhotoPub, crnPhotoViews, crnPhotoUrl
-	dim crnPhotoCropped, crnPhotoElaborated,crnPhotoDownloadable,crnPhotoOriginal,crnPhotoActive
+	dim crnPhotoId, crnPhotoTitle, crnPhotoDescription, crnPhotoPub, crnPhotoViews, crnPhotoUrl,crnPhotoOrder
+	dim crnPhotoCropped, crnPhotoElaborated,crnPhotoDownloadable,crnPhotoOriginal,crnPhotoActive,crnPhotoSet
 	'// tag
 	dim crnTagId, crnTagName
+	'// set
+	dim crnSetId, crnSetName
 	dim crnIsPhotoPage, crnIsCommentPage
 	crnIsPhotoPage = false
 	crnIsCommentPage = false
@@ -85,19 +109,19 @@ crnTimerStart = timer
 	
 	'// config
 	dim carnival_jsactive,carnival_exifactive,carnival_author,carnival_title,carnival_description
-	dim carnival_copyright,carnival_start,carnival_password,carnival_about,carnival_headadd
+	dim carnival_copyright,carnival_start,carnival_password,carnival_parent,carnival_about,carnival_headadd
 	dim carnival_bodyadd, carnival_bodyaddwhere
 	dim carnival_style,carnival_style_output_main,carnival_style_output_admin
 	dim carnival_style_images, carnival_style_photopage_islight, carnival_style_page_islight
 	dim carnival_logo_light, carnival_logo_dark
 	dim carnival_wbresizekey, carnival_aspnetactive
-	SQL = "SELECT * FROM tba_config WHERE config_id = 1"
-	set rs = conn.execute(SQL)
+	dim carnival_mode
+	SQL = "SELECT * FROM tba_config"
+	set rs = dbManager.conn.execute(SQL)
 	
-	if isnull(rs("config_start")) then
-		response.write("setup me please")
-		response.End()
-	end if
+	if isnull(rs("config_start")) then response.Redirect("critical.asp?c=03") 'setup me please
+	if trim(rs("config_dbversion")&"") <> CARNIVAL_VERSION then  response.Redirect("critical.asp?c=02") 'corrispondenza versioni
+	if cleanBool(rs("config_applicationblock")) then  response.Redirect("critical.asp?c=01") 'blocco applicazione
 	
 	carnival_style = rs("config_style")
 	carnival_style_output_main = rs("config_style_output_main")
@@ -116,11 +140,13 @@ crnTimerStart = timer
 	carnival_headadd = rs("config_headadd")
 	carnival_bodyadd = rs("config_bodyadd")
 	carnival_bodyaddwhere = cleanByte(rs("config_bodyaddwhere"))
+	carnival_parent = trim(rs("config_parent"))
 	carnival_about = cleanBool(rs("config_about"))
 	carnival_logo_light = rs("config_logo_light")
 	carnival_logo_dark = rs("config_logo_dark")
 	carnival_wbresizekey = rs("config_wbresizekey")
 	carnival_aspnetactive = cleanBool(rs("config_aspnetactive"))
+	carnival_mode = cleanByte(rs("config_mode"))
 	
 	dim carnival_pathimages
 	carnival_pathimages = CARNIVAL_PUBLIC & CARNIVAL_STYLES & carnival_style & "/" & carnival_style_images

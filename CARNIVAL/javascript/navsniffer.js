@@ -2,8 +2,11 @@
  *	MODULE NAVSNIFFER (navsniffer.js)
  *	original code (?)
  *	a simple user-agent sniffer
- ***************************************************************
+ ****************************************************************************
  *	edited by Simone Cingano
+ ****************************************************************************
+ * @license         http://www.opensource.org/licenses/mit-license.php
+ * @version         SVN: $Id: navsniffer.js 8 2008-05-22 00:26:46Z imente $
  ****************************************************************************/
 
 var agt = navigator.userAgent.toLowerCase();

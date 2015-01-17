@@ -1,7 +1,9 @@
-/***************************************************************
- PAGESCROLL and PAGESIZE
- original code quirksmode.org
- ***************************************************************/
+/****************************************************************************
+ * PAGESCROLL and PAGESIZE
+ * original code quirksmode.org
+ ****************************************************************************
+ * @version         SVN: $Id: func.js 21 2008-06-29 22:05:09Z imente $
+ ****************************************************************************/
  
 //
 // getPageScroll()
@@ -109,7 +111,7 @@ function switchDisplay(el) {
 // -----------------------------------------------------------------------------------
 
 function createA(id,href,onclick,title) {
-	var objHtml
+	var objHtml;
 	objHtml = document.createElement("a");
 	if (id!='') Element.setAttribute(objHtml,'id',id);
 	Element.setAttribute(objHtml,'href',href);
@@ -119,17 +121,19 @@ function createA(id,href,onclick,title) {
 }
 
 function createDiv(id) {
-	var objHtml
+	var objHtml;
 	objHtml = document.createElement("div");
 	if (id!='') Element.setAttribute(objHtml,'id',id);
 	return objHtml;
 }
 
 function createImg(id,src,alt) {
-	var objHtml
+	var objHtml;
 	objHtml = document.createElement("img");
 	if (id!='') Element.setAttribute(objHtml,'id',id);
 	if (src!='') Element.setAttribute(objHtml,'src',src);
 	Element.setAttribute(objHtml,'alt',alt);
 	return objHtml;
 }
+
+// -----------------------------------------------------------------------------------

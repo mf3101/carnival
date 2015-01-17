@@ -6,6 +6,8 @@
  ****************************************************************************
  *	note: modified & stripped down version of prototype, to be used with moo.fx
  *	by mad4milk (http://moofx.mad4milk.net).
+ ****************************************************************************
+ * @version         SVN: $Id: prototype.lite.js 8 2008-05-22 00:26:46Z imente $
  ****************************************************************************/
 
 var Class = {

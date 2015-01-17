@@ -1,12 +1,15 @@
-/***************************************************************
- moo.fx, simple effects library built with prototype.js (http://prototype.conio.net).
- by Valerio Proietti (http://mad4milk.net) MIT-style LICENSE.
- for more info (http://moofx.mad4milk.net).
- Sunday, March 05, 2006
- v 1.2.3
- ***************************************************************
- edited by Simone Cingano
- ***************************************************************/
+
+/****************************************************************************
+ * moo.fx, simple effects library built with prototype.js (http://prototype.conio.net).
+ * by Valerio Proietti (http://mad4milk.net) MIT-style LICENSE.
+ * for more info (http://moofx.mad4milk.net).
+ * Sunday, March 05, 2006
+ * v 1.2.3
+ ****************************************************************************
+ * edited by Simone Cingano
+ ****************************************************************************
+ * @version         SVN: $Id: moo.fx.js 8 2008-05-22 00:26:46Z imente $
+ ****************************************************************************/
 
 var fx = new Object();
 //base

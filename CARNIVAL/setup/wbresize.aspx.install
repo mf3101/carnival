@@ -1,30 +1,34 @@
-<%@ Page Language="C#" Debug="true"%>
-<%@ import Namespace="System.IO" %>
-<%@ import Namespace="System.Drawing" %>
-<%@ import Namespace="System.Drawing.Imaging" %>
-<%@ import Namespace="System.Drawing.Drawing2D" %>
+<%@ Page Language="C#" LCID=1040 Debug="false" Trace="false" %> 
+<%@ Import Namespace="System" %> 
+<%@ Import Namespace="System.IO" %> 
+<%@ Import Namespace="System.Drawing" %> 
+<%@ Import Namespace="System.Drawing.Imaging" %> 
+<%@ Import Namespace="System.Drawing.Drawing2D" %> 
+<%@ Import Namespace="System.Collections" %> 
+<%@ Import Namespace="System.Runtime.InteropServices" %> 
+<%@ Import Namespace="System.Globalization" %> 
 <script runat="server">
-
-/*  WBRESIZE 0.3
-	by imente 09/09/2007
-	http://www.imente.it
+/*  WBRESIZE 0.41 [ASP3 version]
+	by imente 27/05/2008
+	http://www.imente.org/short/wbresize
 	
 	**********************************************************************************
 	
-	WBRESIZE è rilasciato sotto licenza GNU GPL.
+	WBRESIZE è rilasciato sotto licenza "Creative Commons Attribuzione 2.5 Italia"
+	>>> http://creativecommons.org/licenses/by/2.5/it/
+	>>> http://creativecommons.org/licenses/by/2.5/it/deed.en
 	>>> E' possibile utilizzare, modificare e ridistribuire WBRESIZE
-	>>> liberamente a patto che si mantenga la licenza originale e
-	>>> che non venga utilizzato per scopi commerciali.
-	>>> L'applicazione è inoltre distribuita senza alcun tipo di garanzia.
-	>>> GNU General Public Licence (http://www.gnu.org/copyleft/gpl.html)
+	>>> liberamente anche per fini commerciali a patto che venga riconosciuta la paternità
+	 * IL CODICE IN OGGETTO VIENE FORNITO "COSÌ COM'È" AI SENSI DELLA
+	 * PRESENTE LICENZA, SENZA ALCUNA GARANZIA, ESPRESSA O IMPLICITA, 
+	 * COMPRESE, TRA LE ALTRE, LA GARANZIA DI ASSENZA DI DIFETTI,
+	 * DI COMMERCIABILITÀ, DI IDONEITÀ PER UN FINE PARTICOLARE E DI 
+	 * NON VIOLAZIONE DI DIRITTI ALTRUI. IL RISCHIO RELATIVO ALLA
+	 * QUALITÀ E AL RENDIMENTO DEL CODICE IN OGGETTO È A CARICO 
+	 * DELL'UTILIZZATORE.
 	
-	WBRESIZE è una piccola applicazione ASP.net utile per ridimensionare immagini
-	al volo (on the fly) oppure salvandole in una cartella.
-	essa è nata per essere utilizzata come componente all'interno di una applicazione
-	scritta in ASP 3.0
-	
-	********************************************************************************** */
-	
+	**********************************************************************************/
+
 string baseAddress = "$BASEADDRESS$";
 string keyCheck = "$KEYCHECK$";
 string errorRedirect = "$BASEADDRESS$errors.asp?c=wbresize";
@@ -32,7 +36,6 @@ string errorImagePath = "";
 bool checkReferrers = false;
 bool ontheflyActive = false;
 bool deletePermitted = false;
-
 
 void Page_Load(Object sender, EventArgs e) {
 	
@@ -46,12 +49,16 @@ void Page_Load(Object sender, EventArgs e) {
 	double requestedHeight = (Request.QueryString["h"]==null)?0:Convert.ToDouble(Request.QueryString["h"]); // altezza impostata
 	bool forceDimension = (Request.QueryString["o"]==null)?false:Convert.ToBoolean(Convert.ToInt32(Request.QueryString["o"])); // forza dimensioni (0/1)
 	int scaleFactor = (Request.QueryString["s"]==null)?0:Convert.ToInt32(Request.QueryString["s"]); // fattore di scalo per la miniatura
+	bool allowSupersize = (Request.QueryString["a"]==null)?false:Convert.ToBoolean(Convert.ToInt32(Request.QueryString["a"])); // permetti sovradimensionamento
 	int jpgCompression = (Request.QueryString["c"]==null)?75:Convert.ToInt32(Request.QueryString["c"]); // compressione (0-100)
 	string fileType = (Request.QueryString["y"]==null)?"":Request.QueryString["y"]; // tipo di file in output
 	string key = (Request.QueryString["k"]==null)?"":Request.QueryString["k"]; // chiave di controllo
 	bool delete = (Request.QueryString["d"]==null)?false:Convert.ToBoolean(Convert.ToInt32(Request.QueryString["d"])); // cancella originale (0/1)
-	bool highQuality = (Request.QueryString["q"]==null)?false:Convert.ToBoolean(Convert.ToInt32(Request.QueryString["q"])); // alta qualità (0/1)
-	
+	bool highQuality = (Request.QueryString["q"]==null)?true:Convert.ToBoolean(Convert.ToInt32(Request.QueryString["q"])); // alta qualità (0/1)
+	int gifPalette = (Request.QueryString["g"]==null)?255:Convert.ToInt32(Request.QueryString["g"]); // alta qualità (0/1)
+	int gifDepth = (Request.QueryString["b"]==null)?4:Convert.ToInt32(Request.QueryString["b"]); // alta qualità (0/1)
+	int Interpolation = (Request.QueryString["i"]==null)?2:Convert.ToInt32(Request.QueryString["i"]); // alta qualità (0/1)
+	InterpolationMode Filter = new InterpolationMode();
 	if (keyCheck!=key && keyCheck!="") { error(6); return; }
 	
 	//istanza della classe wbResize
@@ -67,12 +74,28 @@ void Page_Load(Object sender, EventArgs e) {
 	if (jpgCompression > 100) jpgCompression = 100;
 	if (jpgCompression < 0) jpgCompression = 0;
 	
+	//normalizza la palette gif
+	if (gifPalette < 9) gifPalette = 9;
+	if (gifPalette > 255) gifPalette = 255;
+	
+	//normalizza la profondità di colore gif
+	if (gifDepth != 0 && gifDepth != 1 && gifDepth != 2 && gifDepth != 4 && gifDepth != 8 && gifDepth != 255) gifDepth = 4;
+	
+	//normalizza l'interpolazione
+	switch(Interpolation) {
+		case 0: Filter = InterpolationMode.NearestNeighbor; break;
+		case 1: Filter = InterpolationMode.HighQualityBicubic; break;
+		case 2: Filter = InterpolationMode.HighQualityBilinear; break;
+	}
+	
 	//elimina le querystring dai redirect (per i controlli di validità)
 	int querystring;
 	string checkreferrer = referrer;
 	string checkredirect = redirect;
-	querystring = referrer.IndexOf("?"); if (querystring>0) checkreferrer = referrer.Substring(0,querystring);
-	querystring = redirect.IndexOf("?"); if (querystring>0) checkredirect = redirect.Substring(0,querystring);
+	querystring = referrer.IndexOf("?");
+	if (querystring>0) checkreferrer = referrer.Substring(0,querystring);
+	querystring = redirect.IndexOf("?");
+	if (querystring>0) checkredirect = redirect.Substring(0,querystring);
 	
 	//controllo redirect (vieta redirect a questa pagina) [SEMPRE ATTIVO]
 	redirect = (redirect.IndexOf("wbresize.aspx")==-1?redirect:"");
@@ -95,86 +118,65 @@ void Page_Load(Object sender, EventArgs e) {
 	}
 	
 	if ( fileName.Trim().Length>0 ) {
+			
+		wbResize ImageResizer = new wbResize();
 		try {
 			//istanzia le variabili necessarie all'elaborazione
-			MemoryStream memorystream = new MemoryStream();
 			bool saved = false;
 			string fileoutput = "";
-			int originalWidth = 0;
-			int originalHeight = 0;
-			
-			//carica l'immagine e ne recupera le dimensioni
-			//(utilizza imageload per liberare subito il file)
-			System.Drawing.Image imageload;
-			System.Drawing.Image image;
-			imageload = System.Drawing.Image.FromFile( Server.MapPath(fileName) );
-			image = new Bitmap(imageload);
-			imageload.Dispose();
-			imageload = null;
-			originalWidth = image.Width;
-			originalHeight = image.Height;
-			
-			//calcola la dimensione della thumb
-			int[] newSize = new int[2];;
-			newSize = wbresize.calcSize(originalWidth, originalHeight, requestedWidth, requestedHeight, scaleFactor, forceDimension);
-			//se la dimensione risultante è 0x0 significa che i parametri passati
-			//non sono sufficienti (ne H, ne W, ne S)
-			if (newSize[0]==0 && newSize[1]==0) { image.Dispose();image = null;error(0); return; }
-			
+		
+			ImageResizer.LoadImage(Server.MapPath(fileName));
+			ImageResizer.SetFileType(fileType);
+			ImageResizer.SetThumbSize(requestedWidth, requestedHeight, scaleFactor, forceDimension, allowSupersize);
+			if (ImageResizer.thumbWidth==0&&ImageResizer.thumbHeight==0) { error(0); return; }
+			ImageResizer.SetOptionHighQuality(highQuality);
+			ImageResizer.SetOptionJpegQuality(jpgCompression);
+			ImageResizer.SetOptionFilter(Filter);
+			ImageResizer.SetOptionGifDepth((byte)gifDepth);
+			ImageResizer.SetOptionGifPalette((byte)gifPalette);
+			ImageResizer.SetOptionTiffCompress(true);
 			
 			// esegue le operazioni di elaborazione dell'immagine
 			if ( folder != "" ) {
 				// output su file
 				fileoutput = Server.MapPath(folder+"\\"+newName + "." + fileType);
-				saved = wbresize.save(image,fileoutput,fileType,newSize[0],newSize[1],jpgCompression,highQuality);
-				if (!saved) { image.Dispose();image = null; error(99); return; }
+				ImageResizer.ResizeAndSave(fileoutput);
 				if (delete && deletePermitted) System.IO.File.Delete(Server.MapPath(fileName));
-				Response.Redirect(redirect);
+				Response.Redirect(redirect,false);
 			} else if (ontheflyActive) {
 				// output diretto
 				fileoutput = "";
-				memorystream = wbresize.elab(image,fileType,newSize[0],newSize[1],jpgCompression,highQuality);
-				if (memorystream==null) { image.Dispose();image = null; error(99); return; }
-				print(memorystream,fileType);
+				print(ImageResizer.Resize(),fileType);
 			} else {
 				//ERR: se ontheflyactive non è attivo ed è richiesta
 				//elaborazione onthefly restituisce errore
 				error(5);
-				return;
 			}
-			
-			image.Dispose();
-			image = null;
 			
 		} catch (System.IO.FileNotFoundException ex) {
 			// ERR: immagine inesistente
 			error(2);
+		} catch (Exception ex) {
+			// ERR: altro errore (permessi ad esempio)
+			error(99);
+		} finally {
+			ImageResizer.UnloadImage();
+			ImageResizer = null;
 		}
 	} else {
 		// ERR: nessuna immagine indicata
 		error(1);
-		return;
 	}
 }
 
 private void print(MemoryStream memorystream, string filetype) {
 	//stampa nell'outputstream un'immagine (passata in un memorystream)
 	switch (filetype) {
-		case "gif":
-			Response.ContentType = "image/gif";
-			break;
-		case "png":
-			Response.ContentType = "image/png";
-			break;
-		case "bmp":
-			Response.ContentType = "image/bmp";
-			break;
-		case "tiff":
-			Response.ContentType = "image/tiff";
-			break;
-		default: //jpeg
-			Response.ContentType = "image/jpeg";
-			break;
+		case "gif": Response.ContentType = "image/gif"; break;
+		case "png": Response.ContentType = "image/png"; break;
+		case "bmp": Response.ContentType = "image/bmp"; break;
+		case "tiff": Response.ContentType = "image/tiff"; break;
+		default: Response.ContentType = "image/jpeg"; break;
 	}
 	memorystream.WriteTo( Response.OutputStream );
 }
@@ -183,7 +185,7 @@ private void error(int error) {
 	// errore: visualizza una immagine di errore o redirige alla pagina di errore
 	try {
 		if (errorRedirect != "") {
-			Response.Redirect(errorRedirect + error);
+			Response.Redirect(errorRedirect + error,false);
 		} else {
 			System.Drawing.Image errImage;
 			errImage = System.Drawing.Image.FromFile( Server.MapPath(errorImagePath+"wbresize_err"+error+".gif") );
@@ -200,189 +202,718 @@ private void error(int error) {
 
 /*
 **********************************************************************************
-     >>> CLASSE WBRESIZE <<<
+     >>> WBRESIZE.cs <<<
 **********************************************************************************
 */
 
-class wbResize
+public class wbResize
 {
 
-	private double scaleProportional(double originalA, double originalB, double requestedA) {
-		//scala una delle due dimensioni eseguendo una proporzione
-		return Math.Ceiling(requestedA*originalB/originalA);
+	public int thumbWidth = 0;
+	public int thumbHeight = 0;
+	private string FileType = "jpg"; //jpg,gif,bmp,tiff,png
+
+	private System.Drawing.Image rImage = null;
+	private int originalWidth = 0;
+	private int originalHeight = 0;
+	int JpegQuality = 100;  //0-100
+	bool TiffCompress = true;
+	bool HighQuality = true;
+	InterpolationMode Filter = InterpolationMode.Low;
+	byte GifPalette = 255;  //9-255
+	byte GifDepth = 8;      //0,255,1,2,4,8
+	long ByteSize;
+
+	/****************************************************************************************/
+	/****************************************************************************************/
+
+	public void LoadImage(string path)
+	{
+		if (!File.Exists(path)) { throw new FileNotFoundException(); }
+		try { LoadImage(System.Drawing.Image.FromFile(path)); }
+		catch { throw new FileNotFoundException(); }
+	}
+	public void LoadImage(Stream stream)
+	{
+		try { LoadImage(System.Drawing.Image.FromStream(stream)); }
+		catch { throw new FileNotFoundException(); }
+	}
+	public void LoadImage(System.Drawing.Image image)
+	{
+		rImage = new Bitmap(image);
+		originalWidth = image.Width;
+		originalHeight = image.Height;
+		image.Dispose();
+		image = null;
+	}
+	public void UnloadImage()
+	{
+		if (rImage!=null) rImage.Dispose();
+		rImage = null;
 	}
 
-	public int[] calcSize(int originalWidth, int originalHeight, double requestedWidth, double requestedHeight, int scaleFactor, bool forceDimension) {
+	/****************************************************************************************/
+	/****************************************************************************************/
+
+	private double scaleProportional(double originalA, double originalB, double requestedA)
+	{
+		//scala una delle due dimensioni eseguendo una proporzione
+		return Math.Ceiling(requestedA * originalB / originalA);
+	}
+
+	public void SetThumbSize(double requestedWidth, double requestedHeight)
+	{ SetThumbSize(requestedWidth, requestedHeight, 0, false, false); }
+	public void SetThumbSize(double requestedWidth, double requestedHeight, bool forceDimension)
+	{ SetThumbSize(requestedWidth, requestedHeight, 0, forceDimension, false); }
+	public void SetThumbSize(int scaleFactor)
+	{ SetThumbSize(0, 0, scaleFactor, false, false); }
+	public void SetThumbSize(double requestedWidth, double requestedHeight, int scaleFactor, bool forceDimension, bool allowSuperSize)
+	{
 		//calcola la dimensione dell'immagine ridotta
 		//[restituisce 0,0 in caso di parametri insufficienti]
-	
+
+		int thumbwidth = 0, thumbheight = 0;
+
 		bool executeResize = true;
-		int thumbWidth,thumbHeight;
-		int[] newsize = new int[2];
-			
+
+		if (!allowSuperSize && scaleFactor > 100) scaleFactor = 100;
+		if (scaleFactor < 0) scaleFactor = 0;
+
 		//se una dimensione è più grande dell'immagine e l'altra no, 
 		//la diminuisce fino a renderla pari all'immagine
-		if ( !(!forceDimension && requestedHeight != 0 && requestedWidth != 0)) {
-			if ( originalWidth > requestedWidth && originalHeight < requestedHeight ) requestedHeight = originalHeight; 
-			if ( originalWidth < requestedWidth && originalHeight > requestedHeight ) requestedWidth = originalWidth;
-			executeResize = ( originalWidth >= requestedWidth && originalHeight >= requestedHeight && scaleFactor >= 0 && scaleFactor < 100 );
+		if (!(!forceDimension && requestedHeight != 0 && requestedWidth != 0) && !allowSuperSize)
+		{
+			if (originalWidth > requestedWidth && originalHeight < requestedHeight) requestedHeight = originalHeight;
+			if (originalWidth < requestedWidth && originalHeight > requestedHeight) requestedWidth = originalWidth;
+			executeResize = (originalWidth >= requestedWidth && originalHeight >= requestedHeight && scaleFactor >= 0 && scaleFactor < 100);
 		}
-		
-		if (executeResize) {
+
+		if (executeResize)
+		{
 			//l'immagine è da ridimensionare: calcola le dimensioni della miniatura
-			if ( scaleFactor == 0) {
-				if ( requestedWidth == 0 && requestedHeight != 0) {
+			if (scaleFactor == 0)
+			{
+				if (requestedWidth == 0 && requestedHeight != 0)
+				{
 					// forzata requestedHeight
-					thumbWidth = Convert.ToInt32(scaleProportional(originalHeight,requestedHeight,originalWidth));
-					thumbHeight = Convert.ToInt32(requestedHeight);
-				} else if (requestedHeight == 0 && requestedWidth != 0) {
+					thumbwidth = Convert.ToInt32(scaleProportional(originalHeight, requestedHeight, originalWidth));
+					thumbheight = Convert.ToInt32(requestedHeight);
+				}
+				else if (requestedHeight == 0 && requestedWidth != 0)
+				{
 					// forzata requestedWidth
-					thumbWidth = Convert.ToInt32(requestedWidth);
-					thumbHeight = Convert.ToInt32(scaleProportional(originalWidth,requestedWidth,originalHeight));
-				} else if (requestedHeight != 0 && requestedWidth != 0) {
-					if (forceDimension) {
+					thumbwidth = Convert.ToInt32(requestedWidth);
+					thumbheight = Convert.ToInt32(scaleProportional(originalWidth, requestedWidth, originalHeight));
+				}
+				else if (requestedHeight != 0 && requestedWidth != 0)
+				{
+					if (forceDimension)
+					{
 						// forzata sia requestedWidth che requestedHeight
-						thumbWidth = Convert.ToInt32(requestedWidth);
-						thumbHeight = Convert.ToInt32(requestedHeight);
-					} else {
-						double newWidth,newHeight;
+						thumbwidth = Convert.ToInt32(requestedWidth);
+						thumbheight = Convert.ToInt32(requestedHeight);
+					}
+					else
+					{
+						double newWidth, newHeight;
 						// scala le dimensioni in proporzione per mantenerle
 						//nel riquadro requestedWidth/requestedHeight
 						newHeight = requestedHeight;
-						newWidth = scaleProportional(originalHeight,newHeight,originalWidth);
-						if (newWidth>requestedWidth) {
-							newHeight = Convert.ToInt32(scaleProportional(newWidth,requestedWidth,newHeight));
+						newWidth = scaleProportional(originalHeight, newHeight, originalWidth);
+						if (newWidth > requestedWidth)
+						{
+							newHeight = Convert.ToInt32(scaleProportional(newWidth, requestedWidth, newHeight));
 							newWidth = Convert.ToInt32(requestedWidth);
 						}
-						thumbHeight = Convert.ToInt32(newHeight);
-						thumbWidth = Convert.ToInt32(newWidth);
-						if (thumbWidth>originalWidth && thumbHeight>originalHeight) {
-							thumbHeight=originalHeight;
-							thumbWidth=originalWidth;
+						thumbheight = Convert.ToInt32(newHeight);
+						thumbwidth = Convert.ToInt32(newWidth);
+						if (thumbwidth > originalWidth && thumbheight > originalHeight && !allowSuperSize)
+						{
+							thumbheight = originalHeight;
+							thumbwidth = originalWidth;
 						}
 					}
-				} else {
-					newsize[0] = 0;
-					newsize[1] = 0;
-					return newsize;
 				}
-			} else {
-				// scalata: percentuale delle dimensioni
-				thumbWidth = (originalWidth*scaleFactor/100);
-				thumbHeight = (originalHeight*scaleFactor/100);
+				else //requestedHeight == 0 && requestedWidth == 0
+				{
+					thumbwidth = 0;
+					thumbheight = 0;
+				}
 			}
-		} else {
-			// sovradimensionamento (si impostano le nuove dimensioni a 0 per evitare il ridimensionamento)
-			thumbWidth = originalWidth;
-			thumbHeight = originalHeight;
+			else
+			{
+				// scalata: percentuale delle dimensioni
+				thumbwidth = (originalWidth * scaleFactor / 100);
+				thumbheight = (originalHeight * scaleFactor / 100);
+			}
 		}
-		newsize[0] = thumbWidth;
-		newsize[1] = thumbHeight;
-		return newsize;
+		else
+		{
+			// sovradimensionamento (si impostano le nuove dimensioni a 0 per evitare il ridimensionamento)
+			thumbwidth = originalWidth;
+			thumbheight = originalHeight;
+		}
+		thumbWidth = thumbwidth;
+		thumbHeight = thumbheight;
 	}
-	
-	public bool save(System.Drawing.Image image, string fileoutput, string filetype, int width, int height, int jpgcompression, bool highquality) {
+
+	/****************************************************************************************/
+	/****************************************************************************************/
+
+	public string Report() { return Report(""); }
+	public string Report(string key)
+	{
+		string output = "";
+		string depth = "";
+		switch (key.ToLower())
+		{
+			case "width": output = thumbWidth.ToString(); break;
+			case "height": output = thumbHeight.ToString(); break;
+			case "filetype": output = FileType; break;
+			case "jpegquality": output = JpegQuality.ToString(); break;
+			case "gifpalette": output = GifPalette.ToString(); break;
+			case "gifdepth": depth = GifDepth.ToString() + " Bit"; if (GifDepth == 255) depth = "Greyscale"; output = depth; break;
+			case "tiffcompress": output = TiffCompress.ToString(); break;
+			case "filter": output = Filter.ToString(); break;
+			case "size": output = Convert.ToString(Math.Round((double)ByteSize / 1024,2)) + " Kb"; break;
+			default:
+				output = output + FileType + " Image - " + thumbWidth.ToString() + "x" + thumbHeight.ToString();
+				switch (FileType)
+				{
+					case "jpg": output = output + " - Quality " + JpegQuality.ToString() + "%"; break;
+					case "gif":
+						if (GifDepth != 0) {
+							output = output + " - Palette " + GifPalette.ToString();
+							depth = GifDepth.ToString() + " Bit";
+							if (GifDepth == 255) depth = "Greyscale";
+							output = output + " - Color " + depth;
+						}
+						break;
+					case "tiff": output = output + " - Compress " + TiffCompress.ToString(); break;
+				}
+				output = output + " - Filter " + Filter.ToString();
+				output = output + " - Size " + Convert.ToString(Math.Round((double)ByteSize / 1024,2)) + " Kb";
+				break;
+		}
+		return output;
+	}
+
+	/****************************************************************************************/
+	/****************************************************************************************/
+
+	public void SetFileType(string filetype)
+	{
+		FileType = filetype.ToLower();
+		//normalizza il filetype ai tipi supportati
+		if (FileType != "gif" && FileType != "png" && FileType != "bmp" && FileType != "tiff") FileType = "jpg";
+	}
+
+	public void SetOptionJpegQuality(int jpegquality)
+	{
+		JpegQuality = jpegquality;
+		if (JpegQuality > 100) JpegQuality = 100;
+		if (JpegQuality < 0) JpegQuality = 0;
+	}
+
+	public void SetOptionTiffCompress(bool tiffcompress)
+	{
+		TiffCompress = tiffcompress;
+	}
+
+	public void SetOptionHighQuality(bool highquality)
+	{
+		HighQuality = highquality;
+	}
+
+	public void SetOptionFilter(InterpolationMode filter)
+	{
+		Filter = filter;
+	}
+
+	public void SetOptionGifPalette(byte gifpalette)
+	{
+		GifPalette = gifpalette;
+		if (GifPalette < 2) GifPalette = 2;
+	}        
+
+	public void SetOptionGifDepth(byte gifdepth)
+	{
+		GifDepth = gifdepth;
+		/* VERSIONE PER ASP */
+		if (GifDepth != 0 && GifDepth != 1 && GifDepth != 2 && GifDepth != 4 && GifDepth != 8) GifDepth = 4;
+		/* VERSIONE GENERALE 
+		if (GifDepth != 0 && GifDepth != 1 && GifDepth != 2 && GifDepth != 4 && GifDepth != 8 && GifDepth != 255) GifDepth = 4;*/
+	}
+
+	public void SetOptions(string filetype, int compression, bool highquality, InterpolationMode filter, byte gifpalette, byte gifdepth)
+	{
+		SetFileType(filetype);
+		SetOptionJpegQuality(compression);
+		SetOptionHighQuality(highquality);
+		SetOptionFilter(filter);
+		SetOptionGifPalette(gifpalette);
+		SetOptionGifDepth(gifdepth);
+	}
+
+	/****************************************************************************************/
+	/****************************************************************************************/
+
+	public void ResizeAndSave(string fileoutput)
+	{
 		//salva su file un'immagine ridimensionandola
 		//[in caso di errore restituisce false]
-	
-		try {
-			System.Drawing.Image thumbnail = new Bitmap(width, height);
-			System.Drawing.Graphics graphic = System.Drawing.Graphics.FromImage( thumbnail );       
-			if (highquality) {
-				graphic.InterpolationMode = InterpolationMode.HighQualityBicubic;
-				graphic.SmoothingMode = SmoothingMode.HighQuality;
-				graphic.PixelOffsetMode = PixelOffsetMode.HighQuality;
-				graphic.CompositingQuality = CompositingQuality.HighQuality; 
-			} else {
-				graphic.InterpolationMode = InterpolationMode.Low;
-				graphic.SmoothingMode = SmoothingMode.HighSpeed;
-				graphic.PixelOffsetMode = PixelOffsetMode.HighSpeed;
-				graphic.CompositingQuality = CompositingQuality.HighSpeed; 
-			}
-			graphic.DrawImage(image, 0, 0, width, height);
-			
-			switch (filetype) {
-				case "gif":
-					thumbnail.Save(fileoutput, ImageFormat.Gif);
-					break;
-				case "png":
-					thumbnail.Save(fileoutput, System.Drawing.Imaging.ImageFormat.Png );
-					break;
-				case "bmp":
-					thumbnail.Save(fileoutput, System.Drawing.Imaging.ImageFormat.Bmp );
-					break;
-				case "tiff":
-					thumbnail.Save(fileoutput, System.Drawing.Imaging.ImageFormat.Tiff );
-					break;
-				default: //jpeg
-					ImageCodecInfo[] info = ImageCodecInfo.GetImageEncoders();
-					EncoderParameters encoderParameters;
-					encoderParameters = new EncoderParameters(1);
-					encoderParameters.Param[0] = new EncoderParameter(System.Drawing.Imaging.Encoder.Quality, jpgcompression);
-					thumbnail.Save(fileoutput, info[1], encoderParameters);
-					break;
-			}
-			graphic.Dispose();
-			graphic = null;
+
+		try
+		{
+			System.Drawing.Image thumbnail = System.Drawing.Image.FromStream(Resize());
+			thumbnail.Save(fileoutput);
 			thumbnail.Dispose();
 			thumbnail = null;
-			
-		} catch (Exception ex) {
-			return false;
 		}
-		return true;
+		catch
+		{
+			throw new System.ApplicationException("Unable to save the image");
+		}
 	}
-	
-	public MemoryStream elab(System.Drawing.Image image, string filetype, int width, int height, int jpgcompression, bool highquality) {
+
+	public MemoryStream Resize()
+	{
 		//salva su memorystream un'immagine ridimensionandola
-		//[in caso di errore restituisce null]
-		
+
+		if (rImage == null) throw new System.ApplicationException("Image not loaded!");
+
 		MemoryStream memorystream = new MemoryStream();
-		try {
-			System.Drawing.Image thumbnail = new Bitmap(width, height);
-			System.Drawing.Graphics graphic = System.Drawing.Graphics.FromImage( thumbnail );
-			if (highquality) {
-				graphic.InterpolationMode = InterpolationMode.HighQualityBicubic;
+		ByteSize = 0;
+		try
+		{
+			System.Drawing.Image thumbnail = new Bitmap(thumbWidth, thumbHeight);
+			System.Drawing.Graphics graphic = System.Drawing.Graphics.FromImage(thumbnail);
+			if (HighQuality)
+			{
+				graphic.InterpolationMode = Filter;
 				graphic.SmoothingMode = SmoothingMode.HighQuality;
 				graphic.PixelOffsetMode = PixelOffsetMode.HighQuality;
-				graphic.CompositingQuality = CompositingQuality.HighQuality; 
-			} else {
+				graphic.CompositingQuality = CompositingQuality.HighQuality;
+			}
+			else
+			{
 				graphic.InterpolationMode = InterpolationMode.Low;
 				graphic.SmoothingMode = SmoothingMode.HighSpeed;
 				graphic.PixelOffsetMode = PixelOffsetMode.HighSpeed;
-				graphic.CompositingQuality = CompositingQuality.HighSpeed; 
+				graphic.CompositingQuality = CompositingQuality.HighSpeed;
 			}
-			graphic.DrawImage(image, 0, 0, width, height);
-			
-			switch (filetype) {
-				case "gif":
-					thumbnail.Save(memorystream, ImageFormat.Gif);
+			graphic.DrawImage(rImage, 0, 0, thumbWidth, thumbHeight);
+
+
+			/* EVENTUALI OPERAZIONI SULL'IMMAGINE QUI... */
+
+			EncoderParameters encoderParameters;
+			encoderParameters = new EncoderParameters(1);
+			ImageCodecInfo[] info = ImageCodecInfo.GetImageEncoders();
+
+			switch (FileType)
+			{
+				case "gif": //       info[2]
+					if (GifDepth!=0)
+					{
+						/* VERSIONE PER ASP */
+						Quantizer quantizer = new OctreeQuantizer(GifPalette, GifDepth);
+						using (Bitmap quantized = quantizer.Quantize(thumbnail))
+						{ quantized.Save(memorystream, ImageFormat.Gif); }
+						/* VERSIONE GENERALE 
+						Quantizer quantizer;
+						if (GifDepth == 255) quantizer = new GrayscaleQuantizer();
+						else quantizer = new OctreeQuantizer(GifPalette, GifDepth);
+						using (Bitmap quantized = quantizer.Quantize(thumbnail))
+							{ quantized.Save(memorystream, ImageFormat.Gif); }*/
+					}
+					else thumbnail.Save(memorystream, System.Drawing.Imaging.ImageFormat.Gif);
 					break;
-				case "png":
-					thumbnail.Save(memorystream, System.Drawing.Imaging.ImageFormat.Png );
+				case "png": //       info[4]
+					thumbnail.Save(memorystream, System.Drawing.Imaging.ImageFormat.Png);
 					break;
-				case "bmp":
-					thumbnail.Save(memorystream, System.Drawing.Imaging.ImageFormat.Bmp );
+				case "bmp": //       info[0]
+					thumbnail.Save(memorystream, System.Drawing.Imaging.ImageFormat.Bmp);
 					break;
-				case "tiff":
-					thumbnail.Save(memorystream, System.Drawing.Imaging.ImageFormat.Tiff );
+				case "tiff": //      info[3]
+					encoderParameters.Param[0] = new EncoderParameter(System.Drawing.Imaging.Encoder.Compression, TiffCompress ? (long)EncoderValue.CompressionLZW : (long)EncoderValue.CompressionNone);
+					thumbnail.Save(memorystream, info[3], encoderParameters);
 					break;
-				default: //jpeg
-					ImageCodecInfo[] info = ImageCodecInfo.GetImageEncoders();
-					EncoderParameters encoderParameters;
-					encoderParameters = new EncoderParameters(1);
-					encoderParameters.Param[0] = new EncoderParameter(System.Drawing.Imaging.Encoder.Quality, jpgcompression);
+				default: //jpeg      info[1]
+					encoderParameters.Param[0] = new EncoderParameter(System.Drawing.Imaging.Encoder.Quality, JpegQuality);          
 					thumbnail.Save(memorystream, info[1], encoderParameters);
 					break;
 			}
+			ByteSize = memorystream.Length;
 			graphic.Dispose();
 			graphic = null;
 			thumbnail.Dispose();
 			thumbnail = null;
-		} catch (Exception ex) {
-			return null;
+		}
+		catch
+		{
+			throw new System.ApplicationException("Unable to resize the image");
 		}
 		return memorystream;
 	}
 }
+
+/*
+**********************************************************************************
+     >>> QUANTIZER.cs <<< (versione semplificata)
+**********************************************************************************
+*/
+/* 
+  THIS CODE AND INFORMATION IS PROVIDED "AS IS" WITHOUT WARRANTY OF 
+  ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO 
+  THE IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A 
+  PARTICULAR PURPOSE. 
+  
+    This is sample code and is freely distributable. 
+*/
+
+    public abstract class Quantizer
+    {
+        public Quantizer(bool singlePass)
+        {
+            _singlePass = singlePass;
+            _pixelSize = Marshal.SizeOf(typeof(Color32));
+        }
+        public Bitmap Quantize(System.Drawing.Image source)
+        {
+            int height = source.Height;
+            int width = source.Width;
+            Rectangle bounds = new Rectangle(0, 0, width, height);
+            Bitmap copy = new Bitmap(width, height, PixelFormat.Format32bppArgb);
+            Bitmap output = new Bitmap(width, height, PixelFormat.Format8bppIndexed);
+            using (Graphics g = Graphics.FromImage(copy))
+            {
+                g.PageUnit = GraphicsUnit.Pixel;
+                g.DrawImage(source, bounds);
+
+            }
+            BitmapData sourceData = null;
+            try
+            {
+                sourceData = copy.LockBits(bounds, ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
+                if (!_singlePass)
+                    FirstPass(sourceData, width, height);
+                output.Palette = GetPalette(output.Palette);
+                SecondPass(sourceData, output, width, height, bounds);
+            }
+            finally
+            {
+                copy.UnlockBits(sourceData);
+            }
+            return output;
+        }
+        protected virtual void FirstPass(BitmapData sourceData, int width, int height)
+        {          
+            IntPtr pSourceRow = sourceData.Scan0;
+            for (int row = 0; row < height; row++)
+            {
+                IntPtr pSourcePixel = pSourceRow;
+                for (int col = 0; col < width; col++)
+                {
+                    InitialQuantizePixel(new Color32(pSourcePixel));
+                    pSourcePixel = (IntPtr)((Int32)pSourcePixel + _pixelSize);
+                }
+                pSourceRow = (IntPtr)((long)pSourceRow + sourceData.Stride);
+            }
+        }
+        protected virtual void SecondPass(BitmapData sourceData, Bitmap output, int width, int height, Rectangle bounds)
+        {
+            BitmapData outputData = null;
+            try
+            {
+                outputData = output.LockBits(bounds, ImageLockMode.WriteOnly, PixelFormat.Format8bppIndexed);
+                IntPtr pSourceRow = sourceData.Scan0;
+                IntPtr pSourcePixel = pSourceRow;
+                IntPtr pPreviousPixel = pSourcePixel;
+                IntPtr pDestinationRow = outputData.Scan0;
+                IntPtr pDestinationPixel = pDestinationRow;
+                byte pixelValue = QuantizePixel(new Color32(pSourcePixel));
+                Marshal.WriteByte(pDestinationPixel, pixelValue);
+                for (int row = 0; row < height; row++)
+                {
+                    pSourcePixel = pSourceRow;
+                    pDestinationPixel = pDestinationRow;
+                    for (int col = 0; col < width; col++)
+                    {
+                        if (Marshal.ReadInt32(pPreviousPixel) != Marshal.ReadInt32(pSourcePixel))
+                        {
+                            pixelValue = QuantizePixel(new Color32(pSourcePixel));
+                            pPreviousPixel = pSourcePixel;
+                        }
+                        Marshal.WriteByte(pDestinationPixel, pixelValue);
+                        pSourcePixel = (IntPtr)((long)pSourcePixel + _pixelSize);
+                        pDestinationPixel = (IntPtr)((long)pDestinationPixel + 1);
+
+                    }
+                    pSourceRow = (IntPtr)((long)pSourceRow + sourceData.Stride);
+                    pDestinationRow = (IntPtr)((long)pDestinationRow + outputData.Stride);
+                }
+            }
+            finally
+            {
+                output.UnlockBits(outputData);
+            }
+        }
+        protected virtual void InitialQuantizePixel(Color32 pixel){}
+        protected abstract byte QuantizePixel(Color32 pixel);
+        protected abstract ColorPalette GetPalette(ColorPalette original);
+        private bool _singlePass;
+        private int _pixelSize;
+        [StructLayout(LayoutKind.Explicit)]
+        public struct Color32
+        {
+            public Color32(IntPtr pSourcePixel)
+            {
+                this = (Color32)Marshal.PtrToStructure(pSourcePixel, typeof(Color32));
+            }
+            [FieldOffset(0)]
+            public byte Blue;
+            [FieldOffset(1)]
+            public byte Green;
+            [FieldOffset(2)]
+            public byte Red;
+            [FieldOffset(3)]
+            public byte Alpha;
+            [FieldOffset(0)]
+            public int ARGB;
+            public Color Color
+            {
+                get { return Color.FromArgb(Alpha, Red, Green, Blue); }
+            }
+        }
+    }
+	
+    public class OctreeQuantizer : Quantizer
+    {
+        public OctreeQuantizer(int maxColors, int maxColorBits)
+            : base(false)
+        {
+            if (maxColors > 255)
+                throw new ArgumentOutOfRangeException("maxColors", maxColors, "The number of colors should be less than 256");
+            if ((maxColorBits < 1) | (maxColorBits > 8))
+                throw new ArgumentOutOfRangeException("maxColorBits", maxColorBits, "This should be between 1 and 8");
+            _octree = new Octree(maxColorBits);
+            _maxColors = maxColors;
+        }
+        protected override void InitialQuantizePixel(Color32 pixel)
+        {
+            _octree.AddColor(pixel);
+        }
+        protected override byte QuantizePixel(Color32 pixel)
+        {
+            byte paletteIndex = (byte)_maxColors;
+            if (pixel.Alpha > 0)
+                paletteIndex = (byte)_octree.GetPaletteIndex(pixel);
+
+            return paletteIndex;
+        }
+        protected override ColorPalette GetPalette(ColorPalette original)
+        {
+            ArrayList palette = _octree.Palletize(_maxColors - 1);
+            for (int index = 0; index < palette.Count; index++)
+                original.Entries[index] = (Color)palette[index];
+            original.Entries[_maxColors] = Color.FromArgb(0, 0, 0, 0);
+            return original;
+        }
+        private Octree _octree;
+        private int _maxColors;
+        private class Octree
+        {
+            public Octree(int maxColorBits)
+            {
+                _maxColorBits = maxColorBits;
+                _leafCount = 0;
+                _reducibleNodes = new OctreeNode[9];
+                _root = new OctreeNode(0, _maxColorBits, this);
+                _previousColor = 0;
+                _previousNode = null;
+            }
+            public void AddColor(Color32 pixel)
+            {
+                if (_previousColor == pixel.ARGB)
+                {
+                    if (null == _previousNode)
+                    {
+                        _previousColor = pixel.ARGB;
+                        _root.AddColor(pixel, _maxColorBits, 0, this);
+                    }
+                    else
+                        _previousNode.Increment(pixel);
+                }
+                else
+                {
+                    _previousColor = pixel.ARGB;
+                    _root.AddColor(pixel, _maxColorBits, 0, this);
+                }
+            }
+            public void Reduce()
+            {
+                int index;
+                for (index = _maxColorBits - 1; (index > 0) && (null == _reducibleNodes[index]); index--) ;
+                OctreeNode node = _reducibleNodes[index];
+                _reducibleNodes[index] = node.NextReducible;
+                _leafCount -= node.Reduce();
+                _previousNode = null;
+            }
+            public int Leaves
+            {
+                get { return _leafCount; }
+                set { _leafCount = value; }
+            }
+            protected OctreeNode[] ReducibleNodes
+            {
+                get { return _reducibleNodes; }
+            }
+            protected void TrackPrevious(OctreeNode node)
+            {
+                _previousNode = node;
+            }
+            public ArrayList Palletize(int colorCount)
+            {
+                while (Leaves > colorCount)
+                    Reduce();
+                ArrayList palette = new ArrayList(Leaves);
+                int paletteIndex = 0;
+                _root.ConstructPalette(palette, ref paletteIndex);
+                return palette;
+            }
+            public int GetPaletteIndex(Color32 pixel)
+            {
+                return _root.GetPaletteIndex(pixel, 0);
+            }
+            private static int[] mask = new int[8] { 0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01 };
+            private OctreeNode _root;
+            private int _leafCount;
+            private OctreeNode[] _reducibleNodes;
+            private int _maxColorBits;
+            private OctreeNode _previousNode;
+            private int _previousColor;
+            protected class OctreeNode
+            {
+                public OctreeNode(int level, int colorBits, Octree octree)
+                {
+                    _leaf = (level == colorBits);
+                    _red = _green = _blue = 0;
+                    _pixelCount = 0;
+                    if (_leaf)
+                    {
+                        octree.Leaves++;
+                        _nextReducible = null;
+                        _children = null;
+                    }
+                    else
+                    {
+                        _nextReducible = octree.ReducibleNodes[level];
+                        octree.ReducibleNodes[level] = this;
+                        _children = new OctreeNode[8];
+                    }
+                }
+                public void AddColor(Color32 pixel, int colorBits, int level, Octree octree)
+                {
+                    if (_leaf)
+                    {
+                        Increment(pixel);
+                        octree.TrackPrevious(this);
+                    }
+                    else
+                    {
+                        int shift = 7 - level;
+                        int index = ((pixel.Red & mask[level]) >> (shift - 2)) |
+                            ((pixel.Green & mask[level]) >> (shift - 1)) |
+                            ((pixel.Blue & mask[level]) >> (shift));
+
+                        OctreeNode child = _children[index];
+
+                        if (null == child)
+                        {
+                            child = new OctreeNode(level + 1, colorBits, octree);
+                            _children[index] = child;
+                        }
+                        child.AddColor(pixel, colorBits, level + 1, octree);
+                    }
+
+                }
+                public OctreeNode NextReducible
+                {
+                    get { return _nextReducible; }
+                    set { _nextReducible = value; }
+                }
+                public OctreeNode[] Children
+                {
+                    get { return _children; }
+                }
+                public int Reduce()
+                {
+                    _red = _green = _blue = 0;
+                    int children = 0;
+                    for (int index = 0; index < 8; index++)
+                    {
+                        if (null != _children[index])
+                        {
+                            _red += _children[index]._red;
+                            _green += _children[index]._green;
+                            _blue += _children[index]._blue;
+                            _pixelCount += _children[index]._pixelCount;
+                            ++children;
+                            _children[index] = null;
+                        }
+                    }
+                    _leaf = true;
+                    return (children - 1);
+                }
+                public void ConstructPalette(ArrayList palette, ref int paletteIndex)
+                {
+                    if (_leaf)
+                    {
+                        _paletteIndex = paletteIndex++;
+                        palette.Add(Color.FromArgb(_red / _pixelCount, _green / _pixelCount, _blue / _pixelCount));
+                    }
+                    else
+                    {
+                        for (int index = 0; index < 8; index++)
+                        {
+                            if (null != _children[index])
+                                _children[index].ConstructPalette(palette, ref paletteIndex);
+                        }
+                    }
+                }
+                public int GetPaletteIndex(Color32 pixel, int level)
+                {
+                    int paletteIndex = _paletteIndex;
+                    if (!_leaf)
+                    {
+                        int shift = 7 - level;
+                        int index = ((pixel.Red & mask[level]) >> (shift - 2)) |
+                            ((pixel.Green & mask[level]) >> (shift - 1)) |
+                            ((pixel.Blue & mask[level]) >> (shift));
+                        if (null != _children[index])
+                            paletteIndex = _children[index].GetPaletteIndex(pixel, level + 1);
+                        else
+                            throw new Exception("Didn't expect this!");
+                    }
+                    return paletteIndex;
+                }
+                public void Increment(Color32 pixel)
+                {
+                    _pixelCount++;
+                    _red += pixel.Red;
+                    _green += pixel.Green;
+                    _blue += pixel.Blue;
+                }
+                private bool _leaf;
+                private int _pixelCount;
+                private int _red;
+                private int _green;
+                private int _blue;
+                private OctreeNode[] _children;
+                private OctreeNode _nextReducible;
+                private int _paletteIndex;
+            }
+        }
+    }
 </script>

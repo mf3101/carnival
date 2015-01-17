@@ -1,20 +1,37 @@
 <%
 '-----------------------------------------------------------------
-' <IVT>
-' IVT@package		Carnival
-' IVT@packver		1.0b.0 <20080312>
-' IVT@author		Simone Cingano <simonecingano@imente.org>
-' IVT@copyright		(c) 2008 Simone Cingano
-' IVT@licence		GNU GPL v2 <http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt>
-' IVT@version		gen.photoinfo.asp 0 20080312120000
-' </IVT>
-'
-'  >>> QUESTO FILE E' PARTE INTEGRANTE DEL PACCHETTO "CARNIVAL"
-'  >>> E' possibile utilizzare, modificare e ridistribuire CARNIVAL
-'  >>> liberamente a patto che si mantenga la licenza originale e
-'  >>> che non venga utilizzato per scopi commerciali.
-'  >>> L'applicazione è inoltre distribuita senza alcun tipo di garanzia.
-'
+' ******************** HELLO THIS IS CARNIVAL ********************
+'-----------------------------------------------------------------
+' Copyright (c) 2007-2008 Simone Cingano
+' 
+' Permission is hereby granted, free of charge, to any person
+' obtaining a copy of this software and associated documentation
+' files (the "Software"), to deal in the Software without
+' restriction, including without limitation the rights to use,
+' copy, modify, merge, publish, distribute, sublicense, and/or sell
+' copies of the Software, and to permit persons to whom the
+' Software is furnished to do so, subject to the following
+' conditions:
+' 
+' The above copyright notice and this permission notice shall be
+' included in all copies or substantial portions of the Software.
+' 
+' THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+' EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+' OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+' NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+' HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+' WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+' FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+' OTHER DEALINGS IN THE SOFTWARE.
+'-----------------------------------------------------------------
+' * @category        Carnival
+' * @package         Carnival
+' * @author          Simone Cingano <simonecingano@imente.org>
+' * @copyright       2007-2008 Simone Cingano
+' * @license         http://www.opensource.org/licenses/mit-license.php
+' * @version         SVN: $Id: gen.photoinfo.asp 20 2008-06-29 15:36:00Z imente $
+' * @home            http://www.carnivals.it
 '-----------------------------------------------------------------
 %><!--#include file = "inc.func.exif.asp"-->
 <%
@@ -39,10 +56,10 @@ end if %></div>
 %><hr/>
 <div class="tags"><b><img src="<%=carnival_pathimages%>lay-ico-tag.gif" alt="" class="icon" /><%=crnLang_details_tag%>:</b> <%
 SQL = "SELECT tba_tag.tag_name FROM tba_rel INNER JOIN tba_tag ON tba_rel.rel_tag = tba_tag.tag_id WHERE tba_rel.rel_photo=" & crnPhotoId & " ORDER BY tba_tag.tag_photos, tba_tag.tag_name"
-set rs = conn.execute(SQL)
+set rs = dbManager.conn.execute(SQL)
 if not rs.eof then
 do
-	%><a href="gallery.asp?tag=<%=rs("tag_name")%>"><%=rs("tag_name")%></a><%
+	%><a href="gallery.asp?mode=stream&amp;tag=<%=rs("tag_name")%>"><%=rs("tag_name")%></a><%
 	rs.movenext
 	if not rs.eof then
 		%>, <%
@@ -51,9 +68,17 @@ do
 	end if
 loop
 end if
+%></div><hr/><%
+if carnival_mode <> 2 then %>
+<div class="set"><b><img src="<%=carnival_pathimages%>lay-ico-set.gif" alt="" class="icon" /><%=crnLang_details_set%>:</b> <%
+SQL = "SELECT set_name FROM tba_set WHERE set_id = " & crnPhotoSet
+set rs = dbManager.conn.execute(SQL)
+if not rs.eof then
+%><a href="gallery.asp?mode=sets&amp;set=<%=crnPhotoSet%>"><%=cleanOutputString(rs("set_name"))%></a><%
+end if
 %></div>
+<hr/><% end if %>
 <% if carnival_exifactive then %>
-<hr/>
 <div class="clear"></div>
 <div class="exif"><%
 dim IFDDirectory, ImageFileOffsets

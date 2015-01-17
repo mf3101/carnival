@@ -1,20 +1,37 @@
 <%
 '-----------------------------------------------------------------
-' <IVT>
-' IVT@package		Carnival
-' IVT@packver		1.0b.0 <20080312>
-' IVT@author		Simone Cingano <simonecingano@imente.org>
-' IVT@copyright		(c) 2008 Simone Cingano
-' IVT@licence		GNU GPL v2 <http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt>
-' IVT@version		inc.func.file.asp 0 20080312120000
-' </IVT>
-'
-'  >>> QUESTO FILE E' PARTE INTEGRANTE DEL PACCHETTO "CARNIVAL"
-'  >>> E' possibile utilizzare, modificare e ridistribuire CARNIVAL
-'  >>> liberamente a patto che si mantenga la licenza originale e
-'  >>> che non venga utilizzato per scopi commerciali.
-'  >>> L'applicazione è inoltre distribuita senza alcun tipo di garanzia.
-'
+' ******************** HELLO THIS IS CARNIVAL ********************
+'-----------------------------------------------------------------
+' Copyright (c) 2007-2008 Simone Cingano
+' 
+' Permission is hereby granted, free of charge, to any person
+' obtaining a copy of this software and associated documentation
+' files (the "Software"), to deal in the Software without
+' restriction, including without limitation the rights to use,
+' copy, modify, merge, publish, distribute, sublicense, and/or sell
+' copies of the Software, and to permit persons to whom the
+' Software is furnished to do so, subject to the following
+' conditions:
+' 
+' The above copyright notice and this permission notice shall be
+' included in all copies or substantial portions of the Software.
+' 
+' THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+' EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+' OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+' NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+' HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+' WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+' FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+' OTHER DEALINGS IN THE SOFTWARE.
+'-----------------------------------------------------------------
+' * @category        Carnival
+' * @package         Carnival
+' * @author          Simone Cingano <simonecingano@imente.org>
+' * @copyright       2007-2008 Simone Cingano
+' * @license         http://www.opensource.org/licenses/mit-license.php
+' * @version         SVN: $Id: inc.func.file.asp 27 2008-07-04 12:22:52Z imente $
+' * @home            http://www.carnivals.it
 '-----------------------------------------------------------------
 
 function fileExist(ByVal file)
@@ -74,6 +91,7 @@ end function
 
 function openFile(path)
 
+	on error resume next
 	dim objFSO,objFile
 	Set objFSO=Server.CreateObject("Scripting.FileSystemObject")
 	Set objFile = objFSO.OpenTextFile(path, 1, True)
@@ -81,12 +99,29 @@ function openFile(path)
 	objFile.Close
 	Set objFile = Nothing
 	set objFSO = nothing
+	on error goto 0
 	
+end function
+
+
+function copyFile(path,newpath)
+
+	copyFile = false
+	on error resume next
+	dim objFSO,objFile
+	Set objFSO=Server.CreateObject("Scripting.FileSystemObject")
+	objFSO.CopyFile path, newpath
+	set objFSO = nothing
+	if err.number = 0 then copyFile = true
+	on error goto 0
+
 end function
 
 
 function writeFile(path, string)
 
+	writeFile = false
+	on error resume next
 	dim objFSO,objFile
 	Set objFSO=Server.CreateObject("Scripting.FileSystemObject")
 	Set objFile = objFSO.CreateTextFile(path, True)
@@ -94,6 +129,38 @@ function writeFile(path, string)
 	objFile.Close
 	Set objFile = Nothing
 	set objFSO = nothing
+	if err.number = 0 then writeFile = true
+	on error goto 0
+
+end function
+
+
+function renameFile(path,newpath)
+
+	renameFile = false
+	on error resume next
+	dim objFSO,objFile
+	Set objFSO=Server.CreateObject("Scripting.FileSystemObject")
+	objFSO.MoveFile path, newpath
+	set objFSO = nothing
+	if err.number = 0 then renameFile = true
+	on error goto 0
+
+end function
+
+
+function deleteFile(path)
+
+	deleteFile = false
+	on error resume next
+	dim objFSO,objFile
+	Set objFSO=Server.CreateObject("Scripting.FileSystemObject")
+	Set objFile = objFSO.GetFile(path)
+	objFile.Delete True
+	Set objFile = Nothing
+	set objFSO = nothing
+	if err.number = 0 then deleteFile = true
+	on error goto 0
 
 end function
 

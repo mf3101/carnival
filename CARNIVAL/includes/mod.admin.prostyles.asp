@@ -1,20 +1,37 @@
 <!--#include file = "inc.first.asp"--><%
 '-----------------------------------------------------------------
-' <IVT>
-' IVT@package		Carnival
-' IVT@packver		1.0b.0 <20080312>
-' IVT@author		Simone Cingano <simonecingano@imente.org>
-' IVT@copyright		(c) 2008 Simone Cingano
-' IVT@licence		GNU GPL v2 <http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt>
-' IVT@version		mod.admin.prostyles.asp 0 20080312120000
-' </IVT>
-'
-'  >>> QUESTO FILE E' PARTE INTEGRANTE DEL PACCHETTO "CARNIVAL"
-'  >>> E' possibile utilizzare, modificare e ridistribuire CARNIVAL
-'  >>> liberamente a patto che si mantenga la licenza originale e
-'  >>> che non venga utilizzato per scopi commerciali.
-'  >>> L'applicazione è inoltre distribuita senza alcun tipo di garanzia.
-'
+' ******************** HELLO THIS IS CARNIVAL ********************
+'-----------------------------------------------------------------
+' Copyright (c) 2007-2008 Simone Cingano
+' 
+' Permission is hereby granted, free of charge, to any person
+' obtaining a copy of this software and associated documentation
+' files (the "Software"), to deal in the Software without
+' restriction, including without limitation the rights to use,
+' copy, modify, merge, publish, distribute, sublicense, and/or sell
+' copies of the Software, and to permit persons to whom the
+' Software is furnished to do so, subject to the following
+' conditions:
+' 
+' The above copyright notice and this permission notice shall be
+' included in all copies or substantial portions of the Software.
+' 
+' THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+' EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+' OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+' NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+' HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+' WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+' FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+' OTHER DEALINGS IN THE SOFTWARE.
+'-----------------------------------------------------------------
+' * @category        Carnival
+' * @package         Carnival
+' * @author          Simone Cingano <simonecingano@imente.org>
+' * @copyright       2007-2008 Simone Cingano
+' * @license         http://www.opensource.org/licenses/mit-license.php
+' * @version         SVN: $Id: mod.admin.prostyles.asp 27 2008-07-04 12:22:52Z imente $
+' * @home            http://www.carnivals.it
 '-----------------------------------------------------------------
 %><!--#include file = "inc.admin.check.asp"-->
 <!--#include file = "inc.func.style.asp"--><%
@@ -54,8 +71,8 @@ select case crn_from
 		dim crn_photopage_islight,crn_page_islight
 		
 		if crn_from = "tools" then
-			SQL = "SELECT config_style_font, config_style_header_color, config_style_header_backcolor, config_style_title_color,config_style_title_margin, config_style_text_light_color, config_style_text_dark_color, config_style_text_menu_color FROM tba_config WHERE config_id = 1"
-			set rs = conn.execute(SQL)
+			SQL = "SELECT config_style_font, config_style_header_color, config_style_header_backcolor, config_style_title_color,config_style_title_margin, config_style_text_light_color, config_style_text_dark_color, config_style_text_menu_color FROM tba_config"
+			set rs = dbManager.conn.execute(SQL)
 			crn_font = rs("config_style_font")
 			crn_header_color = rs("config_style_header_color")
 			crn_header_backcolor = rs("config_style_header_backcolor")
@@ -103,8 +120,8 @@ select case crn_from
 		if crn_from <> "tools" then
 			crn_desc = "<strong>" & getStyleVar("name",crn_stylecontent) & "</strong> ( " & getStyleVar("author",crn_stylecontent) & " " & getStyleVar("date",crn_stylecontent) & " )<br/>" & getStyleVar("note",crn_stylecontent)
 			
-			SQL = "UPDATE tba_config SET config_style = '" & crn_style & "', config_style_output_main = '" & crn_output_style_main & "', config_style_output_admin = '" & crn_output_style_admin & "', config_style_font = '" & crn_font & "', config_style_images = '" & crn_images & "', config_style_header_color = '" & crn_header_color & "', config_style_header_backcolor = '" & crn_header_backcolor & "', config_style_title_color = '" & crn_title_color & "', config_style_title_margin = " & crn_title_margin & ", config_style_text_light_color = '" & crn_text_light_color & "', config_style_text_dark_color = '" & crn_text_dark_color & "', config_style_text_menu_color = '" & crn_text_menu_color & "', config_style_photopage_islight = " & formatDbBool(crn_photopage_islight) & ", config_style_page_islight = " & formatDbBool(crn_page_islight) & ", config_style_desc = '" & cleanString(crn_desc,0,0) & "' WHERE config_id = 1"
-			conn.execute(SQL)
+			SQL = "UPDATE tba_config SET config_style = '" & crn_style & "', config_style_output_main = '" & crn_output_style_main & "', config_style_output_admin = '" & crn_output_style_admin & "', config_style_font = '" & crn_font & "', config_style_images = '" & crn_images & "', config_style_header_color = '" & crn_header_color & "', config_style_header_backcolor = '" & crn_header_backcolor & "', config_style_title_color = '" & crn_title_color & "', config_style_title_margin = " & crn_title_margin & ", config_style_text_light_color = '" & crn_text_light_color & "', config_style_text_dark_color = '" & crn_text_dark_color & "', config_style_text_menu_color = '" & crn_text_menu_color & "', config_style_photopage_islight = " & formatDbBool(crn_photopage_islight) & ", config_style_page_islight = " & formatDbBool(crn_page_islight) & ", config_style_desc = '" & cleanString(crn_desc,0,0) & "'"
+			dbManager.conn.execute(SQL)
 		end if
 	
 	case "styleslogo"
@@ -114,8 +131,8 @@ select case crn_from
 			if crn_logo_light = "$TEXT$" then crn_logo_light = ""
 			if crn_logo_dark = "$TEXT$" then crn_logo_dark = ""
 			
-			SQL = "UPDATE tba_config SET config_logo_light = '" & crn_logo_light & "', config_logo_dark = '" & crn_logo_dark & "' WHERE config_id = 1"
-			conn.execute(SQL)
+			SQL = "UPDATE tba_config SET config_logo_light = '" & crn_logo_light & "', config_logo_dark = '" & crn_logo_dark & "'"
+			dbManager.conn.execute(SQL)
 		
 		end if
 

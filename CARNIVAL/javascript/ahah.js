@@ -1,10 +1,12 @@
-/***************************************************************
+/****************************************************************************
  *	AHAH
  *	Asychronous HTML and HTTP
- *	original code from Microformats ( http://microformats.org/wiki/rest/ahah )
- ***************************************************************
+ *	original code from Microformats (http://microformats.org/wiki/rest/ahah)
+ ****************************************************************************
  *	edited by Simone Cingano
- ***************************************************************/
+ ****************************************************************************
+ * @version         SVN: $Id: ahah.js 8 2008-05-22 00:26:46Z imente $
+ ****************************************************************************/
 
 function ahah(url, target, postdata, loading, base, done) {
   document.getElementById(target).innerHTML = loading;
@@ -25,19 +27,7 @@ function ahah(url, target, postdata, loading, base, done) {
 		req.send("");
 	}
   }
-}  
-
-/*
-//**original version
-function ahahDone(url, target, loading, base) {
-  if (req.readyState == 4) {
-    var t = document.getElementById(target);
-    if (req.status == 200) t.innerHTML = base + req.responseText;
-    else {
-		t.innerHTML = base + "<b>ahah error:</b><br/>\n"+req.statusText+'\n<hr/>'+req.responseText;
-	}
-  }
-}*/
+}
 
 //**redirect version (fix opera bug)
 //when response starts with "redirect>" send a new request using the given url

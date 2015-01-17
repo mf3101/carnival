@@ -13,6 +13,7 @@ body {
 
 img { border:0; margin:0;}
 img.icon { margin:0 5px -5px 0; }
+img.licon { margin:0 4px -4px 0; }
 a {
 	color:$text_dark_color$;
 	background-color:inherit;
@@ -87,14 +88,13 @@ body, #overlay { background:url(images/background-gradient.jpg) top left repeat-
 /*** logo */
 #logo { 
 	position:absolute;
-	width:200px;
+	width:350px;
 	z-index:0;
 	top:0;
 }
 #logo a {
 	display:block;
 	color:$header_color$;
-	width:150px;
 	height:35px;
 	text-decoration:none;
 }
@@ -316,15 +316,24 @@ img.carnival-title {
    *************************************************/
    
 /*** thumbs */
-.thumb {
-	margin:5px 0 0 5px;
-	width:120px;
-	height:90px;
+
+#thumbs.set {
+	width:600px;
+	margin:0 auto;
+}
+#thumbs .thumb {
+	margin:5px;
+	width:130px;
+	height:100px;
 	background-color:#FFF;
 	font-size:0;
 	text-align:center;
 }
-.thumb a {
+#thumbs.set .thumb {
+	margin:15px 0 0 10px;
+	background-color:transparent;
+}
+#thumbs .thumb a {
 	display:block;
 	width:120px;
 	height:90px;
@@ -332,36 +341,59 @@ img.carnival-title {
 	border:6px solid #000;
 	overflow:hidden;
 }
-.thumb a:hover {
+#thumbs.set .thumb a {
+	background-color:transparent;
+	border:0;
+	padding:6px;
+}
+#thumbs .thumb a:hover {
 	border:2px solid #FFF;
 	padding:4px;
 }
-.thumb-back {
+
+#thumbs .thumb-back {
 	width:140px;
 	height:110px;
 	float:left;
 	background:url(images/thumb-back.gif) top left no-repeat transparent;
 }
-.thumb-empty {
+
+#thumbs.set .thumb-back {
+	width:150px;
+	height:180px;
+	background-image:url(images/thumb-set-back.gif);
+}
+
+#thumbs .thumb-empty {
 	font-weight:bold;
 	padding:100px 0;
 	font-size:1.1em;
 	text-align:center;
 }
 
-/*** select tag */
-div.tagselect {
+#thumbs.set .thumb-title {
+	font-size:1.2em;
+	padding:10px 8px 0 8px;
+}
+
+/*** select */
+div.galleryselect {
 	text-align:center;
 	font-size:0.85em;
-	margin:0 10px;
+	margin:18px 10px 0;
+	float:left;
 }
-select.tagselect {
+div.galleryselect.pure {
+	margin:10px 0;
+	float:none;
+}
+select.galleryselect {
 	width:150px;
 	font-family:helvetica,serif;
 	border:1px solid #CCC;
 	color:#444;
 }
-input.tagselect {
+input.galleryselect {
 	margin:0 0 0 5px;
 	width:75px;
 	font-size:0.95em;
@@ -369,6 +401,18 @@ input.tagselect {
 	background-color:$title_color$;
 	color:$text_light_color$;
 }
+
+div.galleryset {
+	margin:18px 10px 0;
+	float:left;
+}
+
+/*** tab */
+div.gallerytabs {
+	width:400px;
+	float:left;
+}
+
 
 
 /* ************************************************
@@ -562,7 +606,12 @@ form.comment .info {
 	border:5px solid #FFF;
 	margin:0 auto;
 }
-#photo { text-align:center;font-size:0; }
+
+#photo {
+	text-align:center;
+	font-size:0;
+	z-index:100;
+}
 #photo-loading { text-align:center; }
 
 
@@ -615,6 +664,7 @@ form.comment .info {
 	position:absolute;
 	text-align:left;
 	margin:33px 0 0 -10px;
+	z-index:49;
 }
 #photo-overlay-open a {
 	display:block;margin-bottom:3px;
@@ -862,6 +912,58 @@ table.exif td.content {
 	font-weight:bold;
 }
 
+/* ************************************************
+                         COMMONS
+   *************************************************/
+/* infobox */
+
+div.infobox {
+	margin:10px 20px;
+	padding:7px;
+	text-align:center;
+	border:3px solid #3A3A3A;
+	-moz-border-radius:2em;
+	border-radius:2em;
+	color:$title_color$;
+	font-weight:bold;
+}
+
+/* tabs */
+ul.tabmenu { 
+	list-style:none;
+	margin:20px 0 0;
+	padding:0 0 0 20px;
+	height:24px;
+	clear:both;
+}
+ul.tabmenu li { float:left; margin:0 5px; padding:0; }
+ul.tabmenu a {
+	display:block;
+	font-size:0.9em;
+	text-decoration:none;
+	padding:5px 8px 4px;
+	float:left;
+	background-color:#FFF;
+	border-top:1px solid #DDD;
+	border-left:1px solid #DDD;
+	border-right:1px solid #DDD;
+
+}
+ul.tabmenu a:hover {
+	background-color:#DDD;
+}
+ul.tabmenu li.selected a {
+	background-color:#DDD;
+	font-weight:bold;
+}
+div.hrtabmenu {
+	height:5px;
+	background-color:#DDD;
+	clear:both;
+	margin:0 0 10px;
+	font-size:0;
+}
+
 /*$ADMIN$*/
 /* ************************************************
                          ADMIN
@@ -889,7 +991,7 @@ h3 {
 /* main page */
 .admin-logo {
 	position:absolute;
-	margin:60px 0 0 50px;
+	margin:110px 0 0 50px;
 	text-align:center;
 	width:200px;
 	font-family:$font$;
@@ -957,11 +1059,11 @@ img.photo-thumb {
 	border:1px solid #AAA;
 	margin:5px 10px 20px;
 	padding:5px;
-	width:250px;
+	width:200px;/*FF3Lwidth:250px;*/
 	float:left;
 }
 .upload-box {
-	width:350px;
+	width:400px;/*FF3Lwidth:350px;*/
 }
 .resize-call {
 	margin-top:12px;
@@ -988,7 +1090,7 @@ form.upload input.text {
 	border:1px solid #CCC;
 }
 form.upload input.file {
-	width:140px;
+	width:181px;/*FF3Lwidth:140px;*/
 	font-size:0.95em;
 	border:1px solid #CCC;
 }
@@ -1084,6 +1186,7 @@ table.post tr {
 }
 table.post tr td {
 	border-bottom:1px solid #CCC;
+	height:20px;
 }
 table.post tr:hover {
 	background-color:#EEE;
@@ -1092,6 +1195,9 @@ table.post tr.head {
 	background-color:#DDD;
 	font-weight:bold;
 	font-size:0.85em;
+}
+table.post tr.locked {
+	background-color:#EEE;
 }
 table.post .img {
 	width:30px;
@@ -1112,6 +1218,10 @@ table.post .title {
 	text-align:left;
 }
 table.post .photos {
+	width:50px;
+	text-align:center;
+}
+table.post .order {
 	width:50px;
 	text-align:center;
 }
@@ -1214,10 +1324,71 @@ div.style-logo img {
 }
 
 
+
+/* massaction */
+div.massactionbox {
+	float:right;
+	margin:0 10px;
+	border:1px solid #DDD;
+}
+* html div.massactionbox { width:320px; }
+div.massactionbox .title {
+	font-size:0.8em;
+	font-weight:bold;
+	background-color:#DDD;
+	padding:1px 5px;
+}
+div.massactionbox .box {
+	padding:8px 15px;
+	background-color:#FFF;
+	text-align:right;
+}
+div.massactionbox .box a, div.massactionbox .box button  {
+	font-size:0.85em;
+}
+div.massactionbox .hrlight {
+	height:3px; background-color:#DDD; font-size:0; margin:5px 0;
+}
+
+/* pagination */
+div.pagenavigator {
+	margin:0 10px;
+	width:200px;
+	border:1px solid #DDD;
+}
+div.pagenavigator .title {
+	font-size:0.8em;
+	font-weight:bold;
+	background-color:#DDD;
+	padding:1px 5px;
+}
+div.pagenavigator .box {
+	padding:5px;
+	background-color:#FFF;
+}
+div.pagenavigator div.s, .pagenavigator div.n {
+	text-align:left;
+	font-size:0.9em;
+}
+
 /* buttons */
 
 /* BUTTONS */
 /* ***************************************************************************************************/
+
+.sbuttons button {
+	border:0;
+	margin:0;
+	padding:0;
+	background-color:transparent;
+	cursor:pointer;
+}
+.sbuttons button[type] {
+	margin:-1px -3px -1px; /* FIREFOX */
+}
+.sbuttons a {
+	text-decoration:none;
+}
 
 .nbuttons { /* generic container (i.e. div) for floating buttons */
 	margin:5px 0 0 -7px;

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<carnivalupdate versionfrom="1.0b.0" versionto="1.0c.0" svnversion="$Id: update.xml 29 2008-07-04 14:03:45Z imente $">
+
+	<version from="1.0b.0" to="1.0c.0" execcommon="1">
+	
+		<db action="addcolumn" tablename="tba_config" columnname="config_dbversion" fill="'1.0c.0'" options=":type=char,:size=10" />
+		<db action="addcolumn" tablename="tba_config" columnname="config_applicationblock" fill="1" options=":type=short" />
+		<db action="addcolumn" tablename="tba_config" columnname="config_mode" fill="0" options=":type=short" />
+		<db action="addcolumn" tablename="tba_config" columnname="config_parent" fill="''" options=":type=varchar,:size=250" />
+		<db action="addcolumn" tablename="tba_photo" columnname="photo_set" fill="1" options=":type=long" />
+		<db action="addcolumn" tablename="tba_photo" columnname="photo_order" fill="0" options=":type=single" />
+		
+		<db action="createtable" tablename="tba_set" columnid="set_id" />
+		<db action="addcolumn" tablename="tba_set" columnname="set_name" fill="''" options=":type=varchar,:size=50" />
+		<db action="addcolumn" tablename="tba_set" columnname="set_description" fill="''" options=":type=memo" />
+		<db action="addcolumn" tablename="tba_set" columnname="set_cover" fill="0" options=":type=long" />
+		<db action="addcolumn" tablename="tba_set" columnname="set_photos" fill="0" options=":type=long" />
+		<db action="addcolumn" tablename="tba_set" columnname="set_order" fill="0" options=":type=single" />
+		
+		<db action="query" ifnot="SELECT set_id FROM tba_set WHERE set_id = 1" sql="INSERT INTO tba_set (set_name, set_description, set_cover, set_photos, set_order) VALUES ('Default','Foto non organizzate',0,0,-1)" info="inizializza tabella tba_set" />
+		
+	</version>
+	
+	<common>
+	
+		<copy from="$zipCarnival$*" to="$Carnival$*" />
+		<copy from="$zipPublicStyles$*" to="$PublicStyles$*" />
+		<del path="$Carnival$includes/inc.config.asp" />
+		
+	</common>
+	
+</carnivalupdate>
+
+<!--<db action="dropcolumn" tablename="test" columnname="test" />-->
+<!--<db action="modifycolumn" tablename="test" columnname="test" options=":type=char,:size=30" />-->
+<!--<db action="droptable" tablename="test" />-->

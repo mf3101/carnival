@@ -74,11 +74,11 @@
 			Select Case VarType(ConnOrString)
 				Case 9:
 					Set Conn = ConnOrString
-					if Conn.State = 0 then Conn.Open()
+					if dbManager.conn.State = 0 then dbManager.conn.Open()
 				Case Else:
 					Set Conn = CreateObject("ADODB.Connection")
-					Conn.ConnectionString = ConnOrString
-					Conn.Open
+					dbManager.conn.ConnectionString = ConnOrString
+					dbManager.conn.Open
 			End Select
 		End Sub
 
@@ -117,7 +117,7 @@
 		Public Sub Close()
 			On error resume next
 			Rs.Close
-			Conn.Close
+			dbManager.conn.Close
 			On error goto 0
 			Set Conn = Nothing
 			Set Rs = Nothing

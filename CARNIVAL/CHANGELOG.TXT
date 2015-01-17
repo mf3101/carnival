@@ -1,0 +1,63 @@
+****************************************************************************
+
+						   *** CARNIVAL ***
+								
+****************************************************************************
+
+*** VERSION 1.0c
+*** in development [svn:trunk/]
+--------------------------------------------------
+
+ + utilizzo licenza MIT [#1]
+ > sistema di upgrade unificato [#20]
+ + modalità photogallery/photoblog [#9]
+ > paginazione record in admin [#6]
+ + operazioni massive sui post [#37]
+ > aggiornamento di sicurezza/performance wbresize 0.41 [#39]
+ > opzione wbresize disattivato
+ * inc.func.exif problema antivirus [#4]
+ > intestazioni files [#19]
+ * bugfix stili (safari e ff3)
+ * bugfix/enhancements minori 
+
+****************************************************************************
+
+*** VERSION 1.0b
+*** release date 13/03/2008
+--------------------------------------------------
+
+ > javascript full unobtrusive (admin escluso)
+ T testing OPERA
+ T testing SAFARI
+ * errore wbsecurity cookie non attivi
+ + escludi google, msn e yahoo dalle views
+ + escludi "me" dalle views
+ * about vuoto > nascondi link
+ * nascondi commenti per post nascosti (in commenti generali)
+ * lunghezza nome gif nei temi
+ + traduzione errori
+ * pulizia icone
+ + compressione db
+ > sistema di "notifica" attraverso l'interfaccia delle nuove foto
+ + setup
+ + compilazione wbresize
+ * slideshow superbug
+ > commenti e dettagli unobtrusive
+ > personalizza margine titolo
+ > body add
+ * descrizione in textbox (invece che textarea) e controllo print in head
+ > tag speciali (no tagcloud)
+ * attiva asp.net successivamente al setup (TOOLS)
+ > controllo setup asp.net
+ > nome blog direttamente in setup
+ > al "primo avvio" vai direttamente alla config
+
+****************************************************************************
+
+*** VERSION 1.0a
+*** release date 25/12/2007
+--------------------------------------------------
+
+ ! prima release funzionante [non pubblica]
+
+****************************************************************************

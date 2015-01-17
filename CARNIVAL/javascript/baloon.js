@@ -1,9 +1,12 @@
-/***************************************************************
+/****************************************************************************
  BALOON
  developed by Simone Cingano (http://www.imente.it)
- ***************************************************************
+ ****************************************************************************
+ * @license         http://www.opensource.org/licenses/mit-license.php
+ * @version         SVN: $Id: baloon.js 18 2008-06-29 02:54:08Z imente $
+ ****************************************************************************
  
- need: prototype.lite.js, moo.fx.js, extend.js
+ needs: prototype.lite.js, moo.fx.js, extend.js
  
  ***************************************************************
  STRUCTURE:
@@ -37,8 +40,8 @@ Baloon.prototype = {
 	initialize: function() {},
 	
 	id: String(''), 			/*id della divclasse (l'oggetto principale si chiamerà "baloonID", il contenuto "baloonIDcontent"*/
-	caller: String(''), 		/*l'oggetto che richiama la baloon (id dell'oggetto)*/
 	instance: String(''), 		/*il nome dell'istanza*/
+	caller: String(''), 		/*l'oggetto che richiama la baloon (id dell'oggetto)*/
 	divclass: String('baloon'), /*il nome della classe dei baloon*/
 	top:Number(0), 				/*posizione top (0 automatico oppure pixel)*/
 	left:Number(0), 			/*posizione left (0 automatico oppure pixel)*/
@@ -70,8 +73,10 @@ Baloon.prototype = {
 		//if (callerfunc == null)	Element.setAttribute($(caller),'onmouseover',this.instance+'.show();');
 		//else Element.setAttribute($(caller),'onmouseover',callerfunc);
 		
-		if (callerfunc == null)	$(caller).onmouseover = function() { eval(instance+'.show();'); };
-		else $(caller).onmouseover = callerfunc;
+		if (caller != null) {
+			if (callerfunc == null)	$(caller).onmouseover = function() { eval(instance+'.show();'); };
+			else $(caller).onmouseover = callerfunc;
+		}
 		
 		var objRound1, objRound2, objRound3, objAppend, objAppend2
 		objRound1 = document.createElement("div");
@@ -114,17 +119,19 @@ Baloon.prototype = {
 		Element.setTop('baloon'+this.id,y);
 	},
 	
+	place: function(positioning,x,y) {
+		if (positioning != 'absolute') {
+			if (x != null && y != null) this.setPosition(x+this.left,y+this.top);
+			else this.setPosition(this.left,this.top);
+		} else {
+			if (x != null && y != null) this.setPosition(x,y);
+			else this.setPosition(this.left,this.top);
+		}
+	},
+	
 	show: function(positioning,x,y) {
 		if (this.baloonState == 0) {
-			
-			if (positioning != 'absolute') {
-				if (x != null && y != null) this.setPosition(x+this.left,y+this.top);
-				else this.setPosition(this.left,this.top);
-			} else {
-				if (x != null && y != null) this.setPosition(x,y);
-				else this.setPosition(this.left,this.top);
-			}
-			
+			this.place(positioning,x,y);
 			this.baloonState=2;
 			var instance = this.instance;
 			Element.show('baloon'+this.id);
@@ -133,6 +140,12 @@ Baloon.prototype = {
 										  'onComplete': function(){	eval(instance+'.baloonState = 1;'); }
 										},0).custom(0,1);
 		}
+	},
+	
+	forceShow: function(positioning,x,y) {
+		this.place(positioning,x,y);
+		this.baloonState = 1;
+		Element.show('baloon'+this.id);
 	},
 	
 	hide: function() {
@@ -150,7 +163,7 @@ Baloon.prototype = {
 	
 	forceHide: function() {
 		this.baloonState = 0;
-		Element.hide('baloon'+this.id)
+		Element.hide('baloon'+this.id);
 	},
 	
 	check: function(arg) {

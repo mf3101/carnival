@@ -1,25 +1,42 @@
 <!--#include file = "inc.first.asp"--><%
 '-----------------------------------------------------------------
-' <IVT>
-' IVT@package		Carnival
-' IVT@packver		1.0b.0 <20080312>
-' IVT@author		Simone Cingano <simonecingano@imente.org>
-' IVT@copyright		(c) 2008 Simone Cingano
-' IVT@licence		GNU GPL v2 <http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt>
-' IVT@version		mod.admin.protools.asp 0 20080312120000
-' </IVT>
-'
-'  >>> QUESTO FILE E' PARTE INTEGRANTE DEL PACCHETTO "CARNIVAL"
-'  >>> E' possibile utilizzare, modificare e ridistribuire CARNIVAL
-'  >>> liberamente a patto che si mantenga la licenza originale e
-'  >>> che non venga utilizzato per scopi commerciali.
-'  >>> L'applicazione è inoltre distribuita senza alcun tipo di garanzia.
-'
+' ******************** HELLO THIS IS CARNIVAL ********************
+'-----------------------------------------------------------------
+' Copyright (c) 2007-2008 Simone Cingano
+' 
+' Permission is hereby granted, free of charge, to any person
+' obtaining a copy of this software and associated documentation
+' files (the "Software"), to deal in the Software without
+' restriction, including without limitation the rights to use,
+' copy, modify, merge, publish, distribute, sublicense, and/or sell
+' copies of the Software, and to permit persons to whom the
+' Software is furnished to do so, subject to the following
+' conditions:
+' 
+' The above copyright notice and this permission notice shall be
+' included in all copies or substantial portions of the Software.
+' 
+' THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+' EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+' OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+' NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+' HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+' WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+' FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+' OTHER DEALINGS IN THE SOFTWARE.
+'-----------------------------------------------------------------
+' * @category        Carnival
+' * @package         Carnival
+' * @author          Simone Cingano <simonecingano@imente.org>
+' * @copyright       2007-2008 Simone Cingano
+' * @license         http://www.opensource.org/licenses/mit-license.php
+' * @version         SVN: $Id: mod.admin.protools.asp 27 2008-07-04 12:22:52Z imente $
+' * @home            http://www.carnivals.it
 '-----------------------------------------------------------------
 %><!--#include file = "inc.admin.check.asp"-->
 <%
 dim crn_action
-crn_action = normalize(request.QueryString("action"),"wbresize|aspnet|dbclean|dbcompress|statsthison|statsthisoff|ccvon|ccvoff","")
+crn_action = normalize(request.QueryString("action"),"wbresize|aspneton|aspnetoff|dbclean|dbcompress|statsthison|statsthisoff|ccvon|ccvoff","")
 dim crn_db
 dim crn_done
 
@@ -47,24 +64,30 @@ select case crn_action
 		call writeFile(server.MapPath(CARNIVAL_PUBLIC & CARNIVAL_SERVICES & "wbresize.aspx"),wbresize)
 		wbresize = ""
 		
-		aspnetactive = checkAspnetActive(CARNIVAL_HOME & replace(CARNIVAL_PUBLIC & CARNIVAL_SERVICES,"\","/") & "test.aspx")
+		aspnetactive = checkAspnetActive(absoluteUrl(CARNIVAL_HOME,CARNIVAL_PUBLIC&CARNIVAL_SERVICES&"test.aspx"))
 		
-		SQL = "UPDATE tba_config SET config_wbresizekey = '" & wbresizekey & "', config_aspnetactive = " & formatDbBool(aspnetactive) & " WHERE config_id = 1"
-		conn.execute(SQL)
+		SQL = "UPDATE tba_config SET config_wbresizekey = '" & wbresizekey & "', config_aspnetactive = " & formatDbBool(aspnetactive) & ""
+		dbManager.conn.execute(SQL)
 		
 		crn_done = "wbresize"
 		if not(aspnetactive) then crn_done = "aspnet"
 		
-	case "aspnet"
-		aspnetactive = checkAspnetActive(CARNIVAL_HOME & CARNIVAL_PUBLIC & CARNIVAL_SERVICES & "test.aspx")
+	case "aspneton"
+		aspnetactive = checkAspnetActive(absoluteUrl(CARNIVAL_HOME,CARNIVAL_PUBLIC&CARNIVAL_SERVICES&"test.aspx"))
 		
 		if aspnetactive then
-			SQL = "UPDATE tba_config SET config_aspnetactive = 1 WHERE config_id = 1"
-			conn.execute(SQL)
+			SQL = "UPDATE tba_config SET config_aspnetactive = 1"
+			dbManager.conn.execute(SQL)
 			response.Redirect("admin.asp?module=pro-tools&action=wbresize")
 		else
-			crn_done = "aspnet"
+			crn_done = "aspnetfail"
 		end if
+		
+	case "aspnetoff"
+		'call deleteFile(server.MapPath(CARNIVAL_PUBLIC & CARNIVAL_SERVICES & "wbresize.aspx"))
+		SQL = "UPDATE tba_config SET config_aspnetactive = 0"
+		dbManager.conn.execute(SQL)
+		crn_done = "aspnetoff"
 		
 	case "dbclean"
 		crn_done = "dbclean"
@@ -133,8 +156,8 @@ select case crn_action
 		elseif crn_action = "ccvoff" then
 			crn_ccv = 0
 		end if
-		SQL = "UPDATE tba_config SET config_ccv = " & crn_ccv & " WHERE config_id = 1"
-		conn.execute(SQL)
+		SQL = "UPDATE tba_config SET config_ccv = " & crn_ccv & ""
+		dbManager.conn.execute(SQL)
 		
 end select
 

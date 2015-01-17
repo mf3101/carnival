@@ -1,25 +1,43 @@
 <!--#include file = "inc.first.asp"--><%
 '-----------------------------------------------------------------
-' <IVT>
-' IVT@package		Carnival
-' IVT@packver		1.0b.0 <20080312>
-' IVT@author		Simone Cingano <simonecingano@imente.org>
-' IVT@copyright		(c) 2008 Simone Cingano
-' IVT@licence		GNU GPL v2 <http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt>
-' IVT@version		mod.admin.prorss.asp 0 20080312120000
-' </IVT>
-'
-'  >>> QUESTO FILE E' PARTE INTEGRANTE DEL PACCHETTO "CARNIVAL"
-'  >>> E' possibile utilizzare, modificare e ridistribuire CARNIVAL
-'  >>> liberamente a patto che si mantenga la licenza originale e
-'  >>> che non venga utilizzato per scopi commerciali.
-'  >>> L'applicazione è inoltre distribuita senza alcun tipo di garanzia.
-'
+' ******************** HELLO THIS IS CARNIVAL ********************
+'-----------------------------------------------------------------
+' Copyright (c) 2007-2008 Simone Cingano
+' 
+' Permission is hereby granted, free of charge, to any person
+' obtaining a copy of this software and associated documentation
+' files (the "Software"), to deal in the Software without
+' restriction, including without limitation the rights to use,
+' copy, modify, merge, publish, distribute, sublicense, and/or sell
+' copies of the Software, and to permit persons to whom the
+' Software is furnished to do so, subject to the following
+' conditions:
+' 
+' The above copyright notice and this permission notice shall be
+' included in all copies or substantial portions of the Software.
+' 
+' THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+' EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+' OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+' NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+' HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+' WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+' FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+' OTHER DEALINGS IN THE SOFTWARE.
+'-----------------------------------------------------------------
+' * @category        Carnival
+' * @package         Carnival
+' * @author          Simone Cingano <simonecingano@imente.org>
+' * @copyright       2007-2008 Simone Cingano
+' * @license         http://www.opensource.org/licenses/mit-license.php
+' * @version         SVN: $Id: mod.admin.prorss.asp 16 2008-06-28 12:25:27Z imente $
+' * @home            http://www.carnivals.it
 '-----------------------------------------------------------------
 %><!--#include file = "inc.admin.check.asp"-->
 <%
-dim crn_from
+dim crn_from, crn_returnpage
 crn_from = normalize(request.QueryString("from"),"photo","tools")
+crn_returnpage = cleanLong(request.QueryString("returnpage"))
 dim output
 output = "<?xml version=""1.0""?>" & vbcrlf & _
 		 "<rss version=""2.0"">" & vbcrlf & _
@@ -40,7 +58,7 @@ output = "<?xml version=""1.0""?>" & vbcrlf & _
 		 "</image>" & vbcrlf
 
 SQL = "SELECT TOP 10 photo_id, photo_title, photo_description, photo_pub FROM tba_photo WHERE photo_active = 1 ORDER BY photo_id DESC"
-set rs = conn.execute(SQL)
+set rs = dbManager.conn.execute(SQL)
 
 dim rs2
 set rs2 = Server.CreateObject("ADODB.Recordset")
@@ -52,7 +70,7 @@ output = output & "<item>" & vbcrlf & _
 			      "<description><![CDATA[" & replace(server.HTMLEncode(rs("photo_description")),vbcr,"<br/>") & "]]></description>" & vbcrlf
 				  
 	SQL = "SELECT tba_tag.tag_name FROM tba_rel INNER JOIN tba_tag ON tba_rel.rel_tag = tba_tag.tag_id WHERE tba_rel.rel_photo=" & rs("photo_id") & " ORDER BY tba_tag.tag_photos DESC"
-	set rs2 = conn.execute(SQL)
+	set rs2 = dbManager.conn.execute(SQL)
 	while not rs2.eof
 	output = output & "<category>" & rs2("tag_name") & "</category>" & vbcrlf
 		rs2.movenext
@@ -82,7 +100,7 @@ select case crn_from
 	case "tools"
 	response.Redirect("admin.asp?module=tools&done=rss")
 	case "photo"
-	response.Redirect("admin.asp?module=photo-list")
+	response.Redirect("admin.asp?module=photo-list&page="&crn_returnpage)
 end select
 
 %>
