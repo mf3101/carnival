@@ -1,0 +1,51 @@
+﻿  _________________________
+  |                       |
+  |    CARNIVAL 1.0b.0    |
+  |_______________________|
+  
+  @author	Simone Cingano <simonecingano@imente.org>
+  @version	1.0b0 (20080312)
+  @copyright	(c) 2008 Simone Cingano
+  @licence	http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt
+
+---------------------------------------------------------------
+SITO UFFICIALE:	   http://www.carnivals.it
+FORUM DI SUPPORTO: http://forum.imente.org/viewforum.php?f=7
+---------------------------------------------------------------
+
+
+come installo carnival?
+-----------------------
+è sufficiente copiare il contenuto della cartella "CARNIVAL INSTALL" di questo
+zip sul vostro spazio web (anche in una sottocartella, es: /photoblog).
+successivamente impostare permessi di scrittura alla cartella "db" e
+di lettura/scrittura alla cartella "public"
+infine puntate il vostro browser preferito a http://www.tuosito.it/setup.asp
+(se hai copiato i file direttamente nella root)
+
+
+
+come faccio a impostare i permessi di scrittura sulle cartelle?
+---------------------------------------------------------------
+se hai uno spazio web gratis o a pagamento dove non hai il controllo
+diretto del computer vedi di copiare il database nella cartella apposita
+(spesso la cartella si chiama "mdb-database" o semplicemente "db"), e il
+contenuto della cartella "public" nella cartella apposita (spesso la
+cartella si chiama "public"). se non hai idea della posizione delle
+cartelle apposite chiedi al tuo fornitore del servizio dove sono attivi
+i permessi di scrittura per il database e i permessi di scrittura e
+lettura per la cartella pubblica.
+
+se invece hai il controllo completo dello spazio web apri IIS (dagli
+strumenti di amministrazione) e imposta lettura sulla cartella "db" e
+lettura/scrittura sulla cartella "public". poi con windows explorer
+cliccate destro sulla cartella "db", proprietà e su "protezione"
+impostate permessi di lettura e scrittura per l'utente IUSR_nomecomputer
+(dove nomecomputer è il nome del vostro computer) e ripetete la stessa
+operazione per la cartella "public".
+
+in ogni caso ricorda sempre durante l'installazione di impostare
+correttamente i percorsi. il setup ti guiderà in questa operazione
+notificandoti se li hai impostati correttamente. non ti preoccupare, 
+se hai qualsiasi problema il forum di supporto è a tua disposizione 
+(http://forum.imente.org/viewforum.php?f=7)

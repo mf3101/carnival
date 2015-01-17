@@ -1,0 +1,28 @@
+// CARNIVAL STYLE
+
+name = Light (Official Carnival Style) 1.0.2
+author = imente
+date = 12/03/2008
+version = 1.0
+
+note = Icone 16px <a href="http://www.famfamfam.com/lab/icons/silk/">Silk Icons</a> | Icone 32px <a href="http://www.everaldo.com/crystal/">Crystal Clear</a> (licenza LGPL)
+
+css_input = cstyle.css
+css_output_main = main.css
+css_output_admin = admin.css
+
+images_path = images/
+
+page_islight = 1
+page_photo_islight = 0
+
+font = tahoma,helvetica,serif
+header_backcolor = #CACACA
+header_color = #0A62A7
+title_color = #486877
+title_margin = 20
+text_light_color = #EEE
+text_dark_color = #333
+text_menu_color = #555
+photo_width = 900
+photo_margin = 5

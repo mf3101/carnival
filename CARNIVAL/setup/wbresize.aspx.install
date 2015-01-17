@@ -1,0 +1,388 @@
+<%@ Page Language="C#" Debug="true"%>
+<%@ import Namespace="System.IO" %>
+<%@ import Namespace="System.Drawing" %>
+<%@ import Namespace="System.Drawing.Imaging" %>
+<%@ import Namespace="System.Drawing.Drawing2D" %>
+<script runat="server">
+
+/*  WBRESIZE 0.3
+	by imente 09/09/2007
+	http://www.imente.it
+	
+	**********************************************************************************
+	
+	WBRESIZE è rilasciato sotto licenza GNU GPL.
+	>>> E' possibile utilizzare, modificare e ridistribuire WBRESIZE
+	>>> liberamente a patto che si mantenga la licenza originale e
+	>>> che non venga utilizzato per scopi commerciali.
+	>>> L'applicazione è inoltre distribuita senza alcun tipo di garanzia.
+	>>> GNU General Public Licence (http://www.gnu.org/copyleft/gpl.html)
+	
+	WBRESIZE è una piccola applicazione ASP.net utile per ridimensionare immagini
+	al volo (on the fly) oppure salvandole in una cartella.
+	essa è nata per essere utilizzata come componente all'interno di una applicazione
+	scritta in ASP 3.0
+	
+	********************************************************************************** */
+	
+string baseAddress = "$BASEADDRESS$";
+string keyCheck = "$KEYCHECK$";
+string errorRedirect = "$BASEADDRESS$errors.asp?c=wbresize";
+string errorImagePath = "";
+bool checkReferrers = false;
+bool ontheflyActive = false;
+bool deletePermitted = false;
+
+
+void Page_Load(Object sender, EventArgs e) {
+	
+	// parametri
+	string fileName = (Request.QueryString["f"]==null)?"":Request.QueryString["f"]; // nome del file originale
+	string folder = (Request.QueryString["t"]==null)?"":Request.QueryString["t"]; // cartella dove salvare la thumb
+	string newName = (Request.QueryString["n"]==null)?"thumb":Request.QueryString["n"]; // nuovo nome del file
+	string redirect = (Request.QueryString["r"]==null)?"":Request.QueryString["r"]; // redirezione dopo save
+	if (folder!="") { errorRedirect = (Request.QueryString["e"]==null)?errorRedirect:Request.QueryString["e"]; } // redirezione inerrore
+	double requestedWidth = (Request.QueryString["w"]==null)?0:Convert.ToDouble(Request.QueryString["w"]); // larghezza impostata
+	double requestedHeight = (Request.QueryString["h"]==null)?0:Convert.ToDouble(Request.QueryString["h"]); // altezza impostata
+	bool forceDimension = (Request.QueryString["o"]==null)?false:Convert.ToBoolean(Convert.ToInt32(Request.QueryString["o"])); // forza dimensioni (0/1)
+	int scaleFactor = (Request.QueryString["s"]==null)?0:Convert.ToInt32(Request.QueryString["s"]); // fattore di scalo per la miniatura
+	int jpgCompression = (Request.QueryString["c"]==null)?75:Convert.ToInt32(Request.QueryString["c"]); // compressione (0-100)
+	string fileType = (Request.QueryString["y"]==null)?"":Request.QueryString["y"]; // tipo di file in output
+	string key = (Request.QueryString["k"]==null)?"":Request.QueryString["k"]; // chiave di controllo
+	bool delete = (Request.QueryString["d"]==null)?false:Convert.ToBoolean(Convert.ToInt32(Request.QueryString["d"])); // cancella originale (0/1)
+	bool highQuality = (Request.QueryString["q"]==null)?false:Convert.ToBoolean(Convert.ToInt32(Request.QueryString["q"])); // alta qualità (0/1)
+	
+	if (keyCheck!=key && keyCheck!="") { error(6); return; }
+	
+	//istanza della classe wbResize
+	wbResize wbresize = new wbResize();
+	
+	//recupera il referrer
+	string referrer = (Request.UrlReferrer==null?"":Request.UrlReferrer.ToString());
+	
+	//normalizza il filetype ai tipi supportati
+	if (fileType!="gif" && fileType!="png" && fileType!="bmp" && fileType!="tiff") fileType = "jpg";
+	
+	//normalizza la compressione jpeg
+	if (jpgCompression > 100) jpgCompression = 100;
+	if (jpgCompression < 0) jpgCompression = 0;
+	
+	//elimina le querystring dai redirect (per i controlli di validità)
+	int querystring;
+	string checkreferrer = referrer;
+	string checkredirect = redirect;
+	querystring = referrer.IndexOf("?"); if (querystring>0) checkreferrer = referrer.Substring(0,querystring);
+	querystring = redirect.IndexOf("?"); if (querystring>0) checkredirect = redirect.Substring(0,querystring);
+	
+	//controllo redirect (vieta redirect a questa pagina) [SEMPRE ATTIVO]
+	redirect = (redirect.IndexOf("wbresize.aspx")==-1?redirect:"");
+	//controllo redirect (vieta redirect alla pagina da cui è giunta la richiesta)
+	if (checkReferrers) redirect = (checkreferrer.IndexOf(checkredirect)==-1?redirect:"");
+	if (redirect=="") redirect = folder+"/"+newName+"."+fileType;
+	
+	
+	//se il controllo dell'indirizzo base è attivo controlla la validità dei referrers
+	if (baseAddress != "") {
+		if (!(referrer=="")) {
+			if (referrer.Substring(0, baseAddress.Length)!=baseAddress) {
+				//referrer non corrispondente al sito
+				error(3);return;
+			}
+		} else {
+			//referrer nascosto
+			error(4);return;
+		}
+	}
+	
+	if ( fileName.Trim().Length>0 ) {
+		try {
+			//istanzia le variabili necessarie all'elaborazione
+			MemoryStream memorystream = new MemoryStream();
+			bool saved = false;
+			string fileoutput = "";
+			int originalWidth = 0;
+			int originalHeight = 0;
+			
+			//carica l'immagine e ne recupera le dimensioni
+			//(utilizza imageload per liberare subito il file)
+			System.Drawing.Image imageload;
+			System.Drawing.Image image;
+			imageload = System.Drawing.Image.FromFile( Server.MapPath(fileName) );
+			image = new Bitmap(imageload);
+			imageload.Dispose();
+			imageload = null;
+			originalWidth = image.Width;
+			originalHeight = image.Height;
+			
+			//calcola la dimensione della thumb
+			int[] newSize = new int[2];;
+			newSize = wbresize.calcSize(originalWidth, originalHeight, requestedWidth, requestedHeight, scaleFactor, forceDimension);
+			//se la dimensione risultante è 0x0 significa che i parametri passati
+			//non sono sufficienti (ne H, ne W, ne S)
+			if (newSize[0]==0 && newSize[1]==0) { image.Dispose();image = null;error(0); return; }
+			
+			
+			// esegue le operazioni di elaborazione dell'immagine
+			if ( folder != "" ) {
+				// output su file
+				fileoutput = Server.MapPath(folder+"\\"+newName + "." + fileType);
+				saved = wbresize.save(image,fileoutput,fileType,newSize[0],newSize[1],jpgCompression,highQuality);
+				if (!saved) { image.Dispose();image = null; error(99); return; }
+				if (delete && deletePermitted) System.IO.File.Delete(Server.MapPath(fileName));
+				Response.Redirect(redirect);
+			} else if (ontheflyActive) {
+				// output diretto
+				fileoutput = "";
+				memorystream = wbresize.elab(image,fileType,newSize[0],newSize[1],jpgCompression,highQuality);
+				if (memorystream==null) { image.Dispose();image = null; error(99); return; }
+				print(memorystream,fileType);
+			} else {
+				//ERR: se ontheflyactive non è attivo ed è richiesta
+				//elaborazione onthefly restituisce errore
+				error(5);
+				return;
+			}
+			
+			image.Dispose();
+			image = null;
+			
+		} catch (System.IO.FileNotFoundException ex) {
+			// ERR: immagine inesistente
+			error(2);
+		}
+	} else {
+		// ERR: nessuna immagine indicata
+		error(1);
+		return;
+	}
+}
+
+private void print(MemoryStream memorystream, string filetype) {
+	//stampa nell'outputstream un'immagine (passata in un memorystream)
+	switch (filetype) {
+		case "gif":
+			Response.ContentType = "image/gif";
+			break;
+		case "png":
+			Response.ContentType = "image/png";
+			break;
+		case "bmp":
+			Response.ContentType = "image/bmp";
+			break;
+		case "tiff":
+			Response.ContentType = "image/tiff";
+			break;
+		default: //jpeg
+			Response.ContentType = "image/jpeg";
+			break;
+	}
+	memorystream.WriteTo( Response.OutputStream );
+}
+
+private void error(int error) {
+	// errore: visualizza una immagine di errore o redirige alla pagina di errore
+	try {
+		if (errorRedirect != "") {
+			Response.Redirect(errorRedirect + error);
+		} else {
+			System.Drawing.Image errImage;
+			errImage = System.Drawing.Image.FromFile( Server.MapPath(errorImagePath+"wbresize_err"+error+".gif") );
+			Response.ContentType = "image/gif";
+			errImage.Save(Response.OutputStream, System.Drawing.Imaging.ImageFormat.Gif );
+			errImage.Dispose();
+			errImage = null;
+		}
+    } catch (System.IO.FileNotFoundException) {
+		Response.Write("WBRESIZE ERROR CODE "+error);
+        Response.End();
+    }
+}
+
+/*
+**********************************************************************************
+     >>> CLASSE WBRESIZE <<<
+**********************************************************************************
+*/
+
+class wbResize
+{
+
+	private double scaleProportional(double originalA, double originalB, double requestedA) {
+		//scala una delle due dimensioni eseguendo una proporzione
+		return Math.Ceiling(requestedA*originalB/originalA);
+	}
+
+	public int[] calcSize(int originalWidth, int originalHeight, double requestedWidth, double requestedHeight, int scaleFactor, bool forceDimension) {
+		//calcola la dimensione dell'immagine ridotta
+		//[restituisce 0,0 in caso di parametri insufficienti]
+	
+		bool executeResize = true;
+		int thumbWidth,thumbHeight;
+		int[] newsize = new int[2];
+			
+		//se una dimensione è più grande dell'immagine e l'altra no, 
+		//la diminuisce fino a renderla pari all'immagine
+		if ( !(!forceDimension && requestedHeight != 0 && requestedWidth != 0)) {
+			if ( originalWidth > requestedWidth && originalHeight < requestedHeight ) requestedHeight = originalHeight; 
+			if ( originalWidth < requestedWidth && originalHeight > requestedHeight ) requestedWidth = originalWidth;
+			executeResize = ( originalWidth >= requestedWidth && originalHeight >= requestedHeight && scaleFactor >= 0 && scaleFactor < 100 );
+		}
+		
+		if (executeResize) {
+			//l'immagine è da ridimensionare: calcola le dimensioni della miniatura
+			if ( scaleFactor == 0) {
+				if ( requestedWidth == 0 && requestedHeight != 0) {
+					// forzata requestedHeight
+					thumbWidth = Convert.ToInt32(scaleProportional(originalHeight,requestedHeight,originalWidth));
+					thumbHeight = Convert.ToInt32(requestedHeight);
+				} else if (requestedHeight == 0 && requestedWidth != 0) {
+					// forzata requestedWidth
+					thumbWidth = Convert.ToInt32(requestedWidth);
+					thumbHeight = Convert.ToInt32(scaleProportional(originalWidth,requestedWidth,originalHeight));
+				} else if (requestedHeight != 0 && requestedWidth != 0) {
+					if (forceDimension) {
+						// forzata sia requestedWidth che requestedHeight
+						thumbWidth = Convert.ToInt32(requestedWidth);
+						thumbHeight = Convert.ToInt32(requestedHeight);
+					} else {
+						double newWidth,newHeight;
+						// scala le dimensioni in proporzione per mantenerle
+						//nel riquadro requestedWidth/requestedHeight
+						newHeight = requestedHeight;
+						newWidth = scaleProportional(originalHeight,newHeight,originalWidth);
+						if (newWidth>requestedWidth) {
+							newHeight = Convert.ToInt32(scaleProportional(newWidth,requestedWidth,newHeight));
+							newWidth = Convert.ToInt32(requestedWidth);
+						}
+						thumbHeight = Convert.ToInt32(newHeight);
+						thumbWidth = Convert.ToInt32(newWidth);
+						if (thumbWidth>originalWidth && thumbHeight>originalHeight) {
+							thumbHeight=originalHeight;
+							thumbWidth=originalWidth;
+						}
+					}
+				} else {
+					newsize[0] = 0;
+					newsize[1] = 0;
+					return newsize;
+				}
+			} else {
+				// scalata: percentuale delle dimensioni
+				thumbWidth = (originalWidth*scaleFactor/100);
+				thumbHeight = (originalHeight*scaleFactor/100);
+			}
+		} else {
+			// sovradimensionamento (si impostano le nuove dimensioni a 0 per evitare il ridimensionamento)
+			thumbWidth = originalWidth;
+			thumbHeight = originalHeight;
+		}
+		newsize[0] = thumbWidth;
+		newsize[1] = thumbHeight;
+		return newsize;
+	}
+	
+	public bool save(System.Drawing.Image image, string fileoutput, string filetype, int width, int height, int jpgcompression, bool highquality) {
+		//salva su file un'immagine ridimensionandola
+		//[in caso di errore restituisce false]
+	
+		try {
+			System.Drawing.Image thumbnail = new Bitmap(width, height);
+			System.Drawing.Graphics graphic = System.Drawing.Graphics.FromImage( thumbnail );       
+			if (highquality) {
+				graphic.InterpolationMode = InterpolationMode.HighQualityBicubic;
+				graphic.SmoothingMode = SmoothingMode.HighQuality;
+				graphic.PixelOffsetMode = PixelOffsetMode.HighQuality;
+				graphic.CompositingQuality = CompositingQuality.HighQuality; 
+			} else {
+				graphic.InterpolationMode = InterpolationMode.Low;
+				graphic.SmoothingMode = SmoothingMode.HighSpeed;
+				graphic.PixelOffsetMode = PixelOffsetMode.HighSpeed;
+				graphic.CompositingQuality = CompositingQuality.HighSpeed; 
+			}
+			graphic.DrawImage(image, 0, 0, width, height);
+			
+			switch (filetype) {
+				case "gif":
+					thumbnail.Save(fileoutput, ImageFormat.Gif);
+					break;
+				case "png":
+					thumbnail.Save(fileoutput, System.Drawing.Imaging.ImageFormat.Png );
+					break;
+				case "bmp":
+					thumbnail.Save(fileoutput, System.Drawing.Imaging.ImageFormat.Bmp );
+					break;
+				case "tiff":
+					thumbnail.Save(fileoutput, System.Drawing.Imaging.ImageFormat.Tiff );
+					break;
+				default: //jpeg
+					ImageCodecInfo[] info = ImageCodecInfo.GetImageEncoders();
+					EncoderParameters encoderParameters;
+					encoderParameters = new EncoderParameters(1);
+					encoderParameters.Param[0] = new EncoderParameter(System.Drawing.Imaging.Encoder.Quality, jpgcompression);
+					thumbnail.Save(fileoutput, info[1], encoderParameters);
+					break;
+			}
+			graphic.Dispose();
+			graphic = null;
+			thumbnail.Dispose();
+			thumbnail = null;
+			
+		} catch (Exception ex) {
+			return false;
+		}
+		return true;
+	}
+	
+	public MemoryStream elab(System.Drawing.Image image, string filetype, int width, int height, int jpgcompression, bool highquality) {
+		//salva su memorystream un'immagine ridimensionandola
+		//[in caso di errore restituisce null]
+		
+		MemoryStream memorystream = new MemoryStream();
+		try {
+			System.Drawing.Image thumbnail = new Bitmap(width, height);
+			System.Drawing.Graphics graphic = System.Drawing.Graphics.FromImage( thumbnail );
+			if (highquality) {
+				graphic.InterpolationMode = InterpolationMode.HighQualityBicubic;
+				graphic.SmoothingMode = SmoothingMode.HighQuality;
+				graphic.PixelOffsetMode = PixelOffsetMode.HighQuality;
+				graphic.CompositingQuality = CompositingQuality.HighQuality; 
+			} else {
+				graphic.InterpolationMode = InterpolationMode.Low;
+				graphic.SmoothingMode = SmoothingMode.HighSpeed;
+				graphic.PixelOffsetMode = PixelOffsetMode.HighSpeed;
+				graphic.CompositingQuality = CompositingQuality.HighSpeed; 
+			}
+			graphic.DrawImage(image, 0, 0, width, height);
+			
+			switch (filetype) {
+				case "gif":
+					thumbnail.Save(memorystream, ImageFormat.Gif);
+					break;
+				case "png":
+					thumbnail.Save(memorystream, System.Drawing.Imaging.ImageFormat.Png );
+					break;
+				case "bmp":
+					thumbnail.Save(memorystream, System.Drawing.Imaging.ImageFormat.Bmp );
+					break;
+				case "tiff":
+					thumbnail.Save(memorystream, System.Drawing.Imaging.ImageFormat.Tiff );
+					break;
+				default: //jpeg
+					ImageCodecInfo[] info = ImageCodecInfo.GetImageEncoders();
+					EncoderParameters encoderParameters;
+					encoderParameters = new EncoderParameters(1);
+					encoderParameters.Param[0] = new EncoderParameter(System.Drawing.Imaging.Encoder.Quality, jpgcompression);
+					thumbnail.Save(memorystream, info[1], encoderParameters);
+					break;
+			}
+			graphic.Dispose();
+			graphic = null;
+			thumbnail.Dispose();
+			thumbnail = null;
+		} catch (Exception ex) {
+			return null;
+		}
+		return memorystream;
+	}
+}
+</script>
