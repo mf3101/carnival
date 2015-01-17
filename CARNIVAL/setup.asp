@@ -1,9 +1,8 @@
 <%
-option explicit
 '-----------------------------------------------------------------
 ' ******************** HELLO THIS IS CARNIVAL ********************
 '-----------------------------------------------------------------
-' Copyright (c) 2007-2008 Simone Cingano
+' Copyright (c) 2007-2011 Simone Cingano
 ' 
 ' Permission is hereby granted, free of charge, to any person
 ' obtaining a copy of this software and associated documentation
@@ -28,24 +27,31 @@ option explicit
 '-----------------------------------------------------------------
 ' * @category        Carnival
 ' * @package         Carnival
-' * @author          Simone Cingano <simonecingano@imente.org>
-' * @copyright       2007-2008 Simone Cingano
+' * @author          Simone Cingano <info@carnivals.it>
+' * @copyright       2007-2011 Simone Cingano
 ' * @license         http://www.opensource.org/licenses/mit-license.php
-' * @version         SVN: $Id: setup.asp 29 2008-07-04 14:03:45Z imente $
+' * @version         SVN: $Id: setup.asp 115 2010-10-11 19:15:16Z imente $
 ' * @home            http://www.carnivals.it
 '-----------------------------------------------------------------
+
+option explicit
+
+'*****************************************************
+'ENVIROMENT SETUP
 %><!--#include file = "includes/class.include.asp"-->
 <!--#include file = "includes/inc.set.asp"-->
-<!--#include file = "includes/inc.dba.asp"-->
 <!--#include file = "includes/inc.md5.asp"-->
-<!--#include file = "includes/inc.func.asp"-->
-<!--#include file = "includes/inc.func.file.asp"-->
-<!--#include file = "setup/inc.setup.asp"-->
+<!--#include file = "includes/inc.func.common.asp"-->
+<!--#include file = "includes/inc.func.common.io.asp"-->
+<!--#include file = "includes/inc.func.common.file.asp"-->
+<!--#include file = "includes/class.aspdbbox.asp"-->
+<!--#include file = "includes/inc.setuptools.asp"-->
 <%
+'*****************************************************
 
-'CARNIVALS INSTALL.ASP
+'CARNIVALS SETUP.ASP
 
-const CARNIVAL_INSTALLER_VERSION = "1.0c.0"
+const CARNIVAL_INSTALLER_VERSION = "1.0.0"
 
 'FASE D'INSTALLAZIONE
 dim phase
@@ -57,6 +63,9 @@ if phase < 0 then phase = 0
 
 dim allright
 allright = false
+
+dim dbManager, SQL
+dim str_host, str_user, str_password
 
 %><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -84,7 +93,8 @@ select case phase
 	<p>Innanzitutto grazie per aver scaricato Carnival, &egrave; un piacere offrirti questa applicazione.<br />
 	Questa breve procedura di setup ti guider&agrave; nella semplice installazione di Carnival sul tuo spazio web.</p>
 	<p>Se hai aperto questa pagina significa che hai gi&agrave; copiato tutti i file di Carnival sul tuo spazio, ora &egrave; quindi venuto il momento di configurare l'applicazione affinch&eacute; funzioni e lo faccia al meglio.</p>
-	<p>Apri il file <strong>includes/inc.config.asp</strong> e leggendo attentamente ci&ograve; che vi &egrave; scritto modifica le costanti di Carnival al fine di adattarle alla tua situazione.</p>
+	<p>Prendi il file <strong>includes/inc.config.dist.asp</strong> e fanne una copia nominandola <strong>inc.config.asp</strong></p>
+    <p>Ora apri <strong>inc.config.asp</strong> e, leggendo attentamente ci&ograve; che vi &egrave; scritto, modifica le costanti di Carnival al fine di adattarle alla tua situazione.</p>
 	<p>Quando hai terminato salva il file e clicca su &quot;continua&quot;, questa procedura guidata controller&agrave; la validit&agrave; dei valori che hai inserito.</p>
 	<hr/>
 	<a href="?p=1" class="button"><span>continua <img src="setup/next.gif" alt="" /></span></a><%
@@ -97,6 +107,7 @@ select case phase
 	<%
 	
 	dim check_title, check_description, check_error
+	set dbManager = new Class_ASPdBManager
 	
 	'**********************************************************************************
 	'**********************************************************************************
@@ -107,7 +118,7 @@ select case phase
 		strConfigFile = "includes/inc.config.asp"
 		
 		check_title = "Presenza file di configurazione ( " & strConfigFile & " )"
-		if not fileExist(strConfigFile) then
+		if not fileExists(strConfigFile) then
 			allright = false
 			check_description = "il file di configurazione non esiste"
 			check_error = true
@@ -153,23 +164,45 @@ select case phase
 	
 	'**********************************************************************************
 	'**********************************************************************************
-	'*** PRESENZA DATABASE
-	if allright then
+	'*** PRESENZA DATABASE MDB
+	if allright and CARNIVAL_DATABASE_TYPE = "mdb" then
 		
 		check_title = "Presenza database ( " & CARNIVAL_DATABASE & " )"
-		if not fileExist(CARNIVAL_DATABASE) then
+		
+		
+		if not hasWritePermission(CARNIVAL_DATABASE) then
 			allright = false
-			check_description = "il database non esiste"
+			check_description = "la cartella non possiede permessi di scrittura"
 			check_error = true
 		else
-			if not writePermissions(CARNIVAL_DATABASE) then
-				allright = false
-				check_description = "la database esiste ma la cartella non possiede permessi di scrittura"
-				check_error = true
-			else
-				check_description = "la database esiste e la cartella possiede permessi di scrittura"
-				check_error = false
+			dbManager.database = CARNIVAL_DATABASE_TYPE
+			if not fileExists(CARNIVAL_DATABASE) then
+			    check_description = "il database non esiste (verr&agrave; creato) e la cartella possiede permessi di scrittura"
+			    check_error = false
+            else
+			    check_description = "il database esiste (verr&agrave; svuotato) e la cartella possiede permessi di scrittura"
+			    check_error = false
 			end if
+		end if
+		
+		'printing
+		call printResult(check_title, check_description, check_error, false,"")
+	end if
+	'**********************************************************************************
+	'**********************************************************************************
+	'*** PRESENZA DATABASE MYSQL
+	if allright and CARNIVAL_DATABASE_TYPE = "mysql" then
+		
+		check_title = "Presenza database ( " & CARNIVAL_DATABASE & " )"
+		
+		dbManager.database = CARNIVAL_DATABASE_TYPE
+		if not dbManager.Connect(CARNIVAL_DATABASE,CARNIVAL_DATABASE_USER,CARNIVAL_DATABASE_PASSWORD,"") then
+			allright = false
+			check_description = "impossibile connettersi al database (se il database non esiste &egrave; necessario crearlo: ""<strong>" & CARNIVAL_DATABASE & "</strong>"")"
+			check_error = true
+		else
+			check_description = "connessione database mysql effettuata correttamente"
+			check_error = false
 		end if
 		
 		'printing
@@ -189,12 +222,12 @@ select case phase
 			check_description = "indica il percorso assoluto cominciando con ""/"""
 			check_error = true
 		else
-			if not folderExist(CARNIVAL_MAIN) then
+			if not folderExists(CARNIVAL_MAIN) then
 				allright = false
 				check_description = "hai indicato male la cartella (devi indicare quella dove è contenuto QUESTO file)"
 				check_error = true
 			else
-				if not fileExist(CARNIVAL_MAIN & "LICENCE.TXT") then
+				if not fileExists(CARNIVAL_MAIN & "LICENCE.TXT") then
 					allright = false
 					check_description = "hai indicato la cartella corretta? ho cercato il file ""LICENCE.TXT"" ma non l'ho trovato<br/>è il file della licenza ed &egrave; sempre presente nella cartella principale (se l'hai cancellato per favore ripristinalo). "
 					check_error = true
@@ -218,12 +251,12 @@ select case phase
 	if allright then
 		
 		check_title = "Cartella delle foto ( " & CARNIVAL_PUBLIC & CARNIVAL_PHOTOS & " )"
-		if not folderExist(CARNIVAL_PUBLIC & CARNIVAL_PHOTOS) then
+		if not folderExists(CARNIVAL_PUBLIC & CARNIVAL_PHOTOS) then
 			allright = false
 			check_description = "la cartella non esiste"
 			check_error = true
 		else
-			if not writePermissions(CARNIVAL_PUBLIC & CARNIVAL_PHOTOS) then
+			if not hasWritePermission(CARNIVAL_PUBLIC & CARNIVAL_PHOTOS) then
 				allright = false
 				check_description = "la cartella esiste ma non possiede permessi di scrittura"
 				check_error = true
@@ -246,12 +279,12 @@ select case phase
 	if allright then
 		
 		check_title = "Cartella degli stili ( " & CARNIVAL_PUBLIC & CARNIVAL_STYLES & " )"
-		if not folderExist(CARNIVAL_PUBLIC & CARNIVAL_STYLES) then
+		if not folderExists(CARNIVAL_PUBLIC & CARNIVAL_STYLES) then
 			allright = false
 			check_description = "la cartella non esiste"
 			check_error = true
 		else
-			if not writePermissions(CARNIVAL_PUBLIC & CARNIVAL_STYLES) then
+			if not hasWritePermission(CARNIVAL_PUBLIC & CARNIVAL_STYLES) then
 				allright = false
 				check_description = "la cartella esiste ma non possiede permessi di scrittura"
 				check_error = true
@@ -274,12 +307,12 @@ select case phase
 	if allright then
 		
 		check_title = "Cartella di supporto ( " & CARNIVAL_PUBLIC & CARNIVAL_SERVICES & " )"
-		if not folderExist(CARNIVAL_PUBLIC & CARNIVAL_SERVICES) then
+		if not folderExists(CARNIVAL_PUBLIC & CARNIVAL_SERVICES) then
 			allright = false
 			check_description = "la cartella non esiste"
 			check_error = true
 		else
-			if not writePermissions(CARNIVAL_PUBLIC & CARNIVAL_SERVICES) then
+			if not hasWritePermission(CARNIVAL_PUBLIC & CARNIVAL_SERVICES) then
 				allright = false
 				check_description = "la cartella esiste ma non possiede permessi di scrittura"
 				check_error = true
@@ -302,12 +335,12 @@ select case phase
 	if allright then
 		
 		check_title = "Cartella dei feed ( " & CARNIVAL_PUBLIC & CARNIVAL_FEED & " )"
-		if not folderExist(CARNIVAL_PUBLIC & CARNIVAL_FEED) then
+		if not folderExists(CARNIVAL_PUBLIC & CARNIVAL_FEED) then
 			allright = false
 			check_description = "la cartella non esiste"
 			check_error = true
 		else
-			if not writePermissions(CARNIVAL_PUBLIC & CARNIVAL_FEED) then
+			if not hasWritePermission(CARNIVAL_PUBLIC & CARNIVAL_FEED) then
 				allright = false
 				check_description = "la cartella esiste ma non possiede permessi di scrittura"
 				check_error = true
@@ -330,7 +363,7 @@ select case phase
 	if allright then
 		
 		check_title = "Presenza cartella dei loghi ( " & CARNIVAL_LOGOS & " )"
-		if not folderExist(CARNIVAL_LOGOS) then
+		if not folderExists(CARNIVAL_LOGOS) then
 			allright = false
 			check_description = "la cartella non esiste<br/>crea la cartella nel percorso indicato oppure modifica il file di configurazione affinch&eacute; punti a una cartella esistente"
 			check_error = true
@@ -388,9 +421,6 @@ select case phase
 	'**********************************************************************************
 	'**********************************************************************************
 	
-	
-	
-	
 	%>
 	<hr/>
 	<% if allright then 
@@ -405,10 +435,11 @@ select case phase
 	<a href="?p=0" class="button"><span><img src="setup/back.gif" alt="" /> indietro</span></a><%
 	case 2
 	%>
+    <div id="workin">
 	<div class="phase">Fase 2/4</div>
 	<h2>Impostazioni base</h2>
-	<hr/>
-	<form action="setup.asp?p=3" method="post">
+	<hr/></div>
+	<form action="setup.asp?p=3" method="post" id="setform">
 	<p>Ora che la configurazione sembra essere corretta verranno eseguite alcune operazioni necessarie al corretto funzionamento dell'applicazione. Inserisci la password che vuoi utilizzare per accedere all'amministrazione e premi &quot;continua&quot;; il setup si occuper&agrave; di tutto il resto </p>
 	<hr/>
 	<div>
@@ -422,57 +453,78 @@ select case phase
 	<input type="text" name="password" id="password" value="" />
 	</div>
 	<hr/>
-	<button type="submit"><span>continua <img src="setup/next.gif" alt="" /></span></button>
+	<button type="submit" onClick="workin();return false;"><span>continua <img src="setup/next.gif" alt="" /></span></button>
 	<a href="?p=1" class="button"><span><img src="setup/back.gif" alt="" /> indietro</span></a>
-	</form><%
+	</form>
+    <script type="text/javascript">/*<![CDATA[*/
+	function workin() {
+		document.getElementById('setform').submit();
+		document.getElementById('setform').style.display = 'none';
+		document.getElementById('workin').innerHTML = '<div class="workin"><img src="setup/workin.gif" /><br/><span>inizializzazione database</span><br/><small>(abbi pazienza e non fermare l\'esecuzione della pagina)</small></div>';
+	}
+	/*]]>*/</script><%
 	case 3
 	if trim(request.form("password")) = "" or trim(request.Form("title")) = "" then response.Redirect("setup.asp?p=2")
 	%>
 	<div class="phase">Fase 3/4</div>
-	<h2>Impostazioni applicate </h2>
+	<h2>Inizializzazione database </h2>
 	<hr/>
 	<%
-	call execute(IncludeFile("includes/inc.config.asp"))	
-	call connect()
-	dim wbresize,wbresizekey,aspnetactive
-	wbresizekey = createKey(32)
-	wbresize = openFile(server.MapPath("setup/wbresize.aspx.install"))
-	wbresize = replace(wbresize,"$KEYCHECK$",wbresizekey)
-	wbresize = replace(wbresize,"$BASEADDRESS$",CARNIVAL_HOME)
-	call writeFile(server.MapPath(CARNIVAL_PUBLIC & CARNIVAL_SERVICES & "wbresize.aspx"),wbresize)
-	wbresize = ""
 	
-	aspnetactive = checkAspnetActive(absoluteUrl(CARNIVAL_HOME,CARNIVAL_PUBLIC&CARNIVAL_SERVICES&"test.aspx"))
+	call execute(IncludeFile("includes/inc.config.asp"))
+	call execute(IncludeFile("includes/inc.func.style.asp"))
+	call execute(IncludeFile("includes/inc.func.services.asp"))
 	
-	SQL = "UPDATE tba_config SET config_title = '" & left(replace(request.form("title"),"'","''"),50) & "',config_password = '" & md5(request.form("password")) & "', config_wbresizekey = '" & wbresizekey & "', config_aspnetactive = " & formatDbBool(aspnetactive) & ", config_start = " & formatDBDate(cdate("12/03/1985"),CARNIVAL_DATABASETYPE) & ""
-	dbManager.conn.execute(SQL)
+	set dbManager = new Class_ASPdBManager
+	dbManager.database = CARNIVAL_DATABASE_TYPE
+	str_host = "" : if CARNIVAL_DATABASE_TYPE = "mysql" then str_host = CARNIVAL_DATABASE_HOST
+	str_user = "" : if CARNIVAL_DATABASE_TYPE = "mysql" then str_user = CARNIVAL_DATABASE_USER
+	str_password = "" : if CARNIVAL_DATABASE_TYPE = "mysql" then str_password = CARNIVAL_DATABASE_PASSWORD
 	
-	call disconnect()
-	%>
-	<p class="ok"><img src="setup/tick.gif" alt="" /> Salvata password per accesso all'amministrazione </p>
-	<p class="ok"><img src="setup/tick.gif" alt="" /> Impostato titolo del photoblog </p>
-	<p class="ok"><img src="setup/tick.gif" alt="" /> Impostata data di inizio pubblicazione </p>
-	<%
-	if not aspnetactive then
-	%><p class="alert"><img src="setup/cross.gif" alt="" /> Asp.NET non supportato (ridimensionamento automatico non disponibile)</p>
-	<%
+	if not CreateDatabase(CARNIVAL_DATABASE,str_user,str_password,"") then
+		%><div class="readme"><p><strong>ATTENZIONE:</strong><br />
+impossibile inizializzare il database.<br/>verificare che il file non sia aperto o protetto in scrittura.</p></div>
+		<hr/>
+		<a href="?p=3" class="button"><span>riprova <img src="setup/reload.gif" alt="" /></span></a><%
 	else
-	%><p class="ok"><img src="setup/tick.gif" alt="" /> Asp.NET supportato (ridimensionamento automatico disponibile)</p>
-	<p class="ok"><img src="setup/tick.gif" alt="" /> Creato wbresize.aspx per ridimensionamento automatico</p>
-	<%
-	end if %>
+	
+        'copia file wbresize.aspx
+        call copyFile(server.MapPath("setup/wbresize.aspx.install"),server.MapPath(CARNIVAL_PUBLIC&CARNIVAL_SERVICES&"wbresize.aspx"))
+		dim aspnetactive
+		aspnetactive = aspnetOn() 'tenta di attivare e compilare wbresize
+		
+		call setStyle("light",true,true)
+		
+		SQL = "UPDATE tba_config SET config_applicationblock = 0, config_title = '" & left(replace(request.form("title"),"'","''"),50) & "',config_password = '" & md5(request.form("password")) & "', config_start = " & formatDBDate(cdate("12/03/1985"),CARNIVAL_DATABASE_TYPE) & ""
+		dbManager.Execute(SQL)
+		%>
+		<p class="ok"><img src="setup/tick.gif" alt="" /> Creata struttura base database </p>
+		<p class="ok"><img src="setup/tick.gif" alt="" /> Salvata password per accesso all'amministrazione </p>
+		<p class="ok"><img src="setup/tick.gif" alt="" /> Impostato titolo del photoblog </p>
+		<p class="ok"><img src="setup/tick.gif" alt="" /> Impostata data di inizio pubblicazione </p>
+		<p class="ok"><img src="setup/tick.gif" alt="" /> Compilato stile predefinito &quot;light&quot; </p>
+		<%
+		if not aspnetactive then
+		%><p class="alert"><img src="setup/cross.gif" alt="" /> Asp.NET non supportato (ridimensionamento automatico non disponibile)</p>
+		<%
+		else
+		%><p class="ok"><img src="setup/tick.gif" alt="" /> Asp.NET supportato (ridimensionamento automatico disponibile)</p>
+		<p class="ok"><img src="setup/tick.gif" alt="" /> Creato wbresize.aspx per ridimensionamento automatico</p>
+		<%
+	    end if %>
 	<hr/>
 	<p>La configurazione basilare di Carnival &egrave; terminata; potrai modificare tutte le altre impostazioni direttamente dal pannello di controllo che ti verr&agrave; presentato a breve.<br/>Premi &quot;continua&quot; per leggere le ultime operazioni da eseguire</p>
 	<hr/>
 	<a href="?p=4" class="button"><span>continua <img src="setup/next.gif" alt="" /></span></a>
 	<%
+	end if
 	case 4
 	%>
 	<div class="phase">Fase 4/4</div>
 	<h2>Gi&agrave; finito? </h2>
 	<hr/>
 	<p>Ora che il setup &egrave; terminato non resta che andare all'amministrazione, accedere con la password pocanzi indicata e modificare il titolo e le informazioni sul tuo photoblog, personalizzare lo stile e poi aggiungere foto...</p>
-	<p>Ricorda per&ograve; di cancellare il file <strong>setup.asp</strong>, il file <strong>update.asp</strong> e la cartella <strong>setup</strong> prima di continuare, altrimenti malintenzionati potrebbero sfruttare questi file per accedere all'amministrazione.</p>
+    <p class="alert">Ricorda di cancellare la cartella <strong>setup</strong> e i file <strong>setup.asp</strong> e <strong>update.asp</strong> dal tuo sito</p>
 	<p>Buon divertimento con Carnival</p>
 	<hr/>
 	<a href="admin.asp" class="button"><span>vai all'admin <img src="setup/next.gif" alt="" /></span></a>

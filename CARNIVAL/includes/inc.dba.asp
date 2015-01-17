@@ -2,7 +2,7 @@
 '-----------------------------------------------------------------
 ' ******************** HELLO THIS IS CARNIVAL ********************
 '-----------------------------------------------------------------
-' Copyright (c) 2007-2008 Simone Cingano
+' Copyright (c) 2007-2011 Simone Cingano
 ' 
 ' Permission is hereby granted, free of charge, to any person
 ' obtaining a copy of this software and associated documentation
@@ -27,23 +27,26 @@
 '-----------------------------------------------------------------
 ' * @category        Carnival
 ' * @package         Carnival
-' * @author          Simone Cingano <simonecingano@imente.org>
-' * @copyright       2007-2008 Simone Cingano
+' * @author          Simone Cingano <info@carnivals.it>
+' * @copyright       2007-2011 Simone Cingano
 ' * @license         http://www.opensource.org/licenses/mit-license.php
-' * @version         SVN: $Id: inc.dba.asp 29 2008-07-04 14:03:45Z imente $
+' * @version         SVN: $Id: inc.dba.asp 114 2010-10-11 19:00:34Z imente $
 ' * @home            http://www.carnivals.it
 '-----------------------------------------------------------------
 %><!--#include file = "class.aspdbbox.asp"--><%
 Public rs, SQL
 
 dim dbManager, dbPagination
-set dbManager = new Class_ASPDbManager
-dbManager.debugging = false
+set dbManager = new Class_ASPDbManager : dbManager.debugging = false
 
-dbManager.database = CARNIVAL_DATABASETYPE	'oppure MYSQL
+dbManager.database = CARNIVAL_DATABASE_TYPE
 
 sub connect()
-	if not dbManager.Connect(CARNIVAL_DATABASE,"","","") then 	response.redirect("critical.asp?c=00")
+	dim str_host, str_user, str_password
+	str_host = "" : if CARNIVAL_DATABASE_TYPE = "mysql" then str_host = CARNIVAL_DATABASE_HOST
+	str_user = "" : if CARNIVAL_DATABASE_TYPE = "mysql" then str_user = CARNIVAL_DATABASE_USER
+	str_password = "" : if CARNIVAL_DATABASE_TYPE = "mysql" then str_password = CARNIVAL_DATABASE_PASSWORD
+	if not dbManager.Connect(CARNIVAL_DATABASE,str_user,str_password,"") then response.redirect("critical.asp?c=00")
 end sub
 
 sub disconnect()

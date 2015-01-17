@@ -1,10 +1,8 @@
-<!--#include file = "includes/inc.first.asp"-->
-<!--#include file = "includes/inc.admin.checklogin.asp"-->
-<%
+<!--#include file = "includes/inc.first.asp"--><%
 '-----------------------------------------------------------------
 ' ******************** HELLO THIS IS CARNIVAL ********************
 '-----------------------------------------------------------------
-' Copyright (c) 2007-2008 Simone Cingano
+' Copyright (c) 2007-2011 Simone Cingano
 ' 
 ' Permission is hereby granted, free of charge, to any person
 ' obtaining a copy of this software and associated documentation
@@ -29,35 +27,42 @@
 '-----------------------------------------------------------------
 ' * @category        Carnival
 ' * @package         Carnival
-' * @author          Simone Cingano <simonecingano@imente.org>
-' * @copyright       2007-2008 Simone Cingano
+' * @author          Simone Cingano <info@carnivals.it>
+' * @copyright       2007-2011 Simone Cingano
 ' * @license         http://www.opensource.org/licenses/mit-license.php
-' * @version         SVN: $Id: about.asp 27 2008-07-04 12:22:52Z imente $
+' * @version         SVN: $Id: about.asp 114 2010-10-11 19:00:34Z imente $
 ' * @home            http://www.carnivals.it
 '-----------------------------------------------------------------
 
-crnTitle = crnLang_about_title
-crnPageTitle = carnival_title & " ::: " & crnTitle
+'*****************************************************
+'ENVIROMENT AGGIUNTIVO
+%><!--#include file = "includes/inc.admin.checklogin.asp"--><%
+'*****************************************************
 
-dim crn_isadmin
-crn_isadmin = crnFunc_AdminLoggedIn()
+strPageTitle__ = lang__about_title__
+strPageTitleHead__ = config__title__ & " ::: " & strPageTitle__
+
+dim blnIsAdmin
+blnIsAdmin = isAdminLogged()
 
 %><!--#include file = "includes/inc.top.asp"-->
 	<div id="about">
 	<% 
-	dim crnAboutContent
-	if crn_isadmin and request.Form("configmode") = "about" then
-		crnAboutContent = request.Form("aboutpage")
+	dim strAboutContent
+	if blnIsAdmin and request.Form("configmode") = "about" then
+		'anteprima about
+		strAboutContent = request.Form("aboutpage")
 		%>
         <div class="infobox">anteprima della pagina di about</div>
 		<div class="clear"></div>
 		<hr/><%
 	else
+		'visualizza about
 		SQL = "SELECT config_aboutpage FROM tba_config"
-		set rs = dbManager.conn.execute(SQL)
-		crnAboutContent = rs("config_aboutpage")
+		set rs = dbManager.Execute(SQL)
+		strAboutContent = rs("config_aboutpage")
 	end if
-	response.write crnAboutContent
+	response.write strAboutContent
 	%>
     </div>
 <!--#include file = "includes/inc.bottom.asp"-->

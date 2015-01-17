@@ -2,7 +2,7 @@
 '-----------------------------------------------------------------
 ' ******************** HELLO THIS IS CARNIVAL ********************
 '-----------------------------------------------------------------
-' Copyright (c) 2007-2008 Simone Cingano
+' Copyright (c) 2007-2011 Simone Cingano
 ' 
 ' Permission is hereby granted, free of charge, to any person
 ' obtaining a copy of this software and associated documentation
@@ -27,169 +27,201 @@
 '-----------------------------------------------------------------
 ' * @category        Carnival
 ' * @package         Carnival
-' * @author          Simone Cingano <simonecingano@imente.org>
-' * @copyright       2007-2008 Simone Cingano
+' * @author          Simone Cingano <info@carnivals.it>
+' * @copyright       2007-2011 Simone Cingano
 ' * @license         http://www.opensource.org/licenses/mit-license.php
-' * @version         SVN: $Id: mod.admin.stylesstyle.asp 27 2008-07-04 12:22:52Z imente $
+' * @version         SVN: $Id: mod.admin.stylesstyle.asp 114 2010-10-11 19:00:34Z imente $
 ' * @home            http://www.carnivals.it
 '-----------------------------------------------------------------
+
+'*****************************************************
+'ENVIROMENT AGGIUNTIVO
 %><!--#include file = "inc.admin.check.asp"-->
 <!--#include file = "inc.func.style.asp"--><%
-dim crn_stylecontent, crn_style
-crn_style = trim(request.form("style"))
-if crn_style = "" then crn_style = trim(request.querystring("style"))
-if crn_style = "" then crn_style = carnival_style
+'*****************************************************
 
-dim crn_act
-crn_act = normalize(request.QueryString("action"),"select|customize","info")
+dim strStyleContent, strStyleName
+strStyleName = trim(request.form("style"))
+if strStyleName = "" then strStyleName = trim(request.querystring("style"))
+if strStyleName = "" then strStyleName = config__style__
 
-crn_stylecontent = loadStyle(CARNIVAL_PUBLIC & CARNIVAL_STYLES & crn_style & "/cstyleconfig.txt")
-if isnull(crn_stylecontent) or crn_stylecontent = "" then response.Redirect("errors.asp?c=style0")
+dim strAction
+strAction = normalize(request.QueryString("action"),"select|customize","info")
+
+strStyleContent = loadStyle(CARNIVAL_PUBLIC & CARNIVAL_STYLES & strStyleName & "/cstyleconfig.txt")
+if isnull(strStyleContent) or strStyleContent = "" then response.Redirect("errors.asp?c=style0")
 
 
 
-dim crn_input_style,crn_output_style_main,crn_output_style_admin, crn_compatible
-crn_input_style = CARNIVAL_PUBLIC & CARNIVAL_STYLES & crn_style & "/" & getStyleVar("css_input",crn_stylecontent)
-crn_output_style_main = CARNIVAL_PUBLIC & CARNIVAL_STYLES & crn_style & "/" & getStyleVar("css_output_main",crn_stylecontent)
-crn_output_style_admin = CARNIVAL_PUBLIC & CARNIVAL_STYLES & crn_style & "/" & getStyleVar("css_output_admin",crn_stylecontent)
-'crn_font =  getStyleVar("font",crn_stylecontent)
-crn_compatible = checkStyle(crn_stylecontent)
-if not crn_compatible then response.Redirect("errors.asp?c=style1")
-if not fileExist(crn_input_style) then response.Redirect("errors.asp?c=style2")
+dim strStyleInputFile,strStyleOutputFileMain,strStyleOutputFileAdmin, blnIsCompatible
+strStyleInputFile = CARNIVAL_PUBLIC & CARNIVAL_STYLES & strStyleName & "/" & getStyleVar("css_input",strStyleContent)
+strStyleOutputFileMain = CARNIVAL_PUBLIC & CARNIVAL_STYLES & strStyleName & "/" & getStyleVar("css_output_main",strStyleContent)
+strStyleOutputFileAdmin = CARNIVAL_PUBLIC & CARNIVAL_STYLES & strStyleName & "/" & getStyleVar("css_output_admin",strStyleContent)
+'strDBStyleFont =  getStyleVar("font",strStyleContent)
+blnIsCompatible = checkStyle(strStyleContent)
+if not blnIsCompatible then response.Redirect("errors.asp?c=style1")
+if not fileExists(strStyleInputFile) then response.Redirect("errors.asp?c=style2")
 %>
-<!--<h2>informazioni su &quot;<%=crn_style%>&quot;</h2>-->
+<!--<h2>informazioni su &quot;<%=strStyleName%>&quot;</h2>-->
 	<!--<div class="page-description"><p>...</p></div>-->
-	<div class="style-logo"><img src="<%=CARNIVAL_PUBLIC & CARNIVAL_STYLES & crn_style & "/logo.jpg"%>" alt="<%=crn_style%>" /></div>
+	<div class="style-logo"><img src="<%=CARNIVAL_PUBLIC & CARNIVAL_STYLES & strStyleName & "/logo.jpg"%>" alt="<%=strStyleName%>" /></div>
 	<form method="get" action="admin.asp" class="style">
 	<div>
 	<input type="hidden" name="module" value="pro-styles" />
-	<input type="hidden" name="style" value="<%=crn_style%>" />
+	<input type="hidden" name="style" value="<%=strStyleName%>" />
 	<input type="hidden" name="compress" value="1" />
 	<input type="hidden" name="from" value="stylesstyle" />
 	<table class="style">
-		<% if crn_act <> "customize" then %>
+		<% if strAction <> "customize" then %>
 		<tr>
 			<td class="d">path stile:</td>
-			<td class="c"><%=CARNIVAL_PUBLIC & CARNIVAL_STYLES & crn_style%></td>
+			<td class="c"><%=CARNIVAL_PUBLIC & CARNIVAL_STYLES & strStyleName%></td>
 		</tr>
 		<tr>
 			<td class="d">path configurazione:</td>
-			<td class="c"><a href="<%=CARNIVAL_HOME & CARNIVAL_PUBLIC & CARNIVAL_STYLES & crn_style & "/cstyleconfig.txt"%>" target="_blank"><%=CARNIVAL_PUBLIC & CARNIVAL_STYLES & crn_style & "/cstyleconfig.txt"%></a></td>
+			<td class="c"><a href="<%=CARNIVAL_HOME & CARNIVAL_PUBLIC & CARNIVAL_STYLES & strStyleName & "/cstyleconfig.txt"%>" target="_blank"><%=CARNIVAL_PUBLIC & CARNIVAL_STYLES & strStyleName & "/cstyleconfig.txt"%></a></td>
 		</tr>
 		<tr>
 			<td class="d">compatibilit&agrave;:</td>
-			<td class="c"><%=getStyleVar("version",crn_stylecontent)%></td>
+			<td class="c"><%=getStyleVar("version",strStyleContent)%></td>
 		</tr>
 		<tr>
 			<td class="d">nome stile:</td>
-			<td class="c"><%=getStyleVar("name",crn_stylecontent)%></td>
+			<td class="c"><%=getStyleVar("name",strStyleContent)%></td>
 		</tr>
 		<tr>
 			<td class="d">autore stile:</td>
-			<td class="c"><%=getStyleVar("author",crn_stylecontent)%></td>
+			<td class="c"><%=getStyleVar("author",strStyleContent)%></td>
 		</tr>
 		<tr>
 			<td class="d">pubblicazione:</td>
-			<td class="c"><%=getStyleVar("date",crn_stylecontent)%></td>
+			<td class="c"><%=getStyleVar("date",strStyleContent)%></td>
 		</tr>
 		<tr>
 			<td class="d">path input css:</td>
-			<td class="c"><%=crn_input_style%></td>
+			<td class="c"><%=strStyleInputFile%></td>
 		</tr>
 		<tr>
 			<td class="d">path output main css:</td>
-			<td class="c"><%=crn_output_style_main%></td>
+			<td class="c"><%=strStyleOutputFileMain%></td>
 		</tr>
 		<tr>
 			<td class="d">path output admin css:</td>
-			<td class="c"><%=crn_output_style_admin%></td>
+			<td class="c"><%=strStyleOutputFileAdmin%></td>
 		</tr>
 		<tr>
-			<td class="d">path immagini:</td>
-			<td class="c"><%=CARNIVAL_PUBLIC & CARNIVAL_STYLES & crn_style & "/" & getStyleVar("images_path",crn_stylecontent)%></td>
+			<td class="d">path icone:</td>
+			<td class="c"><%=replace(getImagePath("lay-ico"),"lay-ico","")%></td>
 		</tr>
 		<tr>
 			<td class="d">sfondo chiaro<br/>nella pagina foto:</td>
-			<td class="c"><%=cleanBool(getStyleVar("page_photo_islight",crn_stylecontent))%></td>
+			<td class="c"><%=inputBoolean(getStyleVar("page_photo_islight",strStyleContent))%></td>
 		</tr>
 		<tr>
 			<td class="d">sfondo chiaro<br/>nelle altre pagine:</td>
-			<td class="c"><%=cleanBool(getStyleVar("page_islight",crn_stylecontent))%></td>
+			<td class="c"><%=inputBoolean(getStyleVar("page_islight",strStyleContent))%></td>
 		</tr>
 		<% end if %>
 	<%
 	SQL = "SELECT config_style_font, config_style_header_color, config_style_header_backcolor, config_style_title_color, config_style_title_margin, config_style_text_light_color, config_style_text_dark_color, config_style_text_menu_color FROM tba_config"
-	dim crn_font,crn_header_color,crn_header_backcolor,crn_title_color,crn_title_margin
-	dim crn_text_light_color, crn_text_dark_color, crn_text_menu_color
-	if crn_act = "customize" then
-		set rs = dbManager.conn.execute(SQL)
-		crn_font = rs("config_style_font")
-		crn_header_color = rs("config_style_header_color")
-		crn_header_backcolor = rs("config_style_header_backcolor")
-		crn_title_color = rs("config_style_title_color")
-		crn_title_margin = cleanLong(rs("config_style_title_margin"))
-		crn_text_light_color = rs("config_style_text_light_color")
-		crn_text_dark_color = rs("config_style_text_dark_color")
-		crn_text_menu_color = rs("config_style_text_menu_color")
+	dim strDBStyleFont,strDBStyleHeaderColor,strDBStyleHeaderBackcolor,strDBStyleTitleColor,lngDBStyleTitleMargin
+	dim strDBStyleTextLightColor, strDBStyleTextDarkColor, strDBStyleTextMenuColor,strDBStyleIcons
+	if strAction = "customize" then
+		set rs = dbManager.Execute(SQL)
+		strDBStyleFont = rs("config_style_font")
+		strDBStyleHeaderColor = rs("config_style_header_color")
+		strDBStyleHeaderBackcolor = rs("config_style_header_backcolor")
+		strDBStyleTitleColor = rs("config_style_title_color")
+		lngDBStyleTitleMargin = inputLong(rs("config_style_title_margin"))
+		strDBStyleTextLightColor = rs("config_style_text_light_color")
+		strDBStyleTextDarkColor = rs("config_style_text_dark_color")
+		strDBStyleTextMenuColor = rs("config_style_text_menu_color")
+		strDBStyleIcons = config__style_icons__
 	else
-		crn_font = getStyleVar("font",crn_stylecontent)
-		crn_header_color =  getStyleVar("header_color",crn_stylecontent)
-		crn_header_backcolor =  getStyleVar("header_backcolor",crn_stylecontent)
-		crn_title_color =  getStyleVar("title_color",crn_stylecontent)
-		crn_title_margin =  cleanLong(getStyleVar("title_margin",crn_stylecontent))
-		crn_text_light_color =  getStyleVar("text_light_color",crn_stylecontent)
-		crn_text_dark_color =  getStyleVar("text_dark_color",crn_stylecontent)
-		crn_text_menu_color =  getStyleVar("text_menu_color",crn_stylecontent)
+		strDBStyleFont = getStyleVar("font",strStyleContent)
+		strDBStyleHeaderColor =  getStyleVar("header_color",strStyleContent)
+		strDBStyleHeaderBackcolor =  getStyleVar("header_backcolor",strStyleContent)
+		strDBStyleTitleColor =  getStyleVar("title_color",strStyleContent)
+		lngDBStyleTitleMargin =  inputLong(getStyleVar("title_margin",strStyleContent))
+		strDBStyleTextLightColor =  getStyleVar("text_light_color",strStyleContent)
+		strDBStyleTextDarkColor =  getStyleVar("text_dark_color",strStyleContent)
+		strDBStyleTextMenuColor =  getStyleVar("text_menu_color",strStyleContent)
+		strDBStyleIcons = ""
 	end if
 	
 	%><tr>
 			<td class="d">font family:</td>
 			<td class="c">
-		<div class="style"><div class="font" style="font-family:<%=crn_font%>;"><%=crn_font%></div><div class="value"><input name="style-font-family" id="style-font-family" <% if crn_act <> "info" then %>type="text"<% else %>type="hidden"<% end if %> value="<%=crn_font%>" /></div></div>
+		<div class="style"><div class="font" style="font-family:<%=strDBStyleFont%>;"><%=strDBStyleFont%></div><div class="value"><input name="style-font-family" id="style-font-family" <% if strAction <> "info" then %>type="text"<% else %>type="hidden"<% end if %> value="<%=strDBStyleFont%>" /></div></div>
 			</td>
 	  </tr>
 	  <tr>
 			<td class="d">header backcolor:</td>
 			<td class="c">
-		<div class="style"><div class="color" style="background-color:<%=crn_header_backcolor%>;"></div><div class="value"><% if crn_act = "info" then response.write crn_header_backcolor %><input name="style-header-backcolor" id="style-header-backcolor" <% if crn_act <> "info" then %>type="text"<% else %>type="hidden"<% end if %> value="<%=crn_header_backcolor%>" /></div></div>
+		<div class="style"><div class="color" style="background-color:<%=strDBStyleHeaderBackcolor%>;"></div><div class="value"><% if strAction = "info" then response.write strDBStyleHeaderBackcolor %><input name="style-header-backcolor" id="style-header-backcolor" <% if strAction <> "info" then %>type="text"<% else %>type="hidden"<% end if %> value="<%=strDBStyleHeaderBackcolor%>" /></div></div>
 			</td>
 	  </tr>
 	  <tr>
 			<td class="d">header text color:</td>
 			<td class="c">
-		<div class="style"><div class="color" style="background-color:<%=crn_header_color%>;"></div><div class="value"><% if crn_act = "info" then response.write crn_header_color %><input name="style-header-color" id="style-header-color" <% if crn_act <> "info" then %>type="text"<% else %>type="hidden"<% end if %> value="<%=crn_header_color%>" /></div></div>
+		<div class="style"><div class="color" style="background-color:<%=strDBStyleHeaderColor%>;"></div><div class="value"><% if strAction = "info" then response.write strDBStyleHeaderColor %><input name="style-header-color" id="style-header-color" <% if strAction <> "info" then %>type="text"<% else %>type="hidden"<% end if %> value="<%=strDBStyleHeaderColor%>" /></div></div>
 			</td>
 	  </tr>
 	  <tr>
 			<td class="d">title text color:</td>
 			<td class="c">
-		<div class="style"><div class="color" style="background-color:<%=crn_title_color%>;"></div><div class="value"><% if crn_act = "info" then response.write crn_title_color %><input name="style-title-color" id="style-title-color" <% if crn_act <> "info" then %>type="text"<% else %>type="hidden"<% end if %> value="<%=crn_title_color%>" /></div></div>
+		<div class="style"><div class="color" style="background-color:<%=strDBStyleTitleColor%>;"></div><div class="value"><% if strAction = "info" then response.write strDBStyleTitleColor %><input name="style-title-color" id="style-title-color" <% if strAction <> "info" then %>type="text"<% else %>type="hidden"<% end if %> value="<%=strDBStyleTitleColor%>" /></div></div>
 			</td>
 	  </tr>
 	  <tr>
 			<td class="d">title margin:</td>
 			<td class="c">
-		<div class="style"><div class="number"><%=crn_title_margin%>px</div><div class="value"><input name="style-title-margin" id="style-title-margin" <% if crn_act <> "info" then %>type="text"<% else %>type="hidden"<% end if %> value="<%=crn_title_margin%>" /></div></div>
+		<div class="style"><div class="number"><%=lngDBStyleTitleMargin%>px</div><div class="value"><input name="style-title-margin" id="style-title-margin" <% if strAction <> "info" then %>type="text"<% else %>type="hidden"<% end if %> value="<%=lngDBStyleTitleMargin%>" /></div></div>
 			</td>
 	  </tr>
 	  <tr>
 			<td class="d">light text color:</td>
 			<td class="c">
-		<div class="style"><div class="color" style="background-color:<%=crn_text_light_color%>;"></div><div class="value"><% if crn_act = "info" then response.write crn_text_light_color %><input name="style-text-light-color" id="style-light-color" <% if crn_act <> "info" then %>type="text"<% else %>type="hidden"<% end if %> value="<%=crn_text_light_color%>" /></div></div>
+		<div class="style"><div class="color" style="background-color:<%=strDBStyleTextLightColor%>;"></div><div class="value"><% if strAction = "info" then response.write strDBStyleTextLightColor %><input name="style-text-light-color" id="style-light-color" <% if strAction <> "info" then %>type="text"<% else %>type="hidden"<% end if %> value="<%=strDBStyleTextLightColor%>" /></div></div>
 			</td>
 	  </tr>
 	  <tr>
 			<td class="d">dark text color:</td>
 			<td class="c">
-		<div class="style"><div class="color" style="background-color:<%=crn_text_dark_color%>;"></div><div class="value"><% if crn_act = "info" then response.write crn_text_dark_color %><input name="style-text-dark-color" id="style-text-dark-color" <% if crn_act <> "info" then %>type="text"<% else %>type="hidden"<% end if %> value="<%=crn_text_dark_color%>" /></div></div>
+		<div class="style"><div class="color" style="background-color:<%=strDBStyleTextDarkColor%>;"></div><div class="value"><% if strAction = "info" then response.write strDBStyleTextDarkColor %><input name="style-text-dark-color" id="style-text-dark-color" <% if strAction <> "info" then %>type="text"<% else %>type="hidden"<% end if %> value="<%=strDBStyleTextDarkColor%>" /></div></div>
 			</td>
 	  </tr>
 	  <tr>
 			<td class="d">menu text color:</td>
 			<td class="c">
-		<div class="style"><div class="color" style="background-color:<%=crn_text_menu_color%>;"></div><div class="value"><% if crn_act = "info" then response.write crn_text_menu_color %><input name="style-text-menu-color" id="style-text-menu-color" <% if crn_act <> "info" then %>type="text"<% else %>type="hidden"<% end if %> value="<%=crn_text_menu_color%>" /></div></div>
+		<div class="style"><div class="color" style="background-color:<%=strDBStyleTextMenuColor%>;"></div><div class="value"><% if strAction = "info" then response.write strDBStyleTextMenuColor %><input name="style-text-menu-color" id="style-text-menu-color" <% if strAction <> "info" then %>type="text"<% else %>type="hidden"<% end if %> value="<%=strDBStyleTextMenuColor%>" /></div></div>
 			</td>
 	  </tr>		
+	  <% if strAction <> "info" then %><tr>
+			<td class="d">set icone:</td>
+			<td class="c">
+		<div class="style"><div class="value">
+        <select name="style-icons" id="style-icons">
+        	<option value=""<% if config__style_icons__ = "" then%> selected="selected" style="font-weight:bold;"<% end if %>>integrate nello stile</option>
+        <%
+		dim obj_FSO, objFolder, Subfolder
+		Set obj_FSO = CreateObject("Scripting.FileSystemObject")
+		objFolder = server.MapPath(CARNIVAL_PUBLIC & CARNIVAL_STYLES & "icons")
+		
+		Set objFolder = obj_FSO.GetFolder(objFolder)
+		
+		For Each Subfolder in objFolder.SubFolders
+			%>			<option value="<%=Subfolder.Name%>"<% if strDBStyleIcons = Subfolder.Name then%> selected="selected" style="font-weight:bold;"<% end if %>><%=Subfolder.Name%></option>
+		<%
+		Next
+		
+		set Subfolder = nothing
+		set objFolder = nothing
+		set obj_FSO = nothing
+		%>
+        </select></div></div>
+			</td>
+	  </tr><% end if %>
 	</table>
 	
 	<div class="clear"></div>
@@ -197,23 +229,23 @@ if not fileExist(crn_input_style) then response.Redirect("errors.asp?c=style2")
 	<div class="nbuttons">
 		<a href="admin.asp?module=styles">
 			<span>
-			<img src="<%=carnival_pathimages%>/lay-adm-ico-but-prev.gif" alt=""/> 
+			<img src="<%=getImagePath("lay-adm-ico-but-prev.gif")%>" alt=""/> 
 			indietro
 			</span>
 		</a>
-		<% if crn_act = "select" or crn_act = "customize" then
-		if crn_act = "customize" then %>
+		<% if strAction = "select" or strAction = "customize" then
+		if strAction = "customize" then %>
 		<a href="admin.asp?module=styles-style&amp;action=select">
 			<span>
-			<img src="<%=carnival_pathimages%>/lay-adm-ico-but-style.gif" alt=""/> 
+			<img src="<%=getImagePath("lay-adm-ico-but-style.gif")%>" alt=""/> 
 			stile non personalizzato
 			</span>
 		</a>
 		<% end if %>
 		<button type="submit">
 			<span class="a"><span class="b">
-			<img src="<%=carnival_pathimages%>/lay-adm-ico-but-accept.gif" alt=""/> 
-			<% if crn_act = "select" then %>utilizza lo stile<% else %>personalizza lo stile<%end if %>
+			<img src="<%=getImagePath("lay-adm-ico-but-accept.gif")%>" alt=""/> 
+			<% if strAction = "select" then %>utilizza lo stile<% else %>personalizza lo stile<%end if %>
 			</span></span>
 		</button>
 		<% end if %>

@@ -2,7 +2,7 @@
 '-----------------------------------------------------------------
 ' ******************** HELLO THIS IS CARNIVAL ********************
 '-----------------------------------------------------------------
-' Copyright (c) 2007-2008 Simone Cingano
+' Copyright (c) 2007-2011 Simone Cingano
 ' 
 ' Permission is hereby granted, free of charge, to any person
 ' obtaining a copy of this software and associated documentation
@@ -27,10 +27,10 @@
 '-----------------------------------------------------------------
 ' * @category        Carnival
 ' * @package         Carnival
-' * @author          Simone Cingano <simonecingano@imente.org>
-' * @copyright       2007-2008 Simone Cingano
+' * @author          Simone Cingano <info@carnivals.it>
+' * @copyright       2007-2011 Simone Cingano
 ' * @license         http://www.opensource.org/licenses/mit-license.php
-' * @version         SVN: $Id: inc.set.asp 29 2008-07-04 14:03:45Z imente $
+' * @version         SVN: $Id: inc.set.asp 117 2010-10-11 19:22:40Z imente $
 ' * @home            http://www.carnivals.it
 '-----------------------------------------------------------------
 
@@ -40,12 +40,10 @@
 '**********************************
 
 '* costanti dell'applicazione
-const CARNIVAL_VERSION = "1.0c.0"
-const CARNIVAL_VERS = "1.0c"
-const CARNIVAL_RELEASE = "20080628"
-
-CONST CARNIVAL_DATABASETYPE = "mdb"
+const CARNIVAL_VERSION = "1.0.0"
+const CARNIVAL_VERS = "1.0"
+const CARNIVAL_RELEASE = "20101011"
 
 const CARNIVAL_STYLECOMPATIBILITY_MINVERSION = "1.0a.0"
-const CARNIVAL_STYLECOMPATIBILITY_MAXVERSION = "1.0c.0"
+const CARNIVAL_STYLECOMPATIBILITY_MAXVERSION = "1.0.0"
 %>

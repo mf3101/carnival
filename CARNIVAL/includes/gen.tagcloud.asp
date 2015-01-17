@@ -2,7 +2,7 @@
 '-----------------------------------------------------------------
 ' ******************** HELLO THIS IS CARNIVAL ********************
 '-----------------------------------------------------------------
-' Copyright (c) 2007-2008 Simone Cingano
+' Copyright (c) 2007-2011 Simone Cingano
 ' 
 ' Permission is hereby granted, free of charge, to any person
 ' obtaining a copy of this software and associated documentation
@@ -27,34 +27,46 @@
 '-----------------------------------------------------------------
 ' * @category        Carnival
 ' * @package         Carnival
-' * @author          Simone Cingano <simonecingano@imente.org>
-' * @copyright       2007-2008 Simone Cingano
+' * @author          Simone Cingano <info@carnivals.it>
+' * @copyright       2007-2011 Simone Cingano
 ' * @license         http://www.opensource.org/licenses/mit-license.php
-' * @version         SVN: $Id: gen.tagcloud.asp 16 2008-06-28 12:25:27Z imente $
+' * @version         SVN: $Id: gen.tagcloud.asp 114 2010-10-11 19:00:34Z imente $
 ' * @home            http://www.carnivals.it
 '-----------------------------------------------------------------
+
+'*****************************************************
+'ENVIROMENT AGGIUNTIVO
 %><!--#include file = "class.wbclouds.asp"--><%
+'*****************************************************
 
 dim objCloud
 set objCloud = new wbClouds
 objCloud.init()
-objCloud.baseUrl = "photo.asp?tag="
+objCloud.baseUrl = "photo.asp?tag=%name"
+if config__jsnavigatoractive__ and config__jsactive__ and blnViaJavascript then objCloud.aOnClick = "callNavigator(0,%id,0);return false;"
 
-if crnShowTop <> 0 then
-	SQL = "SELECT TOP " & crnShowTop & " tag_name,tag_photos FROM tba_tag WHERE tag_type = 0 AND tag_photos > 0 ORDER BY tag_photos DESC"
+if intTagsCount <> 0 then
+	SQL = "SELECT TOP " & intTagsCount & " tag_name,tag_id,tag_photos FROM tba_tag WHERE tag_type = 0 AND tag_photos > 0 ORDER BY tag_photos DESC"
 	objCloud.percSize = 90
 else
-	SQL = "SELECT tag_name,tag_photos FROM tba_tag WHERE tag_type = 0 AND tag_photos > 0 ORDER BY tag_photos DESC"
+	SQL = "SELECT tag_name,tag_id,tag_photos FROM tba_tag WHERE tag_type = 0 AND tag_photos > 0 ORDER BY tag_photos DESC"
 	objCloud.percSize = 150
 end if
-set rs = dbManager.conn.execute(SQL)
+set rs = dbManager.Execute(SQL)
 
-while not rs.eof
-	call objCloud.add(rs("tag_name"),rs("tag_photos"),rs("tag_name"))
-	rs.movenext
-wend
+if rs.eof then
+	
+	response.write "nessun tag presente"
 
-call objCloud.sort("name","asc")
-call objCloud.print()
+else	
 
+	while not rs.eof
+		call objCloud.add(rs("tag_name"),rs("tag_id"),rs("tag_photos"),"")
+		rs.movenext
+	wend
+	
+	call objCloud.sort("name","asc")
+	call objCloud.print()
+
+end if
 %>

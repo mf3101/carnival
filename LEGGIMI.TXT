@@ -1,12 +1,12 @@
-Ôªø  _________________________
+  _________________________
   |                       |
-  |    CARNIVAL 1.0b.0    |
+  |    CARNIVAL 1.0.0    |
   |_______________________|
   
   @author	Simone Cingano <simonecingano@imente.org>
-  @version	1.0b0 (20080312)
-  @copyright	(c) 2008 Simone Cingano
-  @licence	http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt
+  @version	1.0.0 (20101011)
+  @copyright	(c) 2010 Simone Cingano
+  @licence	http://www.opensource.org/licenses/mit-license.php
 
 ---------------------------------------------------------------
 SITO UFFICIALE:	   http://www.carnivals.it
@@ -14,38 +14,82 @@ FORUM DI SUPPORTO: http://forum.imente.org/viewforum.php?f=7
 ---------------------------------------------------------------
 
 
+INDICE
+	a. aggiornamento
+	b. nuova installazione
+
+
+
+
+
+
+---------------------------------------------------------------
+ a. AGGIORNAMENTO ---------------------------------------------
+---------------------------------------------------------------
+
+come eseguo l'aggiornamento di carnival?
+----------------------------------------
+questo aggiornamento è compatibile con la versione 1.0b e 1.0c
+ed esegue l'aggiornamento alla versione 1.0.0
+
+copia il file "CARNIVAL/update.asp" e la cartella "CARNIVAL/setup" nella tua cartella
+di carnival direttamente sul server (può essere la radice, oppure
+una sottocartella, a seconda di come hai effettuato la tua installazione)
+
+successivamente apri la pagina update.asp
+	(es: http://www.miosito.it/carnival/update.asp)
+	(es: http://www.miosito.it/update.asp)
+	(l'indirizzo può cambiare a seconda se hai installato carnival
+	 nella cartella principale o in una sottocartella)
+	 
+da qui in poi segui le indicazioni e il processo di aggiornamento
+sarà completato con semplicità
+
+
+
+
+
+
+
+---------------------------------------------------------------
+ a. NUOVA INSTALLAZIONE ---------------------------------------
+---------------------------------------------------------------
+
 come installo carnival?
 -----------------------
-√® sufficiente copiare il contenuto della cartella "CARNIVAL INSTALL" di questo
+è sufficiente copiare il contenuto della cartella "CARNIVAL" di questo
 zip sul vostro spazio web (anche in una sottocartella, es: /photoblog).
-successivamente impostare permessi di scrittura alla cartella "db" e
-di lettura/scrittura alla cartella "public"
-infine puntate il vostro browser preferito a http://www.tuosito.it/setup.asp
-(se hai copiato i file direttamente nella root)
 
+assicurati che sia presente una cartella per il database MDB (se intendi usarlo)
+oppure un database MYSQL vuoto pronto per essere inizializzato.
+
+copia poi il contenuto di "PUBLIC" in una cartella che abbia i permessi di scrittura
+se non puoi impostarli, copia il contenuto della cartella public in una
+cartella sul tuo spazio web che possieda tali permessi
+
+infine punta il tuo browser preferito a http://www.tuosito.it/setup.asp
+(se hai copiato i file direttamente nella root)
 
 
 come faccio a impostare i permessi di scrittura sulle cartelle?
 ---------------------------------------------------------------
 se hai uno spazio web gratis o a pagamento dove non hai il controllo
-diretto del computer vedi di copiare il database nella cartella apposita
-(spesso la cartella si chiama "mdb-database" o semplicemente "db"), e il
-contenuto della cartella "public" nella cartella apposita (spesso la
-cartella si chiama "public"). se non hai idea della posizione delle
-cartelle apposite chiedi al tuo fornitore del servizio dove sono attivi
-i permessi di scrittura per il database e i permessi di scrittura e
-lettura per la cartella pubblica.
+diretto del computer vedi scegliere le cartelle con accortezza
 
-se invece hai il controllo completo dello spazio web apri IIS (dagli
-strumenti di amministrazione) e imposta lettura sulla cartella "db" e
-lettura/scrittura sulla cartella "public". poi con windows explorer
-cliccate destro sulla cartella "db", propriet√† e su "protezione"
-impostate permessi di lettura e scrittura per l'utente IUSR_nomecomputer
-(dove nomecomputer √® il nome del vostro computer) e ripetete la stessa
-operazione per la cartella "public".
+per il database (solo se usi MDB) scegli una cartella apposita
+(spesso la cartella si chiama "mdb-database" o semplicemente "db")
+
+vedi poi di copiare il contenuto della cartella "public" nella
+cartella apposita (spesso la cartella si chiama "public").
+se non hai idea della posizione delle cartelle apposite chiedi al
+tuo fornitore del servizio dove sono attivi i permessi di scrittura
+per il database e i permessi di scrittura e lettura per la cartella pubblica.
+se invece hai il controllo completo della macchina dove risiede il tuo
+sito, vedi di impostare i permessi opportunamente. non sai come fare?
+google ti sarà di grande aiuto :)
 
 in ogni caso ricorda sempre durante l'installazione di impostare
-correttamente i percorsi. il setup ti guider√† in questa operazione
+correttamente i percorsi. il setup ti guiderà in questa operazione
 notificandoti se li hai impostati correttamente. non ti preoccupare, 
-se hai qualsiasi problema il forum di supporto √® a tua disposizione 
+se hai qualsiasi problema il forum di supporto è a tua disposizione 
 (http://forum.imente.org/viewforum.php?f=7)

@@ -1,8 +1,9 @@
+
 <%
 '-----------------------------------------------------------------
 ' ******************** HELLO THIS IS CARNIVAL ********************
 '-----------------------------------------------------------------
-' Copyright (c) 2007-2008 Simone Cingano
+' Copyright (c) 2007-2011 Simone Cingano
 ' 
 ' Permission is hereby granted, free of charge, to any person
 ' obtaining a copy of this software and associated documentation
@@ -27,14 +28,14 @@
 '-----------------------------------------------------------------
 ' * @category        Carnival
 ' * @package         Carnival
-' * @author          Simone Cingano <simonecingano@imente.org>
-' * @copyright       2007-2008 Simone Cingano
+' * @author          Simone Cingano <info@carnivals.it>
+' * @copyright       2007-2011 Simone Cingano
 ' * @license         http://www.opensource.org/licenses/mit-license.php
-' * @version         SVN: $Id: inc.top.asp 21 2008-06-29 22:05:09Z imente $
+' * @version         SVN: $Id: inc.top.asp 117 2010-10-11 19:22:40Z imente $
 ' * @home            http://www.carnivals.it
 '-----------------------------------------------------------------
 
-crnIsLightPage = IIF(crnIsPhotoPage,carnival_style_photopage_islight,carnival_style_page_islight)
+blnIsLightPage__ = IIF(blnIsPhotosPage__,config__style_photopage_islight__,config__style_page_islight__)
 %><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <!--
@@ -44,85 +45,82 @@ crnIsLightPage = IIF(crnIsPhotoPage,carnival_style_photopage_islight,carnival_st
  *
  -->
 <head>
-<title><%=server.htmlEncode(crnPageTitle)%></title>
+<title><%=server.htmlEncode(strPageTitleHead__)%></title>
 <meta http-equiv="content-type" content="text/html; charset=iso-8859-1" />
 <meta name="generator" content="Carnival <%=CARNIVAL_VERS%>" />
-<% if carnival_author <> "" then %><meta name="author" content="<%=cleanOutputString(carnival_author)%>" />
+<% if config__author__ <> "" then %><meta name="author" content="<%=outputHTMLString(config__author__)%>" />
 <% end if
-if carnival_description <> "" then %><meta name="description" content="<%=cleanOutputString(carnival_description)%>" />
+if config__description__ <> "" then %><meta name="description" content="<%=outputHTMLString(config__description__)%>" />
 <% end if 
- if carnival_copyright <> "" then %><meta name="copyright" content="<%=cleanOutputString(carnival_copyright)%>" />
+ if config__copyright__ <> "" then %><meta name="copyright" content="<%=outputHTMLString(config__copyright__)%>" />
 <% end if
 %><meta name="robots" content="index,follow" />
 <meta http-equiv="pragma" content="no-cache" />
-<link rel="alternate" href="<%=CARNIVAL_PUBLIC & CARNIVAL_FEED & "feed.xml"%>" title="<%=cleanOutputString(carnival_title)%>" type="application/rss+xml" />
+<link rel="alternate" href="feed.asp" title="<%=outputHTMLString(config__title__)%>" type="application/rss+xml" />
 <link rel="shortcut icon" href="favicon.ico" />
-<script type="text/javascript" src="javascript/prototype.lite.js"></script>
-<script type="text/javascript" src="javascript/navsniffer.js"></script>
-<script type="text/javascript" src="javascript/extend.js"></script>
-<script type="text/javascript" src="javascript/moo.fx.js"></script>
-<script type="text/javascript" src="javascript/ahah.js"></script>
+<script type="text/javascript" src="javascript/mootools.js"></script>
+<script type="text/javascript" src="javascript/commons.js"></script>
 <script type="text/javascript" src="javascript/baloon.js"></script>
-<script type="text/javascript" src="javascript/func.js"></script>
-<%
-if crnIsAdminPage then 
-%><script type="text/javascript" src="javascript/func.admin.js"></script>
+<link type="text/css" rel="stylesheet" href="<%=CARNIVAL_PUBLIC & CARNIVAL_STYLES & config__style__ & "/" & config__style_output_main__%>" />
+<% if blnIsAdminPage__ then 
+%><link type="text/css" rel="stylesheet" href="<%=CARNIVAL_PUBLIC & CARNIVAL_STYLES & config__style__ & "/" & config__style_output_admin__%>" />
+<% end if 
+%><%
+if blnIsAdminPage__ then 
+%><script type="text/javascript" src="javascript/commons.admin.js"></script>
 <% end if
-if carnival_jsactive and crnIsPhotoPage then 
+if config__jsactive__ and blnIsPhotosPage__ then 
 %><script type="text/javascript" src="javascript/carnival.js"></script>
-<% end if 
-%><link type="text/css" rel="stylesheet" href="<%=CARNIVAL_PUBLIC & CARNIVAL_STYLES & carnival_style & "/" & carnival_style_output_main%>" />
-<% if crnIsAdminPage then 
-%><link type="text/css" rel="stylesheet" href="<%=CARNIVAL_PUBLIC & CARNIVAL_STYLES & carnival_style & "/" & carnival_style_output_admin%>" />
-<% end if 
-%><%=carnival_headadd
+<% 
+end if 
+%><%=config__headadd__
 %>
 </head>
-<body id="body" class="<%=classColor(crnIsLightPage)%>">
+<body id="body" class="<%=classColor(blnIsLightPage__)%>">
 <div id="overlay"></div>
-<% if (carnival_jsactive and crnIsPhotoPage) or crnIsAdminPage then %>
+<% if (config__jsactive__ and blnIsPhotosPage__) or blnIsAdminPage__ then %>
 <div id="baloon"></div>
 <script type="text/javascript">/* <![CDATA[ */
-function bodyOnMouseOut() { if (baloons) { baloonsChecks();	} }
+function eventOnMouseOut() { if (baloons) { baloonsChecks(); } }
 /* ]]> */</script>
 <div id="add"></div>
 <% end if 
-if carnival_bodyaddwhere = 0 then response.write carnival_bodyadd
+if config__bodyaddwhere__ = 0 then response.write config__bodyadd__
 %><div id="container" >
 	<div id="top">
-		<div id="topbox" class="<%=classColor(crnIsLightPage)%>">
+		<div id="topbox" class="<%=classColor(blnIsLightPage__)%>">
 			<div id="logo">
 				<a href="default.asp"><%
-				if carnival_logo_light <> "" and crnIsLightPage then
-				%><img src="<%=CARNIVAL_LOGOS & carnival_logo_light%>" alt="logo" /><span style="display:none;"><%=carnival_title%></span><%
-				elseif carnival_logo_dark <> "" and not crnIsLightPage then
-				%><img src="<%=CARNIVAL_LOGOS & carnival_logo_dark%>" alt="logo" /><span style="display:none;"><%=carnival_title%></span><%
+				if config__logo_light__ <> "" and blnIsLightPage__ then
+				%><img src="<%=CARNIVAL_LOGOS & config__logo_light__%>" alt="logo" /><span style="display:none;"><%=config__title__%></span><%
+				elseif config__logo_dark__ <> "" and not blnIsLightPage__ then
+				%><img src="<%=CARNIVAL_LOGOS & config__logo_dark__%>" alt="logo" /><span style="display:none;"><%=config__title__%></span><%
 				else
-				%><span><%=carnival_title%></span><%
+				%><span><%=config__title__%></span><%
 				end if
 				%></a>
 			</div>
 			<div id="menu">
-				<a href="photo.asp<% if crnIsCommentPage and crnPhotoId <> 0 then %>?id=<%=crnPhotoId%><% end if %>"><span><%=crnLang_menu_photos%></span></a>
-				<a href="gallery.asp<% if crnTagId <> 0 then %>?mode=stream&amp;tag=<%=crnTagName%><%elseif crnSetId <> 0 then %>?mode=sets&amp;set=<%=crnSetId%><%end if%>"><span><%=crnLang_menu_gallery%></span></a>
-				<a href="comments.asp<% if crnIsPhotoPage then %>?id=<%=crnPhotoId%><% end if %>" id="commentsshow"><span><%=crnMenuComment%></span></a>
-				<a href="tags.asp" id="cloudshow"><span><%=crnLang_menu_tags%></span></a><%
-				if carnival_parent <> "" then %>
-                <a href="<%=carnival_parent%>"><span>HOME</span></a>
-                <% elseif carnival_about then %>
-				<a href="about.asp"><span><%=crnLang_menu_about%></span></a><%
+				<a href="photo.asp<% if blnIsCommentsPage__ and lngCurrentPhotoId__ <> 0 then %>?id=<%=lngCurrentPhotoId__%><% end if %>"><span><%=lang__menu_photos__%></span></a>
+				<a href="gallery.asp<% if lngCurrentTagId__ <> 0 then %>?mode=stream&amp;tag=<%=strCurrentTagName__%><%elseif lngCurrentSetId__ <> 0 then %>?mode=sets&amp;set=<%=lngCurrentSetId__%><%end if%>" id="gallerylink"><span><%=lang__menu_gallery__%></span></a>
+				<a href="comments.asp<% if blnIsPhotosPage__ then %>?id=<%=lngCurrentPhotoId__%><% end if %>" id="commentsshow"><span><%=strMenuCommentText__%></span></a>
+				<a href="tags.asp" id="cloudshow"><span><%=lang__menu_tags__%></span></a><%
+				if config__parent__ <> "" then %>
+                <a href="<%=config__parent__%>"><span>HOME</span></a>
+                <% elseif config__about__ then %>
+				<a href="about.asp"><span><%=lang__menu_about__%></span></a><%
 				end if %>
-				<a href="admin.asp" title="<%=crnLang_menu_admin%>" class="admin"><span><img class="admin" src="images/carnival-logo25.gif" alt=" <%=crnLang_menu_admin%> " /></span></a>
+				<a href="admin.asp" title="<%=lang__menu_admin__%>" class="admin"><span><img class="admin" src="images/carnival-logo25.gif" alt=" <%=lang__menu_admin__%> " /></span></a>
 			</div>
 		</div>
 	</div>
-	<div id="header" class="<%=classColor(crnIsLightPage)%>">
-		<% if not crnIsPhotoPage then %><div id="carnivalinfo">
+	<% if not blnIsPhotosPage__ then %><div id="header" class="page">
+    	<div class="content">
+		<div id="carnivalinfo">
 			<a href="http://www.carnivals.it">powered by <b>carnival</b> <%=CARNIVAL_VERS%></a>
 		</div>
-		<h1><%=crnTitle%></h1><% end if %>
-	</div><%
-	if not crnIsPhotoPage then %>
+		<h1><%=strPageTitle__%></h1></div>
+	</div>
 	<div id="box">
 		<div class="content"><%
 	end if %>

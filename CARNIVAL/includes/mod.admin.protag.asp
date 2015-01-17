@@ -2,7 +2,7 @@
 '-----------------------------------------------------------------
 ' ******************** HELLO THIS IS CARNIVAL ********************
 '-----------------------------------------------------------------
-' Copyright (c) 2007-2008 Simone Cingano
+' Copyright (c) 2007-2011 Simone Cingano
 ' 
 ' Permission is hereby granted, free of charge, to any person
 ' obtaining a copy of this software and associated documentation
@@ -27,46 +27,51 @@
 '-----------------------------------------------------------------
 ' * @category        Carnival
 ' * @package         Carnival
-' * @author          Simone Cingano <simonecingano@imente.org>
-' * @copyright       2007-2008 Simone Cingano
+' * @author          Simone Cingano <info@carnivals.it>
+' * @copyright       2007-2011 Simone Cingano
 ' * @license         http://www.opensource.org/licenses/mit-license.php
-' * @version         SVN: $Id: mod.admin.protag.asp 21 2008-06-29 22:05:09Z imente $
+' * @version         SVN: $Id: mod.admin.protag.asp 114 2010-10-11 19:00:34Z imente $
 ' * @home            http://www.carnivals.it
 '-----------------------------------------------------------------
+
+'*****************************************************
+'ENVIROMENT AGGIUNTIVO
 %><!--#include file = "inc.admin.check.asp"-->
-<%
+<!--#include file = "inc.func.tag.asp"--><%
+'*****************************************************
 
-dim crn_action, crn_id, crn_name, crn_from, crn_type, crn_returnpage
+dim strAction, strFrom, strReturnQuerystring
+dim lngTagId, strTagName, bytTagType
 
-crn_from = normalize(request.QueryString("from"),"tools","tag-list")
+strFrom = normalize(request.QueryString("from"),"tools","tag-list")
 
-crn_action = request.QueryString("action")
-if crn_action = "" then crn_action = request.form("action")
-crn_action = normalize(crn_action,"multi|del|edit|update|typenormal|typecommon","")
+strAction = request.QueryString("action")
+if strAction = "" then strAction = request.form("action")
+strAction = normalize(strAction,"multi|del|edit|update|typenormal|typecommon","")
 
-crn_id = cleanLong(request.QueryString("id"))
-if crn_id = 0 then crn_id = cleanLong(request.form("id"))
+lngTagId = inputLong(request.QueryString("id"))
+if lngTagId = 0 then lngTagId = inputLong(request.form("id"))
 
-crn_type = request.QueryString("type")
-if crn_type = "" then crn_type = request.form("type")
-crn_type = cleanByte(crn_type)
+bytTagType = request.QueryString("type")
+if bytTagType = "" then bytTagType = request.form("type")
+bytTagType = inputByte(bytTagType)
 
-crn_name = request.QueryString("name")
-if crn_name = "" then crn_name = request.form("name")
-crn_name = cleanString(cleanTagName(crn_name),0,50)
+strTagName = request.QueryString("name")
+if strTagName = "" then strTagName = request.form("name")
+strTagName = inputStringD(cleanTagName(strTagName),0,50)
 
-crn_returnpage = cleanLong(request.QueryString("returnpage"))
-if crn_returnpage = 0 then crn_returnpage = cleanLong(request.form("returnpage"))
+strReturnQuerystring = request.QueryString("returnpage")
+if strReturnQuerystring = "" then strReturnQuerystring = request.form("returnpage")
 
-select case crn_action
+select case strAction
 	case "multi"
 	
 		dim multiid, multisel, multiaction
 		multiaction = normalize(request.Form("multiaction"),"del","")
 		dim ii : ii = 1
 		while (trim(request.Form("multiid"&ii))<>"")
-			if cleanBool(request.Form("multisel"&ii)) then
-				multiid = cleanLong(request.Form("multiid"&ii))
+			if inputBoolean(request.Form("multisel"&ii)) then
+				multiid = inputLong(request.Form("multiid"&ii))
 				select case multiaction
 					case "del"
 					call deleteTag(multiid)
@@ -75,56 +80,30 @@ select case crn_action
 			ii=ii+1
 		wend
 	case "del"
-		call deleteTag(crn_id)
+		call deleteTag(lngTagId)
 	case "typenormal", "typecommon"
-		crn_type = 0
-		if crn_action = "typecommon" then crn_type = 1
-		SQL = "UPDATE tba_tag SET tag_type = " & crn_type & " WHERE tag_id = " & crn_id
-		dbManager.conn.execute(SQL)
+		bytTagType = 0
+		if strAction = "typecommon" then bytTagType = 1
+		SQL = "UPDATE tba_tag SET tag_type = " & bytTagType & " WHERE tag_id = " & lngTagId
+		dbManager.Execute(SQL)
 	case "edit"
-		if crn_name <> "" then
+		if strTagName <> "" then
 			'se il nome del tag è valido controlla se non esiste un tag con lo stesso nome
-			SQL = "SELECT tag_id FROM tba_tag WHERE tag_name = '" & crn_name & "' AND tag_id <> " & crn_id
-			set rs = dbManager.conn.execute(SQL)
+			SQL = "SELECT tag_id FROM tba_tag WHERE tag_name = '" & formatDBString(strTagName,null) & "' AND tag_id <> " & lngTagId
+			set rs = dbManager.Execute(SQL)
 			if not rs.eof then response.Redirect("errors.asp?c=tag0")
 			'se non esistono altri tag con lo stesso nome modifica
-			SQL = "UPDATE tba_tag SET tag_name = '" & crn_name & "', tag_type = " & crn_type & " WHERE tag_id = " & crn_id
-			dbManager.conn.execute(SQL)
+			SQL = "UPDATE tba_tag SET tag_name = '" & formatDBString(strTagName,null) & "', tag_type = " & bytTagType & " WHERE tag_id = " & lngTagId
+			dbManager.Execute(SQL)
 		end if
 	case "update"
-		dim rs2
-		set rs2 = Server.CreateObject("ADODB.Recordset")
-	
-		SQL = "SELECT tag_id FROM tba_tag"
-		set rs = dbManager.conn.execute(SQL)
-		while not rs.eof
-			SQL = "SELECT Count(tba_rel.rel_id) AS photos FROM tba_rel INNER JOIN tba_photo ON tba_rel.rel_photo = tba_photo.photo_id WHERE tba_rel.rel_tag = " & rs("tag_id") & " AND tba_photo.photo_active=1"
-			set rs2 = dbManager.conn.execute(SQL)
-			SQL = "UPDATE tba_tag SET tag_photos = " & rs2("photos") & " WHERE tag_id = " & rs("tag_id")
-			dbManager.conn.execute(SQL)
-			rs.movenext
-		wend
-		
-		set rs2 = nothing
+		call syncTags()
 end select
 
-select case crn_from
+select case strFrom
 	case "tools"
 	response.Redirect("admin.asp?module=tools&done=tags")
 	case "tag-list"
-	response.Redirect("admin.asp?module=tag-list&page="&crn_returnpage)
+	response.Redirect("admin.asp?module=tag-list&"&readyToQuerystring(strReturnQuerystring))
 end select
-
-'**********************************************************************************************************
-'MAIN FUNCTIONS
-'--------------
-sub deleteTag(id)
-	'elimina tutti i riferimenti alle foto
-	SQL = "DELETE * FROM tba_rel WHERE rel_tag = " & id
-	dbManager.conn.execute(SQL)
-	'elimina fisicamente il tag
-	SQL = "DELETE * FROM tba_tag WHERE tag_id = " & id
-	dbManager.conn.execute(SQL)
-end sub
-'**********************************************************************************************************
 %>

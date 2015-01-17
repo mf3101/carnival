@@ -2,7 +2,7 @@
 '-----------------------------------------------------------------
 ' ******************** HELLO THIS IS CARNIVAL ********************
 '-----------------------------------------------------------------
-' Copyright (c) 2007-2008 Simone Cingano
+' Copyright (c) 2007-2011 Simone Cingano
 ' 
 ' Permission is hereby granted, free of charge, to any person
 ' obtaining a copy of this software and associated documentation
@@ -27,59 +27,115 @@
 '-----------------------------------------------------------------
 ' * @category        Carnival
 ' * @package         Carnival
-' * @author          Simone Cingano <simonecingano@imente.org>
-' * @copyright       2007-2008 Simone Cingano
+' * @author          Simone Cingano <info@carnivals.it>
+' * @copyright       2007-2011 Simone Cingano
 ' * @license         http://www.opensource.org/licenses/mit-license.php
-' * @version         SVN: $Id: mod.admin.proconfig.asp 27 2008-07-04 12:22:52Z imente $
+' * @version         SVN: $Id: mod.admin.proconfig.asp 114 2010-10-11 19:00:34Z imente $
 ' * @home            http://www.carnivals.it
 '-----------------------------------------------------------------
+
+'*****************************************************
+'ENVIROMENT AGGIUNTIVO
 %><!--#include file = "inc.admin.check.asp"-->
-<!--#include file = "inc.md5.asp"--><%
+<!--#include file = "class.safemailer.asp"-->
+<!--#include file = "inc.md5.asp"-->
+<!--#include file = "inc.func.photo.asp"--><%
+'*****************************************************
+'* - safemailer per emailtest
+'* - func.photo per il ricalcolo delle date autopub
+'*****************************************************
 
-dim crn_title, crn_description, crn_author, crn_copyright, crn_headadd, crn_bodyadd, crn_bodyaddwhere
-dim crn_jsactive, crn_parent, crn_about, crn_aboutpage, crn_password, crn_newpassword, crn_exifactive
-dim crn_mode
-dim crn_configmode
+dim strConfigTitle, strConfigDescription, strConfigAuthor, strConfigCopyright, strConfigHeadAdd, strConfigBodyAdd, strConfigBodyAddwhere
+dim blnConfigJSActive, blnConfigJSNavigatorActive, strConfigParent, blnConfigAbout, strConfigAboutContent, strConfigPassword, strConfigNewPassword, blnConfigExifActive
+dim strConfigAutopub, strConfigAutopubtemp, bytConfigMode
+dim strConfigMailComponent, strConfigMailAddress, strConfigMailHost, intConfigMailPort
+dim strConfigMailUser, strConfigMailPassword, bytConfigMailSsl, bytConfigMailAuth
+dim strConfigMailPercomment
 
-crn_configmode = normalize(request.form("configmode"),"full|navigation|about|code|password","general")
+dim strMode
+dim blnTestMail
 
-if crn_configmode = "general" or crn_configmode = "full" then 
-	crn_title = cleanString(request.form("title"),0,50)
-	crn_description = cleanString(request.form("description"),0,255)
-	crn_author = cleanString(request.form("author"),0,50)
-	crn_copyright = cleanString(request.form("copyright"),0,100)
+strMode = normalize(request.form("configmode"),"full|navigation|automation|mail-component|mail-notifications|about|code|password","general")
+blnTestMail = inputBoolean(request.Form("mailtest"))
+
+if strMode = "general" or strMode = "full" then 
+	strConfigTitle = inputStringD(request.form("title"),0,50)
+	strConfigDescription = inputStringD(request.form("description"),0,255)
+	strConfigAuthor = inputStringD(request.form("author"),0,50)
+	strConfigCopyright = inputStringD(request.form("copyright"),0,100)
 end if
-if crn_configmode = "navigation" or crn_configmode = "full" then 
-	crn_jsactive = request.form("jsactive")
-	if crn_jsactive <> 1 then crn_jsactive = 0
-	crn_exifactive = request.form("exifactive")
-	if crn_exifactive <> 1 then crn_exifactive = 0
-	crn_mode = cleanByte(request.Form("mode"))
+if strMode = "navigation" or strMode = "full" then 
+	blnConfigJSActive = inputBoolean(request.form("jsactive"))
+	blnConfigJSNavigatorActive = inputBoolean(request.form("jsnavigatoractive"))
+	blnConfigExifActive = inputBoolean(request.form("exifactive"))
+	bytConfigMode = inputByte(request.Form("mode"))
 end if
-if crn_configmode = "about" or crn_configmode = "full" then 
-	crn_aboutpage = cleanString(request.form("aboutpage"),0,5000)
-	crn_parent = cleanString(request.form("parent"),0,250)
+if strMode = "automation" or strMode = "full" then 
+	'---
+	strConfigAutopubtemp = inputByte(request.form("autopub_mode"))
+	strConfigAutopub = cstr(strConfigAutopubtemp)
+	select case strConfigAutopubtemp
+		case 0
+			strConfigAutopub = strConfigAutopub & "00"
+		case 1
+			'giorno della settimana
+			strConfigAutopubtemp = inputByte(request.form("autopub1_day"))
+			if strConfigAutopubtemp < 1 or strConfigAutopubtemp > 7 then strConfigAutopubtemp = 1
+			strConfigAutopub = strConfigAutopub & right("00"&strConfigAutopubtemp,2)
+		case 2
+			'giorno del mese
+			strConfigAutopubtemp = inputByte(request.form("autopub2_day"))
+			if strConfigAutopubtemp < 1 or strConfigAutopubtemp > 31 then strConfigAutopubtemp = 1
+			strConfigAutopub = strConfigAutopub & right("00"&strConfigAutopubtemp,2)
+	end select
+	'ora
+	strConfigAutopubtemp = inputByte(request.form("autopub_hours"))
+	if strConfigAutopubtemp < 0 or strConfigAutopubtemp > 23 then strConfigAutopubtemp = 0
+	strConfigAutopub = strConfigAutopub & right("00"&strConfigAutopubtemp,2)
+	'minuto
+	strConfigAutopubtemp = inputByte(request.form("autopub_minutes"))
+	if strConfigAutopubtemp < 0 or strConfigAutopubtemp > 59 then strConfigAutopubtemp = 0
+	strConfigAutopub = strConfigAutopub & right("00"&strConfigAutopubtemp,2)
+	'---
 end if
-if crn_configmode = "code" or crn_configmode = "full" then 
-	crn_headadd = cleanString(request.form("headadd"),0,2000)
-	crn_bodyadd = cleanString(request.form("bodyadd"),0,2000)
-	crn_bodyaddwhere = cleanByte(request.form("bodyaddwhere"))
+if strMode = "mail-component" or strMode = "full" then 
+	strConfigMailComponent = trim(inputStringD(request.form("mailcomponent"),0,30))
+	strConfigMailHost = inputStringD(request.form("mailhost"),0,100)
+	intConfigMailPort = inputInteger(request.form("mailport"))
+	if intConfigMailPort < 0 or intConfigMailPort > 32000 then intConfigMailPort = 0
+	strConfigMailUser = inputStringD(request.form("mailuser"),0,50)
+	strConfigMailPassword = inputStringD(request.form("mailpassword"),0,50)
+	bytConfigMailSsl = inputByte(request.form("mailssl"))
+	bytConfigMailAuth = inputByte(request.form("mailauth"))
 end if
-if crn_configmode = "password" or crn_configmode = "full" then 
-	crn_password = trim(request.form("password"))
-	crn_newpassword = trim(request.form("newpassword"))
+if strMode = "mail-notifications" or strMode = "full" then
+	strConfigMailAddress = inputStringD(request.form("mailaddress"),0,100)
+	strConfigMailPercomment = inputByte(request.form("mailpercomment"))
+end if
+if strMode = "about" or strMode = "full" then 
+	strConfigAboutContent = inputStringD(request.form("aboutpage"),0,5000)
+	strConfigParent = inputStringD(request.form("parent"),0,250)
+end if
+if strMode = "code" or strMode = "full" then 
+	strConfigHeadAdd = inputStringD(request.form("headadd"),0,2000)
+	strConfigBodyAdd = inputStringD(request.form("bodyadd"),0,2000)
+	strConfigBodyAddwhere = inputByte(request.form("bodyaddwhere"))
+end if
+if strMode = "password" or strMode = "full" then 
+	strConfigPassword = trim(request.form("password"))
+	strConfigNewPassword = trim(request.form("newpassword"))
 end if
 
 '-------------------------------------------------------------------------------
 
-if crn_configmode = "password" or crn_configmode = "full" then 
-	if not(crn_password = "" and crn_newpassword = "") or crn_configmode <> "full" then
-		if crn_password <> "" and len(crn_newpassword) >= 5 then
+if strMode = "password" or strMode = "full" then 
+	if not(strConfigPassword = "" and strConfigNewPassword = "") or strMode <> "full" then
+		if strConfigPassword <> "" and len(strConfigNewPassword) >= 5 then
 			SQL = "SELECT config_password FROM tba_config"
-			set rs = dbManager.conn.execute(SQL)
-			if rs("config_password") = md5(crn_password) then
-				SQL = "UPDATE tba_config SET config_password = '" & md5(crn_newpassword) & "'"
-				dbManager.conn.execute(SQL)
+			set rs = dbManager.Execute(SQL)
+			if rs("config_password") = md5(strConfigPassword) then
+				SQL = "UPDATE tba_config SET config_password = '" & md5(strConfigNewPassword) & "'"
+				dbManager.Execute(SQL)
 			else
 				Response.Redirect("errors.asp?c=config1")
 			end if
@@ -90,38 +146,94 @@ if crn_configmode = "password" or crn_configmode = "full" then
 end if
 
 '-------------------------------------------------------------------------------
-if crn_configmode <> "password" then
+if strMode <> "password" then
 	SQL = "UPDATE tba_config SET "
 	
-	if crn_configmode = "general" or crn_configmode = "full" then
-		SQL = SQL & ",config_title = '" & crn_title & "', " & _
-					 "config_description = '" & crn_description & "', " & _
-					 "config_author = '" & crn_author & "', " & _
-					 "config_copyright = '" & crn_copyright & "'"
+	if strMode = "general" or strMode = "full" then
+		SQL = SQL & ",config_title = '" & formatDBString(strConfigTitle,null) & "', " & _
+					 "config_description = '" & formatDBString(strConfigDescription,null) & "', " & _
+					 "config_author = '" & formatDBString(strConfigAuthor,null) & "', " & _
+					 "config_copyright = '" & formatDBString(strConfigCopyright,null) & "'"
 	end if
-	if crn_configmode = "navigation" or crn_configmode = "full" then 
-		SQL = SQL & ", config_jsactive = " & crn_jsactive & ", " & _
-					 "config_exifactive = " & crn_exifactive & ", " & _
-					 "config_mode = " & crn_mode
+	if strMode = "navigation" or strMode = "full" then 
+		SQL = SQL & ", config_jsactive = " & formatDbBool(blnConfigJSActive) & ", " & _
+					 "config_jsnavigatoractive = " & formatDbBool(blnConfigJSNavigatorActive) & ", " & _
+					 "config_exifactive = " & formatDbBool(blnConfigExifActive) & ", " & _
+					 "config_mode = " & bytConfigMode
 	end if
-	if crn_configmode = "about" or crn_configmode = "full" then 
-		crn_about = 0
-		if crn_aboutpage <> "" then crn_about = 1
-		SQL = SQL & ",config_aboutpage = '" & crn_aboutpage & "', " & _
-					 "config_about = " & crn_about & ", " & _
-					 "config_parent = '" & crn_parent & "'"
+	if strMode = "automation" or strMode = "full" then 
+		SQL = SQL & ", config_autopub = " & strConfigAutopub
 	end if
-	if crn_configmode = "code" or crn_configmode = "full" then 
-		SQL = SQL & ",config_headadd = '" & crn_headadd & "', " & _
-					 "config_bodyadd = '" & crn_bodyadd & "', " & _
-					 "config_bodyaddwhere = " & crn_bodyaddwhere
+	if strMode = "mail-component" or strMode = "full" then 
+		SQL = SQL & ", config_mail_component = '" & formatDBString(strConfigMailComponent,null) & "', " & _
+					 "config_mail_host = '" & formatDBString(strConfigMailHost,null) & "', " & _
+					 "config_mail_port = " & intConfigMailPort & ", " & _
+					 "config_mail_user = '" & formatDBString(strConfigMailUser,null) & "', "
+	if strConfigMailPassword <> "imentecarnival" then SQL = SQL & "config_mail_password = '" & formatDBString(strConfigMailPassword,null) & "', "
+		SQL = SQL &  "config_mail_ssl = " & bytConfigMailSsl & ", " & _
+					 "config_mail_auth = " & bytConfigMailAuth
+	end if
+	if strMode = "mail-notifications" or strMode = "full" then 
+		SQL = SQL & ", config_mail_percomment = " & strConfigMailPercomment & ", " & _
+					 "config_mail_address = '" & formatDBString(strConfigMailAddress,null) & "'"
+	end if
+	if strMode = "about" or strMode = "full" then 
+		blnConfigAbout = 0
+		if strConfigAboutContent <> "" then blnConfigAbout = 1
+		SQL = SQL & ",config_aboutpage = '" & formatDBString(strConfigAboutContent,null) & "', " & _
+					 "config_about = " & blnConfigAbout & ", " & _
+					 "config_parent = '" & formatDBString(strConfigParent,null) & "'"
+	end if
+	if strMode = "code" or strMode = "full" then 
+		SQL = SQL & ",config_headadd = '" & formatDBString(strConfigHeadAdd,null) & "', " & _
+					 "config_bodyadd = '" & formatDBString(strConfigBodyAdd,null) & "', " & _
+					 "config_bodyaddwhere = " & strConfigBodyAddwhere
 	end if
 	SQL = replace(SQL,"SET ,","SET ") & ""
 	
-	dbManager.conn.execute(SQL)
+	dbManager.Execute(SQL)
 end if
 
-response.Redirect("admin.asp?module=config&mode="&crn_configmode&"&action=done")
+if (strMode = "automation" or strMode = "full") and (config__autopub__ <> strConfigAutopub) then 
+	'alla modifica 
+	config__autopub__ = strConfigAutopub
+	call syncAutoPub()
+end if
+
+
+if blnTestMail and strMode = "mail-component" then
+	
+	Dim objMailer,strTestmailInfo
+	blnTestMail = "none"
+	Set objMailer = new SafeMailer
+	objMailer.debug = true
+	if objMailer.CreateObjectIfExist(strConfigMailComponent) then
+		blnTestMail = "done"
+	
+		objMailer.MailFrom = config__mail_address__
+		objMailer.MailTo = config__mail_address__
+		objMailer.subject = "Carnival Mail Test"
+		objMailer.BodyText = "l'invio mail da Carnival funziona correttamente."
+		objMailer.MailServer = strConfigMailHost
+		if intConfigMailPort > 0 then objMailer.MailPort = intConfigMailPort
+		if strConfigMailUser <> "" or strConfigMailPassword <> "" then
+			objMailer.User = strConfigMailUser
+			objMailer.Password = IIF(strConfigMailPassword="imentecarnival",config__mail_password__,strConfigMailPassword)
+			objMailer.Ssl = bytConfigMailSsl
+			objMailer.Auth = bytConfigMailAuth
+		end if
+		
+		strTestmailInfo = objMailer.Send()
+		if strTestmailInfo <> "" then blnTestMail = "none"
+		
+	end if
+
+	response.Redirect("admin.asp?module=config&mode="&strMode&"&action=done&mailtest=" & blnTestMail & "&mailtestinfo=" & server.URLEncode(strTestmailInfo))
+else
+	response.Redirect("admin.asp?module=config&mode="&strMode&"&action=done")
+end if
+
+
 
 
 %>

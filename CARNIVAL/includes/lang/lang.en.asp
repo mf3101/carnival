@@ -2,7 +2,7 @@
 '-----------------------------------------------------------------
 ' ******************** HELLO THIS IS CARNIVAL ********************
 '-----------------------------------------------------------------
-' Copyright (c) 2007-2008 Simone Cingano
+' Copyright (c) 2007-2011 Simone Cingano
 ' 
 ' Permission is hereby granted, free of charge, to any person
 ' obtaining a copy of this software and associated documentation
@@ -27,111 +27,111 @@
 '-----------------------------------------------------------------
 ' * @category        Carnival
 ' * @package         Carnival
-' * @author          Simone Cingano <simonecingano@imente.org>
-' * @copyright       2007-2008 Simone Cingano
+' * @author          Simone Cingano <info@carnivals.it>
+' * @copyright       2007-2011 Simone Cingano
 ' * @license         http://www.opensource.org/licenses/mit-license.php
-' * @version         SVN: $Id: lang.en.asp 18 2008-06-29 02:54:08Z imente $
+' * @version         SVN: $Id: lang.en.asp 114 2010-10-11 19:00:34Z imente $
 ' * @home            http://www.carnivals.it
 '-----------------------------------------------------------------
-dim crnLang_temp
+dim lang__temp__
+session.LCID = 1033
 
 
 '*** TOP MENU
-const crnLang_menu_photos = "PHOTOS"
-const crnLang_menu_gallery = "GALLERY"
-const crnLang_menu_comments = "COMMENTS"
-const crnLang_menu_tags = "TAGS"
-const crnLang_menu_about = "ABOUT"
-const crnLang_menu_admin = "ADMIN &amp; INFO"
+const lang__menu_photos__ = "PHOTOS"
+const lang__menu_gallery__ = "GALLERY"
+const lang__menu_comments__ = "COMMENTS"
+const lang__menu_tags__ = "TAGS"
+const lang__menu_about__ = "ABOUT"
+const lang__menu_admin__ = "ADMIN &amp; INFO"
 
-const crnLang_main_yes = "yes"
-const crnLang_main_no = "no"
-const crnLang_main_next = "NEXT"
-const crnLang_main_prev = "PREV"
-const crnLang_main_details = "DETAILS"
-const crnLang_main_comments = "COMMENTS"
-const crnLang_main_close = "CLOSE"
+const lang__main_yes__ = "yes"
+const lang__main_no__ = "no"
+const lang__main_next__ = "NEXT"
+const lang__main_prev__ = "PREV"
+const lang__main_details__ = "DETAILS"
+const lang__main_comments__ = "COMMENTS"
+const lang__main_close__ = "CLOSE"
 
 
 '*** ABOUT PAGE
-const crnLang_about_title = "ABOUT"
+const lang__about_title__ = "ABOUT"
 
 
 '*** COMMENTS PAGE
-const crnLang_comments_title_recent = "RECENT COMMENTS"
-const crnLang_comments_title_details = "DETAILS AND COMMENTS"
+const lang__comments_title_recent__ = "RECENT COMMENTS"
+const lang__comments_title_details__ = "DETAILS AND COMMENTS"
 
-const crnLang_comments_nocomment = "NO COMMENTS"
-const crnLang_comments_comments = "%n COMMENTS" 				'%n = numero di commenti
-const crnLang_comments_postacomment = "LEAVE A COMMENT"
-const crnLang_comments_lastcomments = "last %n comments" 		'%n = numero di commenti
-const crnLang_comments_delete = "delete"
+const lang__comments_nocomment__ = "NO COMMENTS"
+const lang__comments_comments__ = "%n COMMENTS" 				'%n = numero di commenti
+const lang__comments_postacomment__ = "LEAVE A COMMENT"
+const lang__comments_delete__ = "delete"
 
-const crnLang_comments_form_name = "name"
-const crnLang_comments_form_url = "url (optional)"
-const crnLang_comments_form_email = "email (will not published)"
-const crnLang_comments_form_captcha = "captcha: copy numbers in textbox"
-const crnLang_comments_form_comment = "comment"
-const crnLang_comments_form_extra = "&lt;b&gt; and &lt;i&gt; accepted"
-const crnLang_comments_form_send = "send"
+const lang__comments_form_name__ = "name"
+const lang__comments_form_url__ = "url (optional)"
+const lang__comments_form_email__ = "email (will not published)"
+const lang__comments_form_captcha__ = "captcha: copy numbers in textbox"
+const lang__comments_form_comment__ = "comment"
+const lang__comments_form_extra__ = "&lt;b&gt; and &lt;i&gt; accepted"
+const lang__comments_form_send__ = "send"
 
-const crnLang_details_views = "%n views" 	'%n numero di visualizzazioni
-const crnLang_details_tag = "tag"
-const crnLang_details_set = "set"
-const crnLang_details_download = "download high resolution version of this photo"
-const crnLang_details_exif = "shot details"
-const crnLang_details_exif_shot = "shot"
-const crnLang_details_exif_camera = "camera"
-const crnLang_details_exif_aperture = "aperture"
-const crnLang_details_exif_shutterspeed = "shutter speed"
-const crnLang_details_exif_focallength = "focal length "
-const crnLang_details_exif_flash = "flash"
-const crnLang_details_exif_meteringmode = "metering mode"
-const crnLang_details_exif_orientation = "orientation"
-const crnLang_details_exif_compression = "compression"
-const crnLang_details_exif_cropped = "cropped"
-const crnLang_details_exif_elaborated = "elaborated"
+const lang__details_views__ = "%n views" 	'%n numero di visualizzazioni
+const lang__details_tag__ = "tag"
+const lang__details_set__ = "set"
+const lang__details_download__ = "download high resolution version of this photo"
+const lang__details_exif__ = "shot details"
+const lang__details_exif_shot__ = "shot"
+const lang__details_exif_camera__ = "camera"
+const lang__details_exif_aperture__ = "aperture"
+const lang__details_exif_shutterspeed__ = "shutter speed"
+const lang__details_exif_focallength__ = "focal length "
+const lang__details_exif_flash__ = "flash"
+const lang__details_exif_meteringmode__ = "metering mode"
+const lang__details_exif_orientation__ = "orientation"
+const lang__details_exif_compression__ = "compression"
+const lang__details_exif_cropped__ = "cropped"
+const lang__details_exif_elaborated__ = "elaborated"
 
 
 '*** TAGS PAGE
-const crnLang_tags_title = "TAGS"
+const lang__tags_title__ = "TAGS"
 
 
 '*** PHOTO PAGE
-const crnLang_photo_title = "PHOTOS"
-const crnLang_photo_title_all = "all photos"
-const crnLang_photo_title_tag = "tag: '%s'" 		'%s nome del tag
-const crnLang_photo_title_photos = " ( %n photos )" 	'%n numero di foto
-const crnLang_photo_title_newphotos = "new photos"
-const crnLang_photo_new = "!NEW!"
+const lang__photo_title__ = "PHOTOS"
+const lang__photo_title_all__ = "all photos"
+const lang__photo_title_tag__ = "tag: '%s'" 		'%s nome del tag
+const lang__photo_title_photos__ = " ( %n photos )" 	'%n numero di foto
+const lang__photo_title_newphotos__ = "new photos"
+const lang__photo_new__ = "!NEW!"
 
 
 '*** GALLERY PAGE
-const crnLang_gallery_title = "GALLERY"
-const crnLang_gallery_tag = "tag"
-const crnLang_gallery_tag_all = "all photos"
-const crnLang_gallery_tag_new = "new photos"
-const crnLang_gallery_tag_send = "view"
-const crnLang_gallery_nophotos = "no photos"
-const crnLang_gallery_last_photos = "last %n photos" 	'%n numero di foto
-const crnLang_gallery_last_showall = "show all"
+const lang__gallery_title__ = "GALLERY"
+const lang__gallery_tag__ = "tag"
+const lang__gallery_tag_all__ = "all photos"
+const lang__gallery_tag_new__ = "new photos"
+const lang__gallery_tag_send__ = "view"
+const lang__gallery_nophotos__ = "no photos"
+const lang__gallery_last_photos__ = "last %n photos" 	'%n numero di foto
+const lang__gallery_last_showall__ = "show all"
 
 
 '*** ERROR PAGE
-const crnLang_error_title = "ERROR"
-const crnLang_error_back = "back"
-const crnLang_error_undefined = "undefined error"
+const lang__error_title__ = "ERROR"
+const lang__error_back__ = "back"
+const lang__error_undefined__ = "undefined error"
 
-const crnLang_error_comment_title = "unable to accept this comment"
-const crnLang_error_comment_nophoto = "selected photo doesn't exist"
-const crnLang_error_comment_code = "captcha code doesn't match"
-const crnLang_error_comment_field = "type a name, a valid email (that will not published) and a comment"
+const lang__error_comment_title__ = "unable to accept this comment"
+const lang__error_comment_nophoto__ = "selected photo doesn't exist"
+const lang__error_comment_code__ = "captcha code doesn't match"
+const lang__error_comment_field__ = "type a name, a valid email (that will not published) and a comment"
 
-const crnLang_error_photo_title = "no photo"
-const crnLang_error_photo_nophoto = "there are no photo in this photoblog<br/>if you are an administrator go to <a href=""admin.asp"">admin</a> and start :)"
+const lang__error_photo_title__ = "no photo"
+const lang__error_photo_nophoto__ = "there are no photo in this photoblog<br/>if you are an administrator go to <a href=""admin.asp"">admin</a> and start :)"
 
-const crnLang_error_login_title = "unable to login"
-const crnLang_error_login_password = "uncorrect password"
-const crnLang_error_login_locked = "another admin is connected. IP: [ %ip ]<br/>wait %t minutes and retry"
+const lang__error_login_title__ = "unable to login"
+const lang__error_login_password__ = "uncorrect password"
+const lang__error_login_locked__ = "another admin is connected. IP: [ %ip ]<br/>wait %t minutes and retry"
 
 %>

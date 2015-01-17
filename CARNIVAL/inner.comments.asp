@@ -2,7 +2,7 @@
 '-----------------------------------------------------------------
 ' ******************** HELLO THIS IS CARNIVAL ********************
 '-----------------------------------------------------------------
-' Copyright (c) 2007-2008 Simone Cingano
+' Copyright (c) 2007-2011 Simone Cingano
 ' 
 ' Permission is hereby granted, free of charge, to any person
 ' obtaining a copy of this software and associated documentation
@@ -27,23 +27,28 @@
 '-----------------------------------------------------------------
 ' * @category        Carnival
 ' * @package         Carnival
-' * @author          Simone Cingano <simonecingano@imente.org>
-' * @copyright       2007-2008 Simone Cingano
+' * @author          Simone Cingano <info@carnivals.it>
+' * @copyright       2007-2011 Simone Cingano
 ' * @license         http://www.opensource.org/licenses/mit-license.php
-' * @version         SVN: $Id: inner.comments.asp 16 2008-06-28 12:25:27Z imente $
+' * @version         SVN: $Id: inner.comments.asp 114 2010-10-11 19:00:34Z imente $
 ' * @home            http://www.carnivals.it
 '-----------------------------------------------------------------
 
-crnPhotoId = cleanLong(request.QueryString("id"))
-if crnPhotoId < 0 then crnPhotoId = 0
+'*****************************************************
+'ENVIROMENT AGGIUNTIVO
+' nessun enviroment aggiuntivo
+'*****************************************************
 
-SQL = "SELECT photo_id FROM tba_photo WHERE photo_id = " & crnPhotoId & " AND photo_active = 1"
-set rs = dbManager.conn.execute(SQL)
+lngCurrentPhotoId__ = inputLong(request.QueryString("id"))
+if lngCurrentPhotoId__ < 0 then lngCurrentPhotoId__ = 0
+
+SQL = "SELECT photo_id FROM tba_photo WHERE photo_id = " & lngCurrentPhotoId__ & " AND photo_active = 1"
+set rs = dbManager.Execute(SQL)
 if rs.eof then response.end
 
-dim crn_viaJs, crn_showCommentForm
-crn_viaJs = cleanBool(request.QueryString("js"))
-crn_showCommentForm = cleanBool(request.QueryString("showall"))
+dim blnViaJavascript, blnShowCommentForm
+blnViaJavascript = inputBoolean(request.QueryString("js"))
+blnShowCommentForm = inputBoolean(request.QueryString("showall"))
 
 %>
 <!--#include file = "includes/gen.comments.asp"-->

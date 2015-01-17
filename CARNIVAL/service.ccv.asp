@@ -1,9 +1,8 @@
-<!--#include file = "includes/inc.first.asp"-->
-<%
+<!--#include file = "includes/inc.first.asp"--><%
 '-----------------------------------------------------------------
 ' ******************** HELLO THIS IS CARNIVAL ********************
 '-----------------------------------------------------------------
-' Copyright (c) 2007-2008 Simone Cingano
+' Copyright (c) 2007-2011 Simone Cingano
 ' 
 ' Permission is hereby granted, free of charge, to any person
 ' obtaining a copy of this software and associated documentation
@@ -28,17 +27,23 @@
 '-----------------------------------------------------------------
 ' * @category        Carnival
 ' * @package         Carnival
-' * @author          Simone Cingano <simonecingano@imente.org>
-' * @copyright       2007-2008 Simone Cingano
+' * @author          Simone Cingano <info@carnivals.it>
+' * @copyright       2007-2011 Simone Cingano
 ' * @license         http://www.opensource.org/licenses/mit-license.php
-' * @version         SVN: $Id: service.ccv.asp 27 2008-07-04 12:22:52Z imente $
+' * @version         SVN: $Id: service.ccv.asp 114 2010-10-11 19:00:34Z imente $
 ' * @home            http://www.carnivals.it
 '-----------------------------------------------------------------
+
+'*****************************************************
+'ENVIROMENT AGGIUNTIVO
+' nessun enviroment aggiuntivo
+'*****************************************************
+
 if application(CARNIVAL_CODE & "_admin_c"&"cv") then
 	Dim xml, url, res, data, status
 
 	SQL = "SELECT config_title, config_c"&"cv FROM tba_config"
-	set rs = dbManager.conn.execute(SQL)
+	set rs = dbManager.Execute(SQL)
 	
 	url = server.URLEncode(request.ServerVariables("HTTP_REFERER"))
 	if url = "" then url = CARNIVAL_HOME
@@ -56,7 +61,7 @@ if application(CARNIVAL_CODE & "_admin_c"&"cv") then
 	xml.setRequestHeader "Connection", "close"
 	xml.Send data
 	
-	if cleanBool(rs("config_c"&"cv")) then
+	if inputBoolean(rs("config_c"&"cv")) then
 	
 		status = xml.status
 		

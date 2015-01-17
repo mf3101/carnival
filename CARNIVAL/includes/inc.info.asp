@@ -2,7 +2,7 @@
 '-----------------------------------------------------------------
 ' ******************** HELLO THIS IS CARNIVAL ********************
 '-----------------------------------------------------------------
-' Copyright (c) 2007-2008 Simone Cingano
+' Copyright (c) 2007-2011 Simone Cingano
 ' 
 ' Permission is hereby granted, free of charge, to any person
 ' obtaining a copy of this software and associated documentation
@@ -27,19 +27,28 @@
 '-----------------------------------------------------------------
 ' * @category        Carnival
 ' * @package         Carnival
-' * @author          Simone Cingano <simonecingano@imente.org>
-' * @copyright       2007-2008 Simone Cingano
+' * @author          Simone Cingano <info@carnivals.it>
+' * @copyright       2007-2011 Simone Cingano
 ' * @license         http://www.opensource.org/licenses/mit-license.php
-' * @version         SVN: $Id: inc.info.asp 27 2008-07-04 12:22:52Z imente $
+' * @version         SVN: $Id: inc.info.asp 114 2010-10-11 19:00:34Z imente $
 ' * @home            http://www.carnivals.it
 '-----------------------------------------------------------------
+
+'*****************************************************************
+'*****************************************************************
+'*****************************************************************
+' MODIFICARE LA SEGUENTE PAGINA INFRANGERA' LE LEGGI SUL COPYRIGHT
+'            VIGENTI IN ITALIA E NEL RESTO DEL MONDO
+'*****************************************************************
+'*****************************************************************
+'*****************************************************************
 %>	<hr/>
 	<div class="carnival-logo">
 		<img class="carnival-logo" src="images/carnival-logo150.gif" alt="[logo]" />
 		<img class="carnival-title" src="images/carnival-title200.gif" alt="CARNIVAL" />
 	</div>
 	<div class="carnival-info">
-		<div><span class="title">Versione</span><br />carnival <%=CARNIVAL_VERSION%> (<%=CARNIVAL_RELEASE%>)</div>
+		<div><span class="title">Versione</span><br />Carnival <%=CARNIVAL_VERS%></div>
 		<div><span class="title">Idea e Sviluppo</span><br />Simone Cingano (imente)</div>
 		<div><span class="title">VUOI UN PHOTOBLOG COME QUESTO?</span><br />
 		<a href="http://www.carnivals.it">http://www.carnivals.it</a></div>
@@ -48,13 +57,12 @@
 		<strong>wbclouds</strong> by <a href="http://www.imente.org/short/wbclouds">imente</a><br/>
 		<strong>wbresize</strong> by <a href="http://www.imente.org/short/wbresize">imente</a><br/>
 		<strong>aspdbox</strong> by <a href="http://www.imente.org/short/aspdbox">imente</a><br/>
-		<strong>prototype</strong> by <a href="http://prototype.conio.net">Sam Stephenso</a><br/>
-		<strong>moo.fx</strong> by <a href="http://moofx.mad4milk.net">mad4milk</a><br/>
+		<strong>mootools</strong> by <a href="http://mootools.net">Valerio Proietti</a><br/>
 		<strong>asp upload</strong> by <a href="http://www.aspxnet.it">Baol</a><br/>
 		<strong>functions_exif</strong> by <a href="mailto:mike.trinder@millerhare.com">Mike Trinder</a></div>
 		<div><span class="title">Stile grafico</span><br /><%
 		SQL = "SELECT config_style_desc FROM tba_config"
-		set rs = dbManager.conn.execute(SQL)
-		response.write rs("config_style_desc")
+		set rs = dbManager.Execute(SQL)
+		response.write (rs("config_style_desc"))
 		%></div>
 	</div>

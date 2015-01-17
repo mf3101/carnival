@@ -2,7 +2,7 @@
 '-----------------------------------------------------------------
 ' ******************** HELLO THIS IS CARNIVAL ********************
 '-----------------------------------------------------------------
-' Copyright (c) 2007-2008 Simone Cingano
+' Copyright (c) 2007-2011 Simone Cingano
 ' 
 ' Permission is hereby granted, free of charge, to any person
 ' obtaining a copy of this software and associated documentation
@@ -27,67 +27,71 @@
 '-----------------------------------------------------------------
 ' * @category        Carnival
 ' * @package         Carnival
-' * @author          Simone Cingano <simonecingano@imente.org>
-' * @copyright       2007-2008 Simone Cingano
+' * @author          Simone Cingano <info@carnivals.it>
+' * @copyright       2007-2011 Simone Cingano
 ' * @license         http://www.opensource.org/licenses/mit-license.php
-' * @version         SVN: $Id: mod.admin.setedit.asp 28 2008-07-04 12:27:48Z imente $
+' * @version         SVN: $Id: mod.admin.setedit.asp 114 2010-10-11 19:00:34Z imente $
 ' * @home            http://www.carnivals.it
 '-----------------------------------------------------------------
+
+'*****************************************************
+'ENVIROMENT AGGIUNTIVO
 %><!--#include file = "inc.admin.check.asp"--><%
+'*****************************************************
 
-dim crn_action, crn_returnpage
-crn_action = normalize(request.QueryString("action"),"edit","new")
-crn_returnpage = cleanLong(request.QueryString("returnpage"))
+dim strAction, strReturnQuerystring
+strAction = normalize(request.QueryString("action"),"edit","new")
+strReturnQuerystring = request.QueryString("returnpage")
 
-dim crn_setName, crn_setDescription, crn_setOrder, crn_setCover 
+dim lngSetId
+lngSetId = inputLong(request.QueryString("id"))
 
-dim crn_id
-crn_id = cleanLong(request.QueryString("id"))
+dim strSetName, strSetDescription, lngSetOrder, lngSetCover 
 
-dim crn_send,crn_subtitle
-if crn_action <> "edit" then
-	crn_subtitle = "Nuovo set"
-	crn_send = "salva"
+dim strButtonCaption,strSubTitle
+if strAction <> "edit" then
+	strSubTitle = "Nuovo set"
+	strButtonCaption = "salva"
 	
-	crn_id = 0
-	crn_setName = "!NOME DEL SET!"
-	crn_setDescription = ""
-	crn_setOrder = 0
-	crn_setCover = 0
+	lngSetId = 0
+	strSetName = "!NOME DEL SET!"
+	strSetDescription = ""
+	lngSetOrder = 0
+	lngSetCover = 0
 else
-	crn_subtitle = "Modifica set"
-	crn_send = "modifica"
+	strSubTitle = "Modifica set"
+	strButtonCaption = "modifica"
 	
-	SQL = "SELECT set_name, set_description, set_order, set_cover FROM tba_set WHERE set_id = " & crn_id
-	set rs = dbManager.conn.execute(SQL)
+	SQL = "SELECT set_name, set_description, set_order, set_cover FROM tba_set WHERE set_id = " & lngSetId
+	set rs = dbManager.Execute(SQL)
 	if rs.eof then response.Redirect("admin.asp?module=photo-list")
-	crn_setName = rs("set_name")
-	crn_setDescription = rs("set_description")
-	crn_setOrder = cleanLong(rs("set_order"))
-	crn_setCover = cleanLong(rs("set_cover"))
+	strSetName = rs("set_name")
+	strSetDescription = rs("set_description")
+	lngSetOrder = inputLong(rs("set_order"))
+	lngSetCover = inputLong(rs("set_cover"))
 end if
 
 
 
-%><h2><%=crn_subtitle%></h2>
+%><h2><%=strSubTitle%></h2>
 	<form class="post" action="admin.asp?module=pro-set" method="post">
-		<div><input type="hidden" name="action" id="action" value="<%=crn_action%>" />
-		<input type="hidden" name="id" id="id" value="<%=crn_id%>" />
-		<input type="hidden" name="returnpage" id="returnpage" value="<%=crn_returnpage%>" />
+		<div><input type="hidden" name="action" id="action" value="<%=strAction%>" />
+		<input type="hidden" name="id" id="id" value="<%=lngSetId%>" />
+		<input type="hidden" name="returnpage" id="returnpage" value="<%=strReturnQuerystring%>" />
 		<label for="name">nome</label>
-		<input type="text" id="name" name="name" class="text" maxlength="50" value="<%=cleanOutputString(crn_setName)%>" /></div>
+		<input type="text" id="name" name="name" class="text" maxlength="50" value="<%=outputHTMLString(strSetName)%>" /></div>
 		<div><label for="description">descrizione</label>
-		<img id="setCoverimg" src="<%=IIF(crn_setCover=0,carnival_pathimages & "/thumb-set-empty.gif",CARNIVAL_PUBLIC & CARNIVAL_PHOTOS & CARNIVAL_PHOTOPREFIX & crn_setCover & CARNIVAL_THUMBPOSTFIX & ".jpg?nc=" & noCache)%>" alt="" class="photo-thumb"/><textarea id="description" name="description" cols="20" rows="10" style="width:460px;"><%=cleanOutputString(crn_setDescription)%></textarea></div>
+		<img id="setCoverimg" src="<%=IIF(lngSetCover=0,config__pathimages__ & "/thumb-set-empty.gif",CARNIVAL_PUBLIC & CARNIVAL_PHOTOS & CARNIVAL_PHOTOPREFIX & lngSetCover & CARNIVAL_THUMBPOSTFIX & ".jpg?nc=" & noCache)%>" alt="" class="photo-thumb"/><textarea id="description" name="description" cols="20" rows="10" style="width:460px;"><%=outputHTMLString(strSetDescription)%></textarea></div>
         
 		<div>
         <label for="setCover">copertina set</label>
-        <select style="width:250px;" name="setCover" id="setCover" onchange="if(this.value==0) { $('setCoverimg').src = '<%=carnival_pathimages & "/thumb-set-empty.gif"%>'} else {$('setCoverimg').src = '<%=CARNIVAL_PUBLIC & CARNIVAL_PHOTOS & CARNIVAL_PHOTOPREFIX%>'+this.value+'<%=CARNIVAL_THUMBPOSTFIX & ".jpg"%>'};">
+        <select style="width:250px;" name="setCover" id="setCover" onchange="if(this.value==0) { $('setCoverimg').src = '<%=config__pathimages__ & "/thumb-set-empty.gif"%>'} else {$('setCoverimg').src = '<%=CARNIVAL_PUBLIC & CARNIVAL_PHOTOS & CARNIVAL_PHOTOPREFIX%>'+this.value+'<%=CARNIVAL_THUMBPOSTFIX & ".jpg"%>'};">
         	<%
-			SQL = "SELECT photo_id, photo_title FROM tba_photo WHERE photo_set = " & crn_id
-			set rs = dbManager.conn.execute(SQL)
+			SQL = "SELECT photo_id, photo_title FROM tba_photo WHERE photo_set = " & lngSetId
+			set rs = dbManager.Execute(SQL)
 			%><option value="0">nessuna foto selezionata</option><%
 			while not rs.eof
-				%><option value="<%=rs("photo_id")%>"<%if clng(crn_setCover) = clng(rs("photo_id")) then response.write " selected=""selected"""%>><%=cleanOutputString(rs("photo_title"))%></option><%
+				%><option value="<%=rs("photo_id")%>"<%if clng(lngSetCover) = clng(rs("photo_id")) then response.write " selected=""selected"""%>><%=outputHTMLString(rs("photo_title"))%></option><%
 				rs.movenext
 			wend
 			%>
@@ -96,21 +100,21 @@ end if
         
         <div>
 		<label for="order">ordine</label>
-		<input type="text" id="order" name="order" class="text" maxlength="7" value="<%=crn_setOrder%>"  />
+		<input type="text" id="order" name="order" class="text" maxlength="7" value="<%=lngSetOrder%>"  />
         </div>
 		<div class="nbuttons">
-			<% if crn_action = "edit" then %>
-			<a href="admin.asp?module=set-list&amp;page=<%=crn_returnpage%>">
+			<% if strAction = "edit" then %>
+			<a href="admin.asp?module=set-list&amp;<%=readyToQuerystring(strReturnQuerystring)%>">
 				<span>
-				<img src="<%=carnival_pathimages%>/lay-adm-ico-but-prev.gif" alt=""/> 
+				<img src="<%=getImagePath("lay-adm-ico-but-prev.gif")%>" alt=""/> 
 				indietro
 				</span>
 			</a>
 			<% end if %>
 			<button type="submit">
 				<span class="a"><span class="b">
-				<img src="<%=carnival_pathimages%>/lay-adm-ico-but-accept.gif" alt=""/> 
-				<%=crn_send%>
+				<img src="<%=getImagePath("lay-adm-ico-but-accept.gif")%>" alt=""/> 
+				<%=strButtonCaption%>
 				</span></span>
 			</button>
 		</div>

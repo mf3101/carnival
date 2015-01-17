@@ -2,7 +2,7 @@
 '-----------------------------------------------------------------
 ' ******************** HELLO THIS IS CARNIVAL ********************
 '-----------------------------------------------------------------
-' Copyright (c) 2007-2008 Simone Cingano
+' Copyright (c) 2007-2011 Simone Cingano
 ' 
 ' Permission is hereby granted, free of charge, to any person
 ' obtaining a copy of this software and associated documentation
@@ -27,115 +27,120 @@
 '-----------------------------------------------------------------
 ' * @category        Carnival
 ' * @package         Carnival
-' * @author          Simone Cingano <simonecingano@imente.org>
-' * @copyright       2007-2008 Simone Cingano
+' * @author          Simone Cingano <info@carnivals.it>
+' * @copyright       2007-2011 Simone Cingano
 ' * @license         http://www.opensource.org/licenses/mit-license.php
-' * @version         SVN: $Id: gallery.asp 20 2008-06-29 15:36:00Z imente $
+' * @version         SVN: $Id: gallery.asp 114 2010-10-11 19:00:34Z imente $
 ' * @home            http://www.carnivals.it
 '-----------------------------------------------------------------
 
-crnPopupTagCloud = false
+'*****************************************************
+'ENVIROMENT AGGIUNTIVO
+' nessun enviroment aggiuntivo
+'*****************************************************
 
-crnTitle = crnLang_gallery_title
+strPageTitle__ = lang__gallery_title__
 
-dim crn_tagPhotos, crn_galleryMode, crn_set, crn_setName
-crn_galleryMode = normalize(request.QueryString("mode"),"sets|archives|stream",IIF(carnival_mode=1,"sets","stream"))
-if carnival_mode = 2 then crn_galleryMode = "stream"
+dim strGalleryMode
+strGalleryMode = normalize(request.QueryString("mode"),"sets|archives|stream",IIF(config__mode__=1,"sets","stream"))
+if config__mode__ = 2 then strGalleryMode = "stream"
 
-crnTagName = trim(request.QueryString("tag"))
-crnTagId = 0
-crn_set = cleanLong(request.QueryString("set"))
+dim lngTagPhotos, strSetName
 
-if cstr(request.QueryString("top")) = "0" then crnShowTop = 0
+strCurrentTagName__ = trim(request.QueryString("tag"))
+lngCurrentTagId__ = 0
+lngCurrentSetId__ = inputLong(request.QueryString("set"))
 
-select case crn_galleryMode
+if cstr(request.QueryString("top")) = "0" then intRecordsOnce__ = 0
+
+select case strGalleryMode
 	case "stream"
-		if (crnTagName <> "" and crnTagName <> "(NEW)") or (crnTagName = "(NEW)" and crnLastViewedPhoto > 0) then
-			if crnTagName = "(NEW)" then
+		if (strCurrentTagName__ <> "" and strCurrentTagName__ <> "(NEW)") or (strCurrentTagName__ = "(NEW)" and lngLastViewedPhotoId__ > 0) then
+			if strCurrentTagName__ = "(NEW)" then
 				
-				SQL = "SELECT Count(*) AS photos FROM tba_photo WHERE photo_id > " & crnLastViewedPhoto & " AND photo_active = 1"
-				set rs = dbManager.conn.execute(SQL)
-				crn_tagPhotos = rs("photos")
-				crnPageTitle = crnLang_photo_title_newphotos & replace(crnLang_photo_title_photos,"%n",crn_tagPhotos)
-				crnTagId = -1
+				SQL = "SELECT Count(*) AS photos FROM tba_photo WHERE photo_pub > " & formatDBDate(inputDate(dtmLastViewedPhotoPub__),CARNIVAL_DATABASE_TYPE) & " AND photo_active = 1"
+				set rs = dbManager.Execute(SQL)
+				lngTagPhotos = rs("photos")
+				strPageTitleHead__ = lang__photo_title_newphotos__ & replace(lang__photo_title_photos__,"%n",lngTagPhotos)
+				lngCurrentTagId__ = -1
 			else
 			
-				SQL = "SELECT tag_name, tag_id, tag_photos FROM tba_tag WHERE tag_name = '" & replace(crnTagName,"'","''") & "'"
-				set rs = dbManager.conn.execute(SQL)
+				SQL = "SELECT tag_name, tag_id, tag_photos FROM tba_tag WHERE tag_name = '" & formatDBString(strCurrentTagName__,null) & "'"
+				set rs = dbManager.Execute(SQL)
 				if not rs.eof then
-					crnTagId = rs("tag_id")
-					crnTagName = rs("tag_name")
-					crn_tagPhotos = rs("tag_photos")
-					crnPageTitle = replace(crnLang_photo_title_tag,"%s",crnTagName) & replace(crnLang_photo_title_photos,"%n",crn_tagPhotos)
+					lngCurrentTagId__ = rs("tag_id")
+					strCurrentTagName__ = rs("tag_name")
+					lngTagPhotos = rs("tag_photos")
+					strPageTitleHead__ = replace(lang__photo_title_tag__,"%s",strCurrentTagName__) & replace(lang__photo_title_photos__,"%n",lngTagPhotos)
 				else
-					crnTagId = 0
+					lngCurrentTagId__ = 0
 				end if
 				
 			end if
 		end if
 		
-		if crnTagId = 0 then
+		if lngCurrentTagId__ = 0 then
 				SQL = "SELECT Count(*) AS photos FROM tba_photo WHERE photo_active = 1"
-				set rs = dbManager.conn.execute(SQL)
-				crn_tagPhotos = rs("photos")
-				crnTagName = ""
-				crnPageTitle = crnLang_photo_title_all & replace(crnLang_photo_title_photos,"%n",crn_tagPhotos)
+				set rs = dbManager.Execute(SQL)
+				lngTagPhotos = rs("photos")
+				strCurrentTagName__ = ""
+				strPageTitleHead__ = lang__photo_title_all__ & replace(lang__photo_title_photos__,"%n",lngTagPhotos)
 		end if
 	case "sets"
-		if crn_set > 0 then
-			SQL = "SELECT set_name FROM tba_set WHERE set_id = " & crn_set
-			set rs = dbManager.conn.execute(SQL)
+		if lngCurrentSetId__ > 0 then
+			SQL = "SELECT set_name FROM tba_set WHERE set_id = " & lngCurrentSetId__
+			set rs = dbManager.Execute(SQL)
 			if rs.eof then response.redirect("gallery.asp?mode=sets")
-			crn_setName = rs("set_name")
-			crnPageTitle = "Set &quot;" & crn_setName & "&quot;"
+			strSetName = rs("set_name")
+			strPageTitleHead__ = "Set &quot;" & strSetName & "&quot;"
 		else
-			crnPageTitle = "Set"
+			strPageTitleHead__ = "Set"
 		end if
 end select
 
-crnPageTitle = carnival_title & " ::: " & crnLang_gallery_title & " > " & crnPageTitle
+strPageTitleHead__ = config__title__ & " ::: " & lang__gallery_title__ & " > " & strPageTitleHead__
 
 %><!--#include file = "includes/inc.top.asp"-->
-	<% if carnival_mode <> 2 then %>
+	<% if config__mode__ <> 2 then %>
 	<div class="gallerytabs">
         <ul class="tabmenu">
-            <li<% if crn_galleryMode = "stream" then %> class="selected"<% end if %>>
+            <li<% if strGalleryMode = "stream" then %> class="selected"<% end if %>>
             	<a href="?mode=stream">Stream</a>
             </li>
-            <li<% if crn_galleryMode = "sets" then %> class="selected"<% end if %>>
+            <li<% if strGalleryMode = "sets" then %> class="selected"<% end if %>>
             	<a href="?mode=sets">Set</a>
             </li>
-            <!--<li<% if crn_galleryMode = "archives" then %> class="selected"<% end if %>>
+            <!--<li<% if strGalleryMode = "archives" then %> class="selected"<% end if %>>
             	<a href="?mode=archives">Archivi</a>
             </li>-->
         </ul>
     </div>
     <% end if %>
-    <% select case crn_galleryMode 
+    <% select case strGalleryMode 
 		case "stream"%>
-    <div class="galleryselect<%if carnival_mode = 2 then response.write " pure"%>"><form id="form_tag" action="gallery.asp" method="get">
+    <div class="galleryselect<%if config__mode__ = 2 then response.write " pure"%>"><form id="form_tag" action="gallery.asp" method="get">
     	<input type="hidden" id="mode" name="mode" value="stream" />
-        <div><b><%=crnLang_gallery_tag%>:</b> <select class="galleryselect" id="tag" name="tag" onchange="document.getElementById('form_tag').submit();">
-            <option value="" style="font-weight:bold;"><%=crnLang_gallery_tag_all%></option>
-            <% if cstr(crnLastViewedPhoto) <> cstr(crnLastPhoto) and crnLastViewedPhoto > 0 then %><option value="(NEW)" style="color:red;" <% if crnTagName = "(NEW)" then %> selected="selected"<% end if %>><%=crnLang_gallery_tag_new%></option><% end if %>
+        <div><b><%=lang__gallery_tag__%>:</b> <select class="galleryselect" id="tag" name="tag" onchange="document.getElementById('form_tag').submit();">
+            <option value="" style="font-weight:bold;"><%=lang__gallery_tag_all__%></option>
+            <% if (dtmLastViewedPhotoPub__) <> (dtmLastPhotoPub__) and lngLastViewedPhotoId__ > 0 then %><option value="(NEW)" style="color:red;" <% if strCurrentTagName__ = "(NEW)" then %> selected="selected"<% end if %>><%=lang__gallery_tag_new__%></option><% end if %>
         <%
         SQL = "SELECT tag_id, tag_name, tag_photos FROM tba_tag ORDER BY tag_photos DESC,tag_name"
-        set rs = dbManager.conn.execute(SQL)
+        set rs = dbManager.Execute(SQL)
         while not rs.eof
-    %>		<option value="<%=rs("tag_name")%>"<% if clng(rs("tag_id")) = clng(crnTagId) then %> selected="selected"<% end if %>>
+    %>		<option value="<%=rs("tag_name")%>"<% if clng(rs("tag_id")) = clng(lngCurrentTagId__) then %> selected="selected"<% end if %>>
                 <%=rs("tag_name")%> (<%=rs("tag_photos")%>)
             </option>
     <%
             rs.movenext
         wend
     %>	</select>
-        <input id="tag_send" type="submit" value="<%=crnLang_gallery_tag_send%>" class="galleryselect" /></div>
-        <script type="text/javascript">/* <![CDATA[ */ Element.hide('tag_send') /* ]]> */</script>
+        <input id="tag_send" type="submit" value="<%=lang__gallery_tag_send__%>" class="galleryselect" /></div>
+        <script type="text/javascript">/* <![CDATA[ */ $('tag_send').hide(); /* ]]> */</script>
         </form>
     </div>
     <% case "sets"
-		if crn_set > 0 then
-			%><div class="galleryset"><img src="<%=carnival_pathimages%>lay-adm-ico-id-set.gif" alt="" class="icon" /> &quot;<%=cleanOutputString(crn_setName)%>&quot;</div><%
+		if lngCurrentSetId__ > 0 then
+			%><div class="galleryset"><img src="<%=getImagePath("lay-adm-ico-id-set.gif")%>" alt="" class="icon" /> &quot;<%=outputHTMLString(strSetName)%>&quot;</div><%
 		end if
 	end select %>
     
@@ -143,72 +148,72 @@ crnPageTitle = carnival_title & " ::: " & crnLang_gallery_title & " > " & crnPag
         
 	<div class="clear"></div>
 	<%
-	dim crn_printmode
-	crn_printmode = "photo"
+	dim strGalleryPrintMode '"photo", "set"
+	strGalleryPrintMode = "photo"
 	
-	select case crn_galleryMode
+	select case strGalleryMode
 		case "stream"
-			select case crnTagId
+			select case lngCurrentTagId__
 				case 0 'tutte
 					SQL = "SELECT"
-					if crnShowTop > 0 then SQL = SQL & " TOP " & crnShowTop
-					SQL = SQL & " photo_id FROM tba_photo WHERE photo_active = 1 ORDER BY photo_id DESC"
+					if intRecordsOnce__ > 0 then SQL = SQL & " TOP " & intRecordsOnce__
+					SQL = SQL & " photo_id FROM tba_photo WHERE photo_active = 1 ORDER BY photo_pub DESC"
 				case -1 'nuove
 					SQL = "SELECT"
-					if crnShowTop > 0 then SQL = SQL & " TOP " & crnShowTop
-					SQL = SQL & " photo_id FROM tba_photo WHERE photo_id > " & crnLastViewedPhoto & " AND photo_active = 1 ORDER BY photo_id DESC"
+					if intRecordsOnce__ > 0 then SQL = SQL & " TOP " & intRecordsOnce__
+					SQL = SQL & " photo_id FROM tba_photo WHERE photo_pub > " & formatDBDate(inputDate(dtmLastViewedPhotoPub__),CARNIVAL_DATABASE_TYPE) & " AND photo_active = 1 ORDER BY photo_pub DESC"
 				case else
 					SQL = "SELECT"
-					if crnShowTop > 0 then SQL = SQL & " TOP " & crnShowTop
+					if intRecordsOnce__ > 0 then SQL = SQL & " TOP " & intRecordsOnce__
 					SQL = SQL & " tba_photo.photo_id " & _
 						  "FROM tba_rel INNER JOIN tba_photo ON tba_rel.rel_photo = tba_photo.photo_id " & _
-						  "WHERE tba_rel.rel_tag=" & crnTagId & " AND tba_photo.photo_active = 1 ORDER BY tba_rel.rel_photo DESC"
+						  "WHERE tba_rel.rel_tag=" & lngCurrentTagId__ & " AND tba_photo.photo_active = 1 ORDER BY tba_photo.photo_pub DESC"
 			end select
 		case "sets"
-			if crn_set > 0 then
+			if lngCurrentSetId__ > 0 then
 				
-				SQL = "SELECT photo_id FROM tba_photo WHERE photo_set = " & crn_set & " AND photo_active = 1 ORDER BY photo_order, photo_id DESC"
+				SQL = "SELECT photo_id FROM tba_photo WHERE photo_set = " & lngCurrentSetId__ & " AND photo_active = 1 ORDER BY photo_order, photo_pub DESC"
 
 			
 			else
-				crn_printmode = "set"
+				strGalleryPrintMode = "set"
 				SQL = "SELECT set_id, set_name, set_cover FROM tba_set ORDER BY set_order, set_name"
 			
 			end if
 	end select
-	set rs = dbManager.conn.execute(SQL)
+	set rs = dbManager.Execute(SQL)
 	%>
-	<div id="thumbs" class="<%=crn_printmode%>">
+	<div id="thumbs" class="<%=strGalleryPrintMode%>">
     <%
 	if rs.eof then %>
-	<div class="thumb-empty"><%=crnLang_gallery_nophotos%></div>
+	<div class="thumb-empty"><%=lang__gallery_nophotos__%></div>
 	<% end if
-	dim crn_id, crn_title, crn_url, crn_photourl
+	dim lngId, strTitle, strUrl, strPhotoUrl
 	while not rs.eof
-		if crn_printmode = "set" then
-			crn_id = rs("set_id")
-			crn_title = rs("set_name")
-			crn_url = "gallery.asp?mode=sets&amp;set=" & crn_id
-			crn_photourl = IIF(cleanLong(rs("set_cover"))=0,carnival_pathimages & "/thumb-set-empty.gif",CARNIVAL_PUBLIC & CARNIVAL_PHOTOS & CARNIVAL_PHOTOPREFIX & rs("set_cover") & CARNIVAL_THUMBPOSTFIX & ".jpg")
+		if strGalleryPrintMode = "set" then
+			lngId = rs("set_id")
+			strTitle = rs("set_name")
+			strUrl = "gallery.asp?mode=sets&amp;set=" & lngId
+			strPhotoUrl = IIF(inputLong(rs("set_cover"))=0,config__pathimages__ & "/thumb-set-empty.gif",CARNIVAL_PUBLIC & CARNIVAL_PHOTOS & CARNIVAL_PHOTOPREFIX & rs("set_cover") & CARNIVAL_THUMBPOSTFIX & ".jpg")
 		else
-			crn_id = rs("photo_id")
-			crn_title = ""
-			crn_url = "photo.asp?id=" & crn_id
-			if crnTagId <> 0 and crn_galleryMode = "stream" then crn_url = crn_url & "&amp;tag=" & crnTagName
-			if crn_set > 0 and crn_galleryMode = "sets" then crn_url = crn_url & "&amp;set=" & crn_set
-			crn_photourl = CARNIVAL_PUBLIC & CARNIVAL_PHOTOS & CARNIVAL_PHOTOPREFIX & crn_id & CARNIVAL_THUMBPOSTFIX & ".jpg"
+			lngId = rs("photo_id")
+			strTitle = ""
+			strUrl = "photo.asp?id=" & lngId
+			if lngCurrentTagId__ <> 0 and strGalleryMode = "stream" then strUrl = strUrl & "&amp;tag=" & strCurrentTagName__
+			if lngCurrentSetId__ > 0 and strGalleryMode = "sets" then strUrl = strUrl & "&amp;set=" & lngCurrentSetId__
+			strPhotoUrl = CARNIVAL_PUBLIC & CARNIVAL_PHOTOS & CARNIVAL_PHOTOPREFIX & lngId & CARNIVAL_THUMBPOSTFIX & ".jpg"
 		end if
 %>
-		<div class="thumb-back"><div class="thumb"><a href="<%=crn_url%>"><img src="<%=crn_photourl%>" alt="" /></a></div>
-		<% if crn_title <> "" then 
-		%><div class="thumb-title"><%=left(crn_title,40) & IIF(len(crn_title)>40,"...","")%></div><% 
+		<div class="thumb-back"><div class="thumb"><a href="<%=strUrl%>"><img src="<%=strPhotoUrl%>" alt="" /></a></div>
+		<% if strTitle <> "" then 
+		%><div class="thumb-title"><%=left(strTitle,40) & IIF(len(strTitle)>40,"...","")%></div><% 
 		end if %>
 		</div>
 	<% rs.movenext
 	wend
 %>	</div>
 <div class="clear"></div>
-	<% if crnShowTop > 0 and clng(crn_tagPhotos) > clng(crnShowTop) then %>
+	<% if intRecordsOnce__ > 0 and clng(lngTagPhotos) > clng(intRecordsOnce__) then %>
 	<hr />
-	<div class="showall"><%=replace(crnLang_gallery_last_photos,"%n",crnShowTop)%><br/><a href="gallery.asp?<% if crnTagId <> 0 then %>tag=<%=crnTagName%>&amp;<%end if%>top=0"><%=crnLang_gallery_last_showall%></a></div><% end if %>
+	<div class="showall"><%=replace(lang__gallery_last_photos__,"%n",intRecordsOnce__)%><br/><a href="gallery.asp?<% if lngCurrentTagId__ <> 0 then %>tag=<%=strCurrentTagName__%>&amp;<%end if%>top=0"><%=lang__gallery_last_showall__%></a></div><% end if %>
 <!--#include file = "includes/inc.bottom.asp"-->

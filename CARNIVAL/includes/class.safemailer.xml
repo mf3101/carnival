@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<mailers>
+	<component name="CDOSYS" classid="CDO.Message" description="Porting dei metodi per CDOSYS">
+		<mailto><![CDATA[ .to="$mailto$" ]]></mailto>
+		<cc><![CDATA[ .cc="$cc$" ]]></cc>
+		<bcc><![CDATA[ .bcc="$bcc$" ]]></bcc>
+		<mailfrom><![CDATA[ .from="$mailfrom$" ]]></mailfrom>
+		<subject><![CDATA[ .subject="$subject$" ]]></subject>
+		<bodytext><![CDATA[ .TextBody="$bodytext$" ]]></bodytext>
+		<bodyhtml><![CDATA[ .HTMLBody="$bodyhtml$" ]]></bodyhtml>
+		<priority><![CDATA[ .Fields("urn:schemas:httpmail:importance").Value=$priority$: .Fields.Update() ]]></priority>
+		<send><![CDATA[ .Send() ]]></send>
+		<attach><![CDATA[ .AddAttachment("$attach$")]]></attach>		
+		<mailserver><![CDATA[ .Configuration.Fields.Item("http://schemas.microsoft.com/cdo/configuration/sendusing")=2: .Configuration.Fields("http://schemas.microsoft.com/cdo/configuration/smtpserver")="$mailserver$": .Configuration.Fields.update() ]]></mailserver>
+		<mailport><![CDATA[ .Configuration.Fields.Item("http://schemas.microsoft.com/cdo/configuration/sendusing")=2: .Configuration.Fields("http://schemas.microsoft.com/cdo/configuration/smtpserverport")=$mailport$: .Configuration.Fields.update() ]]></mailport>
+		<user><![CDATA[	.Configuration.Fields.Item("http://schemas.microsoft.com/cdo/configuration/smtpauthenticate")=1 : .Configuration.Fields.Item("http://schemas.microsoft.com/cdo/configuration/sendusername")="$user$" : .Configuration.Fields.Update()	]]></user>
+		<password><![CDATA[ .Configuration.Fields.Item("http://schemas.microsoft.com/cdo/configuration/smtpauthenticate")=1: .Configuration.Fields.Item("http://schemas.microsoft.com/cdo/configuration/smtpusessl") = true : .Configuration.Fields("http://schemas.microsoft.com/cdo/configuration/sendpassword")="$password$" : .Configuration.Fields.Update() ]]></password>
+		<ssl><![CDATA[ .Configuration.Fields.Item("http://schemas.microsoft.com/cdo/configuration/smtpusessl") = $ssl$ : .Configuration.Fields.Update() ]]></ssl>
+		<auth><![CDATA[ .Configuration.Fields.Item("http://schemas.microsoft.com/cdo/configuration/smtpauthenticate") = $auth$ : .Configuration.Fields.Update() ]]></auth>
+	</component>
+	<component name="CDONTS" classid="CDONTS.NewMail" description="Porting dei metodi per CDONTS">
+		<mailto><![CDATA[ .to="$mailto$" ]]></mailto>
+		<cc><![CDATA[ .cc="$cc$" ]]></cc>
+		<bcc><![CDATA[ .bcc="$bcc$" ]]></bcc>
+		<mailfrom><![CDATA[ .from="$mailfrom$" ]]></mailfrom>
+		<subject><![CDATA[ .subject="$subject$" ]]></subject>
+		<bodytext><![CDATA[ .MailFormat="1": .BodyFormat="1": .Body="$bodytext$" ]]></bodytext>
+		<bodyhtml><![CDATA[ .MailFormat="1": .BodyFormat="0": .body="$bodyhtml$" ]]></bodyhtml>
+		<priority><![CDATA[ .Importance=$priority$ ]]></priority>
+		<send><![CDATA[ .Send() ]]></send>
+		<attach><![CDATA[ .attachFile("$attach$") ]]></attach>		
+		<mailserver><![CDATA[ ]]></mailserver>
+		<mailport><![CDATA[ ]]></mailport>
+		<user><![CDATA[ ]]></user>
+		<password><![CDATA[ ]]></password>
+		<ssl><![CDATA[ ]]></ssl>
+		<auth><![CDATA[ ]]></auth>
+	</component>
+	<component name="JMail" classid="Jmail.smtpmail" description="Porting dei metodi per JMail">
+		<mailto><![CDATA[ .AddRecipient "$mailto$" ]]></mailto>
+		<cc><![CDATA[ .AddRecipientCC "$cc$" ]]></cc>
+		<bcc><![CDATA[ .AddRecipientBCC "$bcc$" ]]></bcc>
+		<mailfrom><![CDATA[ .Sender="$mailfrom$" ]]></mailfrom>
+		<subject><![CDATA[ .subject="$subject$" ]]></subject>
+		<bodytext><![CDATA[ .contenttype="text/plain": .Body="$bodytext$" ]]></bodytext>
+		<bodyhtml><![CDATA[ .contenttype="text/html": .Body="$bodyhtml$" ]]></bodyhtml>
+		<priority><![CDATA[ .Priority=$priority$ ]]></priority>
+		<send><![CDATA[ .Execute() ]]></send>
+		<attach><![CDATA[ .AddAttachment("$attach$") ]]></attach>		
+		<mailserver><![CDATA[ .ServerAddress="$mailserver" ]]></mailserver>
+		<mailport><![CDATA[ ]]></mailport>
+		<user><![CDATA[ ]]></user>
+		<password><![CDATA[ ]]></password>
+		<ssl><![CDATA[ ]]></ssl>
+		<auth><![CDATA[ ]]></auth>
+	</component>
+	<component name="SA-SMTPMail" classid="SoftArtisans.SMTPMail" description="Porting dei metodi per SoftArtisans-SMPT EMAIL component">
+		<mailto><![CDATA[ .AddRecipient "$mailto$" ]]></mailto>
+		<cc><![CDATA[ .AddCC "$cc$" ]]></cc>
+		<bcc><![CDATA[ .AddBCC "$bcc$" ]]></bcc>
+		<mailfrom><![CDATA[  .FromAddress="$mailfrom$" ]]></mailfrom>
+		<subject><![CDATA[ .subject="$subject$" ]]></subject>
+		<bodytext><![CDATA[ .BodyText="$bodytext$" ]]></bodytext>
+		<bodyhtml><![CDATA[  .HtmlText="$bodyhtml$" ]]></bodyhtml>
+		<priority><![CDATA[.Priority=$priority$ ]]></priority>
+		<send><![CDATA[ .SendMail() ]]></send>
+		<attach><![CDATA[ .AddAttachment("$attach$") ]]></attach>		
+		<mailserver><![CDATA[ .RemoteHost ="$mailserver$" ]]></mailserver>
+		<mailport><![CDATA[ .Port=$mailport$]]></mailport>
+		<user><![CDATA[ .UserName="$user$"]]></user>
+		<password><![CDATA[ .password="$password$" ]]></password>
+		<ssl><![CDATA[ ]]></ssl>
+		<auth><![CDATA[ ]]></auth>
+	</component>
+	<component name="ASPEMail" classid="Persits.MailSender">
+		<mailto><![CDATA[ .AddAddress "$mailto$" ]]></mailto>
+		<cc><![CDATA[ .AddCC "$cc$" ]]></cc>
+		<bcc><![CDATA[ .AddBCC "$bcc$" ]]></bcc>
+		<mailfrom><![CDATA[  .From="$mailfrom$" ]]></mailfrom>
+		<subject><![CDATA[ .subject="$subject$" ]]></subject>
+		<bodytext><![CDATA[ .IsHTML=False: .Body="$bodytext$" ]]></bodytext>
+		<bodyhtml><![CDATA[  .IsHTML=True: .Body="$bodyhtml$" ]]></bodyhtml>
+		<priority><![CDATA[ ]]></priority>
+		<send><![CDATA[ .Send() ]]></send>
+		<attach><![CDATA[ .AddAttachment("$attach$") ]]></attach>		
+		<mailserver><![CDATA[ .Host="$mailserver$" ]]></mailserver>
+		<mailport><![CDATA[ .Port=$mailport$]]></mailport>
+		<user><![CDATA[ ]]></user>
+		<password><![CDATA[ ]]></password>
+		<ssl><![CDATA[ ]]></ssl>
+		<auth><![CDATA[ ]]></auth>
+	</component>
+	<component name="IPWorks" classid="IPWorksASP.SMTP">
+		<mailto><![CDATA[ .SendTo = "$mailto$" ]]></mailto>
+		<cc><![CDATA[ .Cc="$cc$" ]]></cc>
+		<bcc><![CDATA[ .Bcc="$bcc$" ]]></bcc>
+		<mailfrom><![CDATA[  .From="$mailfrom$" ]]></mailfrom>
+		<subject><![CDATA[ .subject="$subject$" ]]></subject>
+		<bodytext><![CDATA[ .MessageText="$bodytext$" ]]></bodytext>
+		<bodyhtml><![CDATA[  .MessageText="$bodyhtml$" ]]></bodyhtml>
+		<priority><![CDATA[ .Importance=$priority$ ]]></priority>
+		<send><![CDATA[ .Send() ]]></send>
+		<attach><![CDATA[ .AttachedFile("$attach$") ]]></attach>		
+		<mailserver><![CDATA[ .MailServer="$mailserver$" ]]></mailserver>
+		<mailport><![CDATA[ .MailPort=$mailport$]]></mailport>
+		<user><![CDATA[ .User="$user$" ]]></user>
+		<password><![CDATA[ .Password="$password$" ]]></password>
+		<ssl><![CDATA[ ]]></ssl>
+		<auth><![CDATA[ ]]></auth>
+	</component>
+	<component name="ASPMail" classid="SMTPsvg.Mailer">
+		<mailto><![CDATA[ .AddRecipient "<$mailto$>", "$mailto$" ]]></mailto>
+		<cc><![CDATA[ .AddCC="$cc$" ]]></cc>
+		<bcc><![CDATA[ .AddBCC="$bcc$" ]]></bcc>
+		<mailfrom><![CDATA[  .FromAddress="$mailfrom$" ]]></mailfrom>
+		<subject><![CDATA[ .subject="$subject$" ]]></subject>
+		<bodytext><![CDATA[ .ContentType="text/plain": .BodyText="$bodytext$" ]]></bodytext>
+		<bodyhtml><![CDATA[  .ContentType="text/html": .BodyText="$bodyhtml$"]]></bodyhtml>
+		<priority><![CDATA[ .Priority =$priority$ ]]></priority>
+		<send><![CDATA[ .SendMail() ]]></send>
+		<attach><![CDATA[ .AddAttachment("$attach$") ]]></attach>		
+		<mailserver><![CDATA[ .RemoteHost="$mailserver$" ]]></mailserver>
+		<mailport><![CDATA[ ]]></mailport>
+		<user><![CDATA[ ]]></user>
+		<password><![CDATA[ ]]></password>
+		<ssl><![CDATA[ ]]></ssl>
+		<auth><![CDATA[ ]]></auth>
+	</component>
+</mailers>
+

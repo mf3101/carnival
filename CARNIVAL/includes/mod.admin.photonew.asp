@@ -2,7 +2,7 @@
 '-----------------------------------------------------------------
 ' ******************** HELLO THIS IS CARNIVAL ********************
 '-----------------------------------------------------------------
-' Copyright (c) 2007-2008 Simone Cingano
+' Copyright (c) 2007-2011 Simone Cingano
 ' 
 ' Permission is hereby granted, free of charge, to any person
 ' obtaining a copy of this software and associated documentation
@@ -27,16 +27,19 @@
 '-----------------------------------------------------------------
 ' * @category        Carnival
 ' * @package         Carnival
-' * @author          Simone Cingano <simonecingano@imente.org>
-' * @copyright       2007-2008 Simone Cingano
+' * @author          Simone Cingano <info@carnivals.it>
+' * @copyright       2007-2011 Simone Cingano
 ' * @license         http://www.opensource.org/licenses/mit-license.php
-' * @version         SVN: $Id: mod.admin.photonew.asp 18 2008-06-29 02:54:08Z imente $
+' * @version         SVN: $Id: mod.admin.photonew.asp 114 2010-10-11 19:00:34Z imente $
 ' * @home            http://www.carnivals.it
 '-----------------------------------------------------------------
-%><!--#include file = "inc.admin.check.asp"-->
-<% crnPhotoId = request.QueryString("id") %>
+
+'*****************************************************
+'ENVIROMENT AGGIUNTIVO
+%><!--#include file = "inc.admin.check.asp"--><%
+'***************************************************** %>
 <h2>Nuova foto</h2>
-	<img src="<%=carnival_pathimages%>lay-adm-wizard-new.png" alt="" class="wizard" />
+	<img src="<%=getImagePath("lay-adm-wizard-new.png")%>" alt="" class="wizard" />
 	<div class="wizard">
 		<p>Proseguendo verr&agrave; creato un <strong>nuovo post</strong> che non verr&agrave; visualizzato ai visitatori del photoblog fino al termine della procedura di creazione.</p>
 		<p>Inizialmente verr&agrave; richiesto di <strong>caricare la foto</strong> originale collegata al post e di crearne (o caricarne) la versione da visualizzare sul photoblog e la miniatura.</p>
@@ -47,13 +50,13 @@
 		<div class="nbuttons">
 			<a href="admin.asp?module=pro-photo-edit&amp;action=new">
 				<span>
-				<img src="<%=carnival_pathimages%>lay-adm-ico-but-new.gif" alt=""/> 
+				<img src="<%=getImagePath("lay-adm-ico-but-new.gif")%>" alt=""/> 
 				crea post
 				</span>
 			</a>
 			<a href="admin.asp">
 				<span>
-				<img src="<%=carnival_pathimages%>/lay-adm-ico-but-prev.gif" alt=""/> 
+				<img src="<%=getImagePath("lay-adm-ico-but-prev.gif")%>" alt=""/> 
 				indietro
 				</span>
 			</a>

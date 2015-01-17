@@ -1,9 +1,8 @@
 <%
-option explicit
 '-----------------------------------------------------------------
 ' ******************** HELLO THIS IS CARNIVAL ********************
 '-----------------------------------------------------------------
-' Copyright (c) 2007-2008 Simone Cingano
+' Copyright (c) 2007-2011 Simone Cingano
 ' 
 ' Permission is hereby granted, free of charge, to any person
 ' obtaining a copy of this software and associated documentation
@@ -28,33 +27,41 @@ option explicit
 '-----------------------------------------------------------------
 ' * @category        Carnival
 ' * @package         Carnival
-' * @author          Simone Cingano <simonecingano@imente.org>
-' * @copyright       2007-2008 Simone Cingano
+' * @author          Simone Cingano <info@carnivals.it>
+' * @copyright       2007-2011 Simone Cingano
 ' * @license         http://www.opensource.org/licenses/mit-license.php
-' * @version         SVN: $Id: update.asp 31 2008-07-04 14:43:29Z imente $
+' * @version         SVN: $Id: update.asp 119 2010-10-11 20:06:21Z imente $
 ' * @home            http://www.carnivals.it
 '-----------------------------------------------------------------
+
+option explicit
+
+'*****************************************************
+'ENVIROMENT UPDATE
 %><!--#include file = "includes/class.include.asp"-->
+<!--#include file = "includes/inc.config.asp"-->
 <!--#include file = "includes/inc.set.asp"-->
 <!--#include file = "includes/inc.md5.asp"-->
-<!--#include file = "includes/inc.func.asp"-->
-<!--#include file = "setup/class.aspdbbox.asp"-->
-<!--#include file = "setup/inc.update.asp"-->
-<%
+<!--#include file = "setup/updateinc/class.aspdbbox.asp"-->
+<!--#include file = "setup/updateinc/inc.update.asp"--><%
+'*****************************************************
+
+'* LOGIN
+'* se non è stato effettuato il login
+if not isAdminLogged then
+	response.write "<div style=""margin:50px 0; text-align:center; font-size:1.2em;"">per effettuare l'aggiornamento di Carnival &egrave;<br/>necessario prima eseguire la <a href=""admin.asp"">login in amministrazione</a></div>"
+	response.end
+end if
 
 'CARNIVALS UPDATE.ASP
 
-const CARNIVAL_INSTALLER_VERSION = "1.0c.0"
+const CARNIVAL_INSTALLER_VERSION = "1.0.0"
 
-'compatibilty
+'compatibility
 dim SQL, rs
-on error resume next
-dim carnival_dbtype
-carnival_dbtype = "mdb" 'versione 1.0b.0
-carnival_dbtype = CARNIVAL_DATABASETYPE
-on error goto 0
+dim strDatabaseType
 
-'FASE D'INSTALLAZIONE
+'FASE D'AGGIORNAMENTO
 dim phase
 phase = trim(request.QueryString("p"))
 if phase = "" then phase = 0
@@ -98,48 +105,61 @@ select case phase
 	case 1
 	allright = true
 	%>
+    <div id="workin">
 	<div class="phase">Fase 1/3</div>
 	<h2>Operazioni preliminari</h2>
 	<p>Per prima cosa il mio consiglio &egrave; di effettuare un <strong>backup completo</strong> della tua installazione di Carnival al fine di evitare spiacevoli problemi al termine della procedura avendo la possibilit&agrave; di ripristinare la situazione iniziale.</p>
 	<p>Non appena avrai terminato il backup clicca su continua, l'update si occuper&agrave; di effettuare alcuni aggiornamenti sul database.</p>
 	<hr/>
-	<a href="?p=2" class="button"><span>continua <img src="setup/next.gif" alt="" /></span></a><%
+	<a href="?p=2" class="button" onclick="workin()"><span>continua <img src="setup/next.gif" alt="" /></span></a>
+    <script type="text/javascript">/*<![CDATA[*/
+	function workin() {
+		document.getElementById('workin').innerHTML = '<div class="workin"><img src="setup/workin.gif" /><br/><span>aggiornamento database</span><br/><small>(la procedura potrebbe durare anche più di un minuto<br/>abbi pazienza e non fermare l\'esecuzione della pagina)</small></div>';
+		window.location.href = '?p=2';
+	}
+	/*]]>*/</script>
+	</div><%
 	case 2
 	%>
+    <div id="workin">
 	<div class="phase">Fase 2/3</div>
     <div class="clear"></div>
-    <div style="border:2px solid red;background-color:#FDE4E1;margin:20px;padding:20px;text-align:center;"><strong>ATTENZIONE:</strong><br />
-leggere per intero ed attentamente il contenuto di questa pagina ed eseguire le operazioni indicate.</div>
 	<h2>Aggiornamento</h2>
     <%
 		
 		allright = false
-		
-		call execute(IncludeFile(strConfigFile))
 	
-		call connect(carnival_dbtype,CARNIVAL_DATABASE)
+		on error resume next
+		strDatabaseType = "mdb" 'compatibilita con versione < 1.0
+		strDatabaseType = CARNIVAL_DATABASE_TYPE
+		on error goto 0
+
+		call connect(strDatabaseType,CARNIVAL_DATABASE)
 	
 		dim XML, active, execcommon, nodename, pathfrom, pathto
 		active = false
 		execcommon = false
-		set XML = new carnival_xmlreader 
-		if CARNIVAL_VERSION =  CARNIVAL_INSTALLER_VERSION then
-			response.write "<p><strong>aggiornamento non necessario</strong><br/>la versione installata &egrave; uguale a quella di questo aggiornamento.</p><hr/>"
+		set XML = new Class_XmlReader
+		if CARNIVAL_VERSION = CARNIVAL_INSTALLER_VERSION then
+			response.write "<div class=""readme""><p><strong>aggiornamento non necessario</strong><br/>la versione installata &egrave; uguale a quella di questo aggiornamento.</p></div><hr/>"
 		elseif not XML.Open(server.MapPath("setup/update.xml"),CARNIVAL_INSTALLER_VERSION) then
-			response.write "<p><strong>update.xml non trovato o non valido</strong><br/>hai copiato la cartella /setup/ nella tua installazione di carnival?<br />senza tale cartella e i file ivi contenuti non &egrave; possibile effettuare l'aggiornamento</p><hr/>"
+			response.write "<div class=""readme""><p><strong>update.xml non trovato o non valido</strong><br/>hai copiato la cartella /setup/ nella tua installazione di carnival?<br />senza tale cartella e i file ivi contenuti non &egrave; possibile effettuare l'aggiornamento</p></div><hr/>"
 		elseif XML.versionto <> CARNIVAL_INSTALLER_VERSION then
-			response.write "<p><strong>update.xml incompatibile</strong><br/>la versione del file ""update.xml"" aggiorna alla " & XML.versionto & " e ""update.asp"" aggiorna a " & CARNIVAL_INSTALLER_VERSION & "<br/>si consiglia di scaricare nuovamente l'aggiornamento e ricominciare dal primo passo</p><hr/>"
+			response.write "<div class=""readme""><p><strong>update.xml incompatibile</strong><br/>la versione del file ""update.xml"" aggiorna alla " & XML.versionto & " e ""update.asp"" aggiorna a " & CARNIVAL_INSTALLER_VERSION & "<br/>si consiglia di scaricare nuovamente l'aggiornamento e ricominciare dal primo passo</p></div><hr/>"
 		elseif convertVersion(XML.versionfrom) > convertVersion(CARNIVAL_VERSION) then
-			response.write "<p><strong>update non compatibile con la versione corrente</strong><br/>la versione dell'aggiornamento richiede una versione minima installata " & XML.versionfrom & " ma la versione attualmente installata &egrave; la " & CARNIVAL_VERSION & "<br/><a href=""http://www.carnivals.it/downloads/?c=1.0c.0&u=last"" class=""link"">clicca qui per scaricare un aggiornamento compatibile</a></p><hr/>"
+			response.write "<div class=""readme""><p><strong>update non compatibile con la versione corrente</strong><br/>la versione dell'aggiornamento richiede una versione minima installata " & XML.versionfrom & "<br/>la versione attualmente installata &egrave; la " & CARNIVAL_VERSION & "<br/><a href=""http://www.carnivals.it/downloads/?c=" & CARNIVAL_VERSION & "&u=last"" class=""link"">clicca qui per scaricare un aggiornamento compatibile</a></p></div><hr/>"
 		else
+		%>
+    <div class="readme"><strong>ATTENZIONE:</strong><br />
+leggere per intero ed attentamente il contenuto di questa pagina ed eseguire le operazioni indicate.</div><%
 		
 			'blocco applicazione
 			on error resume next
-			dbManager.conn.execute("UPDATE tba_config SET config_applicationblock = 1")
+			dbManager.Execute("UPDATE tba_config SET config_applicationblock = 1")
 			on error goto 0
 			
 			'copio wbresize
-			dbManager.conn.execute("UPDATE tba_config SET config_aspnetactive = 0")
+			dbManager.Execute("UPDATE tba_config SET config_aspnetactive = 0")
 			call copyFile(server.MapPath("setup/wbresize.aspx.install"),server.MapPath(CARNIVAL_PUBLIC&CARNIVAL_SERVICES&"wbresize.aspx"))
 			
 			%><p><%
@@ -151,20 +171,22 @@ leggere per intero ed attentamente il contenuto di questa pagina ed eseguire le 
 				'response.write "from=" & XML("from") & "to=" & XML("to")
 				'if CARNIVAL_INSTALLER_VERSION = XML("from") then active = false
 				if CARNIVAL_VERSION = XML("from") then active = true
-				if XML("nodename") = "common" then active = execcommon
+				if XML("nodename") = "common" then
+					active = execcommon
+				else
+					execcommon = inputBoolean(XML("execcommon"))
+				end if
 				if active then
 					'response.write "*"
 					Do while not XML.SUBEOF
-						execcommon = cleanBool(XML("execcommon"))
 						nodename = XML.Subnode("nodename")
 						select case lcase(nodename)
 							case "del"
 								pathfrom = convertPath(XML.Subnode("path"))
-								call reportUpdate("del","elimina <span style=""color:red;"">" & pathfrom & "</span>")
+								call reportUpdate("del","elimina (se esiste) <span style=""color:red;"">" & pathfrom & "</span>")
 							case "copy"
 								pathfrom = convertPath(XML.Subnode("from"))
 								pathto = convertPath(XML.Subnode("to"))
-								
 								call reportUpdate("copy","copia da <span style=""color:darkgreen"">" & pathfrom & "</span> a <span style=""color:darkgreen;"">" & pathto & "</span>")
 							case "db"
 								tablename = XML.Subnode("tablename")
@@ -180,12 +202,12 @@ leggere per intero ed attentamente il contenuto di questa pagina ed eseguire le 
 									case "query"
 										'esegue la query solo se la query IFNOT da EOF
 										if ifnot <> "" then
-											set rs = dbManager.conn.execute(ifnot)
+											set rs = dbManager.Execute(ifnot)
 											execquery = rs.eof
 										end if
 										if execquery then
 											on error resume next
-											call dbManager.conn.execute(sql)
+											call dbManager.Execute(sql)
 											on error goto 0
 										end if
 										call reportUpdate("dbquery",info)
@@ -237,13 +259,20 @@ leggere per intero ed attentamente il contenuto di questa pagina ed eseguire le 
             </textarea>
             </p>
             <p><strong>Controlla che le impostazioni siano corrette e poi copia il contenuto di questa casella di testo all'interno di &quot;includes/inc.config.asp&quot; sovrascrivendolo completamente</strong></p>
-        	</p><hr/><p>Non appena avrai terminato di effettuare le eliminazioni, la copia dei files e l'aggiornamento del file di configurazione premi su continua.</p>
+        	</p><hr/><p>Solo quando avrai terminato di effettuare le eliminazioni, la copia dei nuovi files e l'aggiornamento del file di configurazione premi su continua.</p>
         <hr/>
-        <a href="?p=3" class="button"><span>continua <img src="setup/next.gif" alt="" /></span></a><%
+        <a href="?p=3" class="button" onclick="workin()"><span>continua <img src="setup/next.gif" alt="" /></span></a></div>
+    <script type="text/javascript">/*<![CDATA[*/
+	function workin() {
+		document.getElementById('workin').innerHTML = '<div class="workin"><img src="setup/workin.gif" /><br/><span>reinizializzazione di carnival</span><br/><small>(la procedura potrebbe durare anche più di un minuto<br/>abbi pazienza e non fermare l\'esecuzione della pagina)</small></div>';
+		window.location.href = '?p=3';
+	}
+	/*]]>*/</script><%
 		
 		end if
 		
 		call disconnect()
+		set dbManager = Nothing
 
 	case 3
 	%>
@@ -254,26 +283,54 @@ leggere per intero ed attentamente il contenuto di questa pagina ed eseguire le 
 		
 		allright = false
 	
-		call execute(IncludeFile(strConfigFile))
-	
-		call connect(carnival_dbtype,CARNIVAL_DATABASE)
-		
-		dbManager.conn.execute("UPDATE tba_config SET config_applicationblock = 0")
-		
-		call disconnect()
-		
 		%><p>
         La procedura di aggiornamento &egrave; terminata.<br />
 		Vai in amministrazione e verifica che tutto sia funzionante<br />
-        Nel caso in cui ci sono problemi ripristina il backup che hai effettuato all'inizio dell'aggiornamento e ricomincia la procedura dall'inizio; se il problema persiste puoi scrivere sul <a href="http://forum.imente.org/viewforum.php?f=7" class="link">forum di supporto</a>.</p>
-        <p>Ricorda che <strong>dovrai</strong> effettuare alcune operazioni successive all'aggiornamento accedendo agli &quot;strumenti di ammministrazione&quot;:</p>
-        <ul> 
-        	<li>ricompila lo stile</li>
-            <li>se utilizzi il ridimensionamento riattiva wbresize</li>
-            <li>sincronizza i set</li>
-            <li>sincronizza i tag</li>
-        </ul>
-        <p>Ricorda poi  di cancellare il file <strong>setup.asp</strong>, il file <strong>update.asp</strong> e la cartella <strong>setup</strong> prima di continuare, altrimenti malintenzionati potrebbero sfruttare questi file per accedere all'amministrazione.</p>
+        Nel caso in cui ci fossero problemi ripristina il backup che hai effettuato all'inizio dell'aggiornamento e ricomincia la procedura dall'inizio; se il problema persiste puoi scrivere sul <a href="http://forum.imente.org/viewforum.php?f=7" class="link">forum di supporto</a>.</p>
+        <p>L'aggiornamento si &egrave; anche occupato di aggiornare e sincronizzare tutti le componenti dinamiche installate:</p>
+        <%
+		
+		call execute(IncludeFile("includes\inc.func.common.asp"))
+		call execute(IncludeFile("includes\inc.func.common.io.asp"))
+		call execute(IncludeFile("includes\inc.func.common.file.asp"))
+		call execute(IncludeFile("includes\inc.func.style.asp"))
+		call execute(IncludeFile("includes\inc.func.tag.asp"))
+		call execute(IncludeFile("includes\inc.func.set.asp"))
+		call execute(IncludeFile("includes\inc.func.services.asp"))
+		
+		on error resume next
+		strDatabaseType = "mdb" 'compatibilita con versione < 1.0
+		strDatabaseType = CARNIVAL_DATABASE_TYPE
+		on error goto 0
+	
+		call connect(strDatabaseType,CARNIVAL_DATABASE)
+		
+		set rs = dbManager.Execute("SELECT config_style FROM tba_config")
+		
+		if not rs.eof then
+			call setStyle(cstr(rs("config_style")),true,false)
+			%><p class="ok"><img src="setup/tick.gif" alt="" /> Stile ricompilato </p><%
+		end if
+		
+		if aspneton() then
+		%><p class="ok"><img src="setup/tick.gif" alt="" /> WBResize ricompilato correttamente</p><%
+		else
+		%><p class="alert"><img src="setup/cross.gif" alt="" /> Asp.NET non supportato (ridimensionamento automatico non disponibile)</p><%
+		end if 
+		
+		call syncSets()
+		%><p class="ok"><img src="setup/tick.gif" alt="" /> Sincronizzati Set</p><%
+		call syncTags()
+		%><p class="ok"><img src="setup/tick.gif" alt="" /> Sincronizzati Tags</p><%
+		
+		
+		dbManager.Execute("UPDATE tba_config SET config_applicationblock = 0")
+		
+		call disconnect()
+		
+		%>
+        <p class="alert">Ricorda di cancellare i file <em>setup.asp</em> e <em>update.asp</em> dal tuo sito</p>
+    <p>Se hai necessit&agrave; di effettuare una migrazione del database da MDB a MySQL (o viceversa) vai in Strumenti/Migrazione dal tuo pannello di amministrazione</p>
 <hr/>
         <a href="admin.asp" class="button"><span>Vai all'admin <img src="setup/next.gif" alt="" /></span></a><%
 

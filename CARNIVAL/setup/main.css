@@ -36,6 +36,14 @@ h2 {
 	letter-spacing:-1.5px;
 	font-size:1.6em;
 }
+h3 {
+	font-family:arial,verdana,serif;
+	margin:10px 0 0;
+	color:#CC2396;
+	padding-left:20px;
+	letter-spacing:-1.5px;
+	font-size:1.2em;
+}
 .phase {
 	float:right;
 	color:#CC2396;
@@ -81,3 +89,10 @@ form div { margin:10px 0 20px; }
 label { margin-left:10px;font-weight:bold; }
 p.desc { margin:0 0 5px 10px;padding:0;font-size:0.8em;  }
 input { margin-left:10px;font-size:0.9em; width:400px; }
+
+.workin {
+	text-align:center;
+	margin:70px 0;
+}
+.workin span { font-size:1.2em; font-weight:bold; }
+.readme {border:2px solid red;background-color:#FDE4E1;margin:20px;padding:20px;text-align:center;}

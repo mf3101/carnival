@@ -1,12 +1,12 @@
 /****************************************************************************
- BALOON
+ BALOON 0.2 (20080721)
  developed by Simone Cingano (http://www.imente.it)
  ****************************************************************************
  * @license         http://www.opensource.org/licenses/mit-license.php
- * @version         SVN: $Id: baloon.js 18 2008-06-29 02:54:08Z imente $
+ * @version         SVN: $Id: baloon.js 104 2008-09-15 15:01:16Z imente $
  ****************************************************************************
  
- needs: prototype.lite.js, moo.fx.js, extend.js
+ needs: mootools.js + commons.js [only EXTEND]
  
  ***************************************************************
  STRUCTURE:
@@ -33,9 +33,7 @@ function baloonAddCheck(arg) { Baloon_baloons.push(arg); }
 function baloonClearCheck(arg) { Baloon_baloons = Array(); }
 var Baloon_baloons = Array();
  
-var Baloon = Class.create();
-
-Baloon.prototype = {
+var Baloon = new Class({
 	
 	initialize: function() {},
 	
@@ -62,52 +60,50 @@ Baloon.prototype = {
 		if (divclass != '' && divclass != null) this.divclass = divclass;
 		
 		var objBaloon = document.createElement("div");
-		Element.setAttribute(objBaloon,'id','baloon'+this.id);
-		Element.setAttribute(objBaloon,'class',this.divclass);
-		if (this.move) {
-			Element.setAttribute(objBaloon,'onmouseover',this.instance+'.check(1);');
-			Element.setAttribute(objBaloon,'onmouseout',this.instance+'.check(1);');
+		$(objBaloon).setProperty('id','baloon'+this.id);
+		$(objBaloon).setProperty('class',this.divclass);
+		if (this.move) {	                        
+			Element.setProperty(objBaloon,'onmouseover',this.instance+'.check(1);');
+            Element.setProperty(objBaloon,'onmouseout',this.instance+'.check(1);');
 		}
 		$('baloon').appendChild(objBaloon);
 		
-		//if (callerfunc == null)	Element.setAttribute($(caller),'onmouseover',this.instance+'.show();');
-		//else Element.setAttribute($(caller),'onmouseover',callerfunc);
-		
 		if (caller != null) {
-			if (callerfunc == null)	$(caller).onmouseover = function() { eval(instance+'.show();'); };
+			if (callerfunc == null) $(caller).onmouseover = function() { eval(instance+'.show();'); };
 			else $(caller).onmouseover = callerfunc;
 		}
 		
 		var objRound1, objRound2, objRound3, objAppend, objAppend2
 		objRound1 = document.createElement("div");
-		Element.setAttribute(objRound1,'class','border-tl');
+		$(objRound1).setProperty('class','border-tl');
 		objBaloon.appendChild(objRound1);
 		objRound2 = document.createElement("div");
-		Element.setAttribute(objRound2,'class','border-tr');
+		$(objRound2).setProperty('class','border-tr');
 		objRound1.appendChild(objRound2);
 		objRound3 = document.createElement("div");
-		Element.setAttribute(objRound3,'class','border');
+		$(objRound3).setProperty('class','border');
 		objRound2.appendChild(objRound3);
 		objAppend = document.createElement("div");
-		Element.setAttribute(objAppend,'class','content');
+		$(objAppend).setProperty('class','content');
 		objBaloon.appendChild(objAppend);
 		objAppend2 = document.createElement("div");
-		Element.setAttribute(objAppend2,'id','baloon'+this.id+'content');
-		Element.setAttribute(objAppend2,'class','balooncontent');
+		$(objAppend2).setProperty('id','baloon'+this.id+'content');
+		$(objAppend2).setProperty('class','balooncontent');
 		objAppend.appendChild(objAppend2);
 		objRound1 = document.createElement("div");
-		Element.setAttribute(objRound1,'class','border-bl');
+		$(objRound1).setProperty('class','border-bl');
 		objBaloon.appendChild(objRound1);
 		objRound2 = document.createElement("div");
-		Element.setAttribute(objRound2,'class','border-br');
+		$(objRound2).setProperty('class','border-br');
 		objRound1.appendChild(objRound2);
 		objRound3 = document.createElement("div");
-		Element.setAttribute(objRound3,'class','border');
+		$(objRound3).setProperty('class','border');
 		objRound2.appendChild(objRound3);
 		
 		objRound1 = null; objRound2 = null; objRound3 = null; objAppend = null; objAppend2 = null;
 		
-		Element.hide('baloon'+this.id);
+		$('baloon'+this.id).hide();
+		$('baloon'+this.id).setOpacity(0);
 		
 		baloonAddCheck(this.instance);
 		
@@ -115,16 +111,17 @@ Baloon.prototype = {
 	},
 	
 	setPosition: function(x,y) {
-		Element.setLeft('baloon'+this.id,x);
-		Element.setTop('baloon'+this.id,y);
+		$('baloon'+this.id).setLeft(x);
+		$('baloon'+this.id).setTop(y);
 	},
 	
 	place: function(positioning,x,y) {
+		var pagescroll = window.getScroll();
 		if (positioning != 'absolute') {
-			if (x != null && y != null) this.setPosition(x+this.left,y+this.top);
+			if (x != null && y != null) this.setPosition(x+this.left+pagescroll.x,y+this.top+pagescroll.y);
 			else this.setPosition(this.left,this.top);
 		} else {
-			if (x != null && y != null) this.setPosition(x,y);
+			if (x != null && y != null) this.setPosition(x+pagescroll.x,y+pagescroll.y);
 			else this.setPosition(this.left,this.top);
 		}
 	},
@@ -134,36 +131,39 @@ Baloon.prototype = {
 			this.place(positioning,x,y);
 			this.baloonState=2;
 			var instance = this.instance;
-			Element.show('baloon'+this.id);
-			Element.fxOpacity('baloon'+this.id, { 'duration': 500,
-										  'transition': fx.quadOut,
+			$('baloon'+this.id).show();
+			$('baloon'+this.id).fxTween({ 'duration': 500,
+										  'transition': Fx.Transitions.Quad.easeOut,
 										  'onComplete': function(){	eval(instance+'.baloonState = 1;'); }
-										},0).custom(0,1);
+										}).start('opacity',1);
 		}
 	},
 	
 	forceShow: function(positioning,x,y) {
 		this.place(positioning,x,y);
 		this.baloonState = 1;
-		Element.show('baloon'+this.id);
+		$('baloon'+this.id).setOpacity(1);
+		$('baloon'+this.id).show();
 	},
 	
 	hide: function() {
 		if (this.baloonState == 1) {
 			this.baloonState=2;
 			var instance = this.instance;
-			Element.fxOpacity('baloon'+this.id, { 'duration': 500,
-										  'transition': fx.quadOut,
+			$('baloon'+this.id).fxTween({ 'duration': 500,
+										  'transition': Fx.Transitions.Quad.easeOut,
 										  'onComplete': function(){
-															eval(instance+'.baloonState = 0;');
+															eval(instance+".baloonState = 0;");
+															eval("$('baloon'+"+instance+".id).hide();");
 														}
-										},1).custom(1,0);
+										}).start('opacity',0);
 		}
 	},
 	
 	forceHide: function() {
 		this.baloonState = 0;
-		Element.hide('baloon'+this.id);
+		$('baloon'+this.id).hide();
+		$('baloon'+this.id).setOpacity(0);
 	},
 	
 	check: function(arg) {
@@ -180,5 +180,4 @@ Baloon.prototype = {
 	end: function() {
 		
 	}
-	
-}
+});

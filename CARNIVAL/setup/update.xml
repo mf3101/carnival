@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
-<carnivalupdate versionfrom="1.0b.0" versionto="1.0c.0" svnversion="$Id: update.xml 29 2008-07-04 14:03:45Z imente $">
+<carnivalupdate versionfrom="1.0b.0" versionto="1.0.0" svnversion="$Id: update.xml 119 2010-10-11 20:06:21Z imente $">
 
 	<version from="1.0b.0" to="1.0c.0" execcommon="1">
 	
@@ -17,7 +17,42 @@
 		<db action="addcolumn" tablename="tba_set" columnname="set_photos" fill="0" options=":type=long" />
 		<db action="addcolumn" tablename="tba_set" columnname="set_order" fill="0" options=":type=single" />
 		
-		<db action="query" ifnot="SELECT set_id FROM tba_set WHERE set_id = 1" sql="INSERT INTO tba_set (set_name, set_description, set_cover, set_photos, set_order) VALUES ('Default','Foto non organizzate',0,0,-1)" info="inizializza tabella tba_set" />
+		<db action="query" ifnot="SELECT set_id FROM tba_set WHERE set_id = 1" sql="INSERT INTO tba_set (set_name, set_description, set_cover, set_photos, set_order) VALUES ('Default','',0,0,-1)" info="inizializza tabella tba_set" />
+		
+	</version>
+	
+	<version from="1.0c.0" to="1.0.0" execcommon="1">
+		<db action="query" ifnot="" sql="UPDATE tba_config SET config_dbversion = '1.0.0'" info="aggiornata versione db" />		
+		
+		<db action="addcolumn" tablename="tba_config" columnname="config_mail_component" fill="''" options=":type=varchar,:size=30" />
+		<db action="addcolumn" tablename="tba_config" columnname="config_mail_address" fill="''" options=":type=varchar,:size=100" />
+		<db action="addcolumn" tablename="tba_config" columnname="config_mail_host" fill="''" options=":type=varchar,:size=100" />
+		<db action="addcolumn" tablename="tba_config" columnname="config_mail_port" fill="0" options=":type=short" />
+		<db action="addcolumn" tablename="tba_config" columnname="config_mail_user" fill="''" options=":type=varchar,:size=50" />
+		<db action="addcolumn" tablename="tba_config" columnname="config_mail_password" fill="''" options=":type=varchar,:size=50" />
+		<db action="addcolumn" tablename="tba_config" columnname="config_mail_ssl" fill="0" options=":type=byte" />
+		<db action="addcolumn" tablename="tba_config" columnname="config_mail_auth" fill="1" options=":type=byte" />
+		<db action="addcolumn" tablename="tba_config" columnname="config_mail_percomment" fill="1" options=":type=byte" />
+		<db action="addcolumn" tablename="tba_config" columnname="config_style_icons" fill="''" options=":type=varchar,:size=50" />
+		<db action="addcolumn" tablename="tba_config" columnname="config_autopub" fill="0" options=":type=long" />
+		<db action="addcolumn" tablename="tba_config" columnname="config_jsnavigatoractive" fill="0" options=":type=byte" />
+		<db action="modifycolumn" tablename="tba_config" columnname="config_style_page_islight" options=":type=byte" />
+		<db action="modifycolumn" tablename="tba_config" columnname="config_mode" options=":type=byte" />
+		<db action="modifycolumn" tablename="tba_config" columnname="config_applicationblock" options=":type=byte" />
+		
+		<db action="addcolumn" tablename="tba_photo" columnname="photo_pubqueue" fill="0" options=":type=short" />
+		<db action="modifycolumn" tablename="tba_photo" columnname="photo_order" options=":type=short,:signed=true" />
+		
+		<db action="modifycolumn" tablename="tba_set" columnname="set_order" options=":type=short,:signed=true" />
+		
+		<db action="addcolumn" tablename="tba_comment" columnname="comment_admin" fill="0" options=":type=byte" />
+
+		<db action="query" sql="UPDATE tba_config SET config_jsnavigatoractive = 1" info="attiva il navigator" />
+		
+		<del path="$Carnival$includes/inc.func.asp" />
+		<del path="$Carnival$includes/inc.func.file.asp " />
+		<del path="$Carnival$includes/inc.utils.asp" />
+		<del path="$Carnival$includes/mod.admin.prorss.asp" />
 		
 	</version>
 	

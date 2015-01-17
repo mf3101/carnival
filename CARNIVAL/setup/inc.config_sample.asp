@@ -2,7 +2,7 @@
 '-----------------------------------------------------------------
 ' ******************** HELLO THIS IS CARNIVAL ********************
 '-----------------------------------------------------------------
-' Copyright (c) 2007-2008 Simone Cingano
+' Copyright (c) 2007-2011 Simone Cingano
 ' 
 ' Permission is hereby granted, free of charge, to any person
 ' obtaining a copy of this software and associated documentation
@@ -27,10 +27,10 @@
 '-----------------------------------------------------------------
 ' * @category        Carnival
 ' * @package         Carnival
-' * @author          Simone Cingano <simonecingano@imente.org>
-' * @copyright       2007-2008 Simone Cingano
+' * @author          Simone Cingano <info@carnivals.it>
+' * @copyright       2007-2011 Simone Cingano
 ' * @license         http://www.opensource.org/licenses/mit-license.php
-' * @version         SVN: $Id: inc.config_sample.asp 29 2008-07-04 14:03:45Z imente $
+' * @version         SVN: $Id: inc.config_sample.asp 118 2010-10-11 19:30:20Z imente $
 ' * @home            http://www.carnivals.it
 '-----------------------------------------------------------------
 
@@ -38,18 +38,36 @@
 ' FILE DI CONFIGURAZIONE UTENTE
 ' ***************************************************************************
 
-' *** PATH DATABASE
-'   indica la path dove risiede il database
-'   il nome del database standard è CARNIVAL.MDB
-'   la cartella dove si trova il database deve possedere
-'   permessi di scrittura (per molti hoster è la cartella "mdb-database")
-'   se non sei certo di quale cartella utilizzare chiedi al tuo hoster
-'	PERCORSO RELATIVO:
-'		es: db/carnival.mdb (si trova nella cartella DB presente allo stesso livello di photo.asp)
-'	PERCORSO ASSOLUTO:
-'		es: /db/carnival.mdb (si trova nella cartella DB presente alla radice del sito)
-' 	il percorso assoluto è necessario nel caso in cui Carnival sia installato in una sottocartella del sito
-const CARNIVAL_DATABASE = 	"/db/carnival.mdb"
+' *** TIPO DI DATABASE
+'   indica il tipo di database utilizzato
+'	VALORI POSSIBILI: "mdb", "mysql"
+const CARNIVAL_DATABASE_TYPE = "mysql"
+
+' *** DATABASE
+'   *** MDB ***
+'       indica la path dove risiede il database
+'       la cartella dove si trova il database deve possedere
+'       permessi di scrittura (per molti hoster è la cartella "mdb-database")
+'       se non sei certo di quale cartella utilizzare chiedi al tuo hoster
+'	    PERCORSO RELATIVO:
+'		    es: db/carnival.mdb (si trova nella cartella DB presente allo stesso livello di photo.asp)
+'	    PERCORSO ASSOLUTO:
+'		    es: /db/carnival.mdb (si trova nella cartella DB presente alla radice del sito)
+' 	    il percorso assoluto è necessario nel caso in cui Carnival sia installato in una sottocartella del sito
+'   *** MYSQL ***
+'       indica semplicamente il nome del database
+'       ad esempio "carnival"
+'       il database deve essere già presente (preferibilmente vuoto per una prima installazione)
+'         i permessi dell'utente che si connette al database devono essere quelli standard più creazione
+'         ed eliminazione delle tabelle (CREATE TABLE e DROP TABLE)
+const CARNIVAL_DATABASE = "carnival"
+
+' *** DATABASE HOST
+'	indica l'host del database (indirizzo IP o host), il nome utente e la password
+'	E' NECESSARIO SOLO SE SI UTILIZZA MYSQL
+const CARNIVAL_DATABASE_HOST = "localhost"
+const CARNIVAL_DATABASE_USER = "root"
+const CARNIVAL_DATABASE_PASSWORD = "mypassword"
 
 ' *** CARTELLA DI CARNIVAL
 '   se hai installato carnival direttamente nella root indica "/"
@@ -57,7 +75,7 @@ const CARNIVAL_DATABASE = 	"/db/carnival.mdb"
 '   (ti consiglio in questo caso di indicare percorsi assoluti)
 '	[ LE PATH DEVONO SEMPRE TERMINARE CON IL CARATTERE "/" ]
 '	[ INDICA IL PERCORSO ASSOLUTO COMINCIANDO CON "/" ]
-const CARNIVAL_MAIN = 	"/"
+const CARNIVAL_MAIN = "/"
 
 ' *** CARTELLA PUBBLICA DI CARNIVAL
 '   la seguente cartella deve possedere permessi di lettura e scrittura
@@ -67,16 +85,16 @@ const CARNIVAL_MAIN = 	"/"
 '	una sottocartella chiamata CARNIVAL (come nel valore di default)
 '	[ LE PATH DEVONO SEMPRE TERMINARE CON IL CARATTERE "/" ]
 '	[ SU SERVER WINDOWS 2003 LE PATH NON DEVONO CONTENERE "../" ]
-const CARNIVAL_PUBLIC = 	"/public/carnival/"
+const CARNIVAL_PUBLIC = "/public/carnival/"
 
 ' *** SOTTOCARTELLE PUBBLICHE
 '	le seguenti cartelle si troveranno dentro a CARNIVAL_PUBLIC
 '	non è necessario modificare i valori di default se si é copiata
 '	la struttura originale
-const CARNIVAL_PHOTOS = 	"photos/"
-const CARNIVAL_STYLES = 	"styles/"
-const CARNIVAL_SERVICES = 	"services/"
-const CARNIVAL_FEED = 		"feed/"
+const CARNIVAL_PHOTOS = "photos/"
+const CARNIVAL_STYLES = "styles/"
+const CARNIVAL_SERVICES = "services/"
+const CARNIVAL_FEED = "feed/"
 
 ' *** CARTELLA DEI LOGHI
 '   è la cartella dove dovrai caricare le immagini logo da visualizzare
@@ -93,9 +111,9 @@ const CARNIVAL_LOGOS = "/logos/"
 '   esempi: photo id 53 -> 	ORIGINALE: 		"photo53_oh58t75f4h5.jpg"
 '							VISUALIZZATA:	"photo53.jpg"	
 '  							THUMBNAIL:		"photo53_t.jpg"	
-const CARNIVAL_PHOTOPREFIX = 		"photo"
-const CARNIVAL_THUMBPOSTFIX = 		"_t"
-const CARNIVAL_ORIGINALPOSTFIX = 	"_o"
+const CARNIVAL_PHOTOPREFIX = "photo"
+const CARNIVAL_THUMBPOSTFIX = "_t"
+const CARNIVAL_ORIGINALPOSTFIX = "_o"
 
 
 ' *** CODICE PHOTOBLOG
@@ -111,7 +129,8 @@ const CARNIVAL_CODE = "carnival"
 '   indica il numero di MINUTI per cui la sessione di un amministratore
 '   viene considerata valida, scaduti i quali (dall'ultima pagina visualizzata)
 '   sarà necessario inserire nuovamente la password
-const CARNIVAL_SESSION_ADMIN_PERSIST = 60
+'	(indicare 0 per avere l'autologin)
+const CARNIVAL_SESSION_ADMIN_PERSIST = 0
 
 ' *** TIMEOUT BLOCCO AMMINISTRAZIONE
 '   indica il numero di MINUTI per i quali l'accesso all'amministrazione
@@ -144,12 +163,12 @@ const CARNIVAL_LANG = "it-it"
 '    procedere comunque con il setup e seguire le istruzioni)
 '   es: http://www.miophotoblog.it/
 '   es: http://www.miosito.it/photoblog/
-const CARNIVAL_HOME = ""
+const CARNIVAL_HOME = "http://www.miophotoblog.it/"
 
 
 ' *** VERSIONE IN DEBUG
 '	ti consiglio di lasciare a FALSE la seguente costante
 '	è necessaria a me mentre sviluppo
-const CARNIVAL_DEBUGMODE = false
+const CARNIVAL_DEBUGMODE = False
 
 %>

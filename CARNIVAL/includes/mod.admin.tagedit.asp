@@ -2,7 +2,7 @@
 '-----------------------------------------------------------------
 ' ******************** HELLO THIS IS CARNIVAL ********************
 '-----------------------------------------------------------------
-' Copyright (c) 2007-2008 Simone Cingano
+' Copyright (c) 2007-2011 Simone Cingano
 ' 
 ' Permission is hereby granted, free of charge, to any person
 ' obtaining a copy of this software and associated documentation
@@ -27,47 +27,54 @@
 '-----------------------------------------------------------------
 ' * @category        Carnival
 ' * @package         Carnival
-' * @author          Simone Cingano <simonecingano@imente.org>
-' * @copyright       2007-2008 Simone Cingano
+' * @author          Simone Cingano <info@carnivals.it>
+' * @copyright       2007-2011 Simone Cingano
 ' * @license         http://www.opensource.org/licenses/mit-license.php
-' * @version         SVN: $Id: mod.admin.tagedit.asp 18 2008-06-29 02:54:08Z imente $
+' * @version         SVN: $Id: mod.admin.tagedit.asp 114 2010-10-11 19:00:34Z imente $
 ' * @home            http://www.carnivals.it
 '-----------------------------------------------------------------
+
+'*****************************************************
+'ENVIROMENT AGGIUNTIVO
 %><!--#include file = "inc.admin.check.asp"--><%
+'*****************************************************
 
-dim crn_id, crn_tagName, crn_tagType, crn_returnpage
-crn_id = cleanLong(request.QueryString("id"))
-crn_returnpage = cleanLong(request.QueryString("returnpage"))
+dim strReturnQuerystring
+strReturnQuerystring = request.QueryString("returnpage")
 
-SQL = "SELECT tag_name,tag_type FROM tba_tag WHERE tag_id = " & crn_id
-set rs = dbManager.conn.execute(SQL)
+dim lngTagId
+lngTagId = inputLong(request.QueryString("id"))
+
+dim strTagName, bytTagType
+SQL = "SELECT tag_name,tag_type FROM tba_tag WHERE tag_id = " & lngTagId
+set rs = dbManager.Execute(SQL)
 if rs.eof then response.Redirect("admin.asp?module=tag-list")
-crn_tagName = rs("tag_name")
-crn_tagType = cbyte(rs("tag_type"))
+strTagName = rs("tag_name")
+bytTagType = cbyte(rs("tag_type"))
 
 %><h2>Modifica tag</h2>
 	<form class="post" action="admin.asp?module=pro-tag" method="post">
 		<div><input type="hidden" name="action" id="action" value="edit" />
-		<input type="hidden" name="id" id="id" value="<%=crn_id%>" />
-		<input type="hidden" name="returnpage" id="returnpage" value="<%=crn_returnpage%>" />
+		<input type="hidden" name="id" id="id" value="<%=lngTagId%>" />
+		<input type="hidden" name="returnpage" id="returnpage" value="<%=strReturnQuerystring%>" />
 		<label for="name">nome tag</label>
-		<input type="text" id="name" name="name" class="text" maxlength="50" value="<%=cleanOutputString(crn_tagName)%>" /></div>
+		<input type="text" id="name" name="name" class="text" maxlength="50" value="<%=outputHTMLString(strTagName)%>" /></div>
 		<div><label for="cropped">tipologia di tag</label>
 		<select id="type" name="type">
-			<option value="0"<% if crn_tagType = 0 then %> selected="selected"<% end if %>>Normale</option>
-			<option value="1"<% if crn_tagType = 1 then %> selected="selected"<% end if %>>Comune</option>
+			<option value="0"<% if bytTagType = 0 then %> selected="selected"<% end if %>>Normale</option>
+			<option value="1"<% if bytTagType = 1 then %> selected="selected"<% end if %>>Comune</option>
 		</select></div>
 		
 		<div class="nbuttons">
-			<a href="admin.asp?module=tag-list&amp;page=<%=crn_returnpage%>">
+			<a href="admin.asp?module=tag-list&amp;<%=readyToQuerystring(strReturnQuerystring)%>">
 				<span>
-				<img src="<%=carnival_pathimages%>/lay-adm-ico-but-prev.gif" alt=""/> 
+				<img src="<%=getImagePath("lay-adm-ico-but-prev.gif")%>" alt=""/> 
 				indietro
 				</span>
 			</a>
 			<button type="submit">
 				<span class="a"><span class="b">
-				<img src="<%=carnival_pathimages%>/lay-adm-ico-but-accept.gif" alt=""/> 
+				<img src="<%=getImagePath("lay-adm-ico-but-accept.gif")%>" alt=""/> 
 				modifica
 				</span></span>
 			</button>

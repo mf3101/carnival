@@ -2,7 +2,7 @@
 '-----------------------------------------------------------------
 ' ******************** HELLO THIS IS CARNIVAL ********************
 '-----------------------------------------------------------------
-' Copyright (c) 2007-2008 Simone Cingano
+' Copyright (c) 2007-2011 Simone Cingano
 ' 
 ' Permission is hereby granted, free of charge, to any person
 ' obtaining a copy of this software and associated documentation
@@ -27,111 +27,111 @@
 '-----------------------------------------------------------------
 ' * @category        Carnival
 ' * @package         Carnival
-' * @author          Simone Cingano <simonecingano@imente.org>
-' * @copyright       2007-2008 Simone Cingano
+' * @author          Simone Cingano <info@carnivals.it>
+' * @copyright       2007-2011 Simone Cingano
 ' * @license         http://www.opensource.org/licenses/mit-license.php
-' * @version         SVN: $Id: lang.it.asp 18 2008-06-29 02:54:08Z imente $
+' * @version         SVN: $Id: lang.it.asp 114 2010-10-11 19:00:34Z imente $
 ' * @home            http://www.carnivals.it
 '-----------------------------------------------------------------
-dim crnLang_temp
+dim lang__temp__
+session.LCID = 1040
 
 
 '*** TOP MENU
-const crnLang_menu_photos = "FOTO"
-const crnLang_menu_gallery = "GALLERIA"
-const crnLang_menu_comments = "COMMENTI"
-const crnLang_menu_tags = "TAG"
-const crnLang_menu_about = "ABOUT"
-const crnLang_menu_admin = "ADMIN &amp; INFO"
+const lang__menu_photos__ = "FOTO"
+const lang__menu_gallery__ = "GALLERIA"
+const lang__menu_comments__ = "COMMENTI"
+const lang__menu_tags__ = "TAG"
+const lang__menu_about__ = "ABOUT"
+const lang__menu_admin__ = "ADMIN &amp; INFO"
 
-const crnLang_main_yes = "si"
-const crnLang_main_no = "no"
-const crnLang_main_next = "SUCC."
-const crnLang_main_prev = "PREC."
-const crnLang_main_details = "DETTAGLI"
-const crnLang_main_comments = "COMMENTI"
-const crnLang_main_close = "CHIUDI"
+const lang__main_yes__ = "si"
+const lang__main_no__ = "no"
+const lang__main_next__ = "SUCC."
+const lang__main_prev__ = "PREC."
+const lang__main_details__ = "DETTAGLI"
+const lang__main_comments__ = "COMMENTI"
+const lang__main_close__ = "CHIUDI"
 
 
 '*** ABOUT PAGE
-const crnLang_about_title = "ABOUT"
+const lang__about_title__ = "ABOUT"
 
 
 '*** COMMENTS PAGE
-const crnLang_comments_title_recent = "COMMENTI RECENTI"
-const crnLang_comments_title_details = "DETTAGLI E COMMENTI"
+const lang__comments_title_recent__ = "COMMENTI RECENTI"
+const lang__comments_title_details__ = "DETTAGLI E COMMENTI"
 
-const crnLang_comments_nocomment = "NESSUN COMMENTO"
-const crnLang_comments_comments = "%n COMMENTI" 				'%n = numero di commenti
-const crnLang_comments_postacomment = "LASCIA UN COMMENTO"
-const crnLang_comments_lastcomments = "ultimi %n commenti" 		'%n = numero di commenti
-const crnLang_comments_delete = "elimina"
+const lang__comments_nocomment__ = "NESSUN COMMENTO"
+const lang__comments_comments__ = "%n COMMENTI" 				'%n = numero di commenti
+const lang__comments_postacomment__ = "LASCIA UN COMMENTO"
+const lang__comments_delete__ = "elimina"
 
-const crnLang_comments_form_name = "nome"
-const crnLang_comments_form_url = "url (opzionale)"
-const crnLang_comments_form_email = "email (non sar&agrave; pubblicata)"
-const crnLang_comments_form_captcha = "copia la serie di numeri nello spazio sottostante"
-const crnLang_comments_form_comment = "commento"
-const crnLang_comments_form_extra = "&lt;b&gt; e &lt;i&gt; accettati"
-const crnLang_comments_form_send = "invia"
+const lang__comments_form_name__ = "nome"
+const lang__comments_form_url__ = "url (opzionale)"
+const lang__comments_form_email__ = "email (non sar&agrave; pubblicata)"
+const lang__comments_form_captcha__ = "copia la serie di numeri nello spazio sottostante"
+const lang__comments_form_comment__ = "commento"
+const lang__comments_form_extra__ = "&lt;b&gt; e &lt;i&gt; accettati"
+const lang__comments_form_send__ = "invia"
 
-const crnLang_details_views = "%n visualizzazioni" 	'%n numero di visualizzazioni
-const crnLang_details_tag = "tag"
-const crnLang_details_set = "set"
-const crnLang_details_download = "scarica foto ad alta risoluzione"
-const crnLang_details_exif = "dettagli foto"
-const crnLang_details_exif_shot = "scatto"
-const crnLang_details_exif_camera = "fotocamera"
-const crnLang_details_exif_aperture = "apertura"
-const crnLang_details_exif_shutterspeed = "esposizione"
-const crnLang_details_exif_focallength = "focale"
-const crnLang_details_exif_flash = "flash"
-const crnLang_details_exif_meteringmode = "campo di misurazione"
-const crnLang_details_exif_orientation = "orientamento"
-const crnLang_details_exif_compression = "compressione"
-const crnLang_details_exif_cropped = "foto tagliata"
-const crnLang_details_exif_elaborated = "foto elaborata"
+const lang__details_views__ = "%n visualizzazioni" 	'%n numero di visualizzazioni
+const lang__details_tag__ = "tag"
+const lang__details_set__ = "set"
+const lang__details_download__ = "scarica foto ad alta risoluzione"
+const lang__details_exif__ = "dettagli foto"
+const lang__details_exif_shot__ = "scatto"
+const lang__details_exif_camera__ = "fotocamera"
+const lang__details_exif_aperture__ = "apertura"
+const lang__details_exif_shutterspeed__ = "esposizione"
+const lang__details_exif_focallength__ = "focale"
+const lang__details_exif_flash__ = "flash"
+const lang__details_exif_meteringmode__ = "campo di misurazione"
+const lang__details_exif_orientation__ = "orientamento"
+const lang__details_exif_compression__ = "compressione"
+const lang__details_exif_cropped__ = "foto tagliata"
+const lang__details_exif_elaborated__ = "foto elaborata"
 
 
 '*** TAGS PAGE
-const crnLang_tags_title = "TAG"
+const lang__tags_title__ = "TAG"
 
 
 '*** PHOTO PAGE
-const crnLang_photo_title = "FOTO"
-const crnLang_photo_title_all = "tutte le foto"
-const crnLang_photo_title_tag = "tag: '%s'" 		'%s nome del tag
-const crnLang_photo_title_photos = " ( %n foto )" 	'%n numero di foto
-const crnLang_photo_title_newphotos = "nuove foto"
-const crnLang_photo_new = "!NEW!"
+const lang__photo_title__ = "FOTO"
+const lang__photo_title_all__ = "tutte le foto"
+const lang__photo_title_tag__ = "tag: '%s'" 		'%s nome del tag
+const lang__photo_title_photos__ = " ( %n foto )" 	'%n numero di foto
+const lang__photo_title_newphotos__ = "nuove foto"
+const lang__photo_new__ = "!NEW!"
 
 
 '*** GALLERY PAGE
-const crnLang_gallery_title = "GALLERIA"
-const crnLang_gallery_tag = "tag"
-const crnLang_gallery_tag_all = "tutte le foto"
-const crnLang_gallery_tag_new = "nuove foto"
-const crnLang_gallery_tag_send = "visualizza"
-const crnLang_gallery_nophotos = "nessuna foto"
-const crnLang_gallery_last_photos = "queste sono le ultime %n foto" 	'%n numero di foto
-const crnLang_gallery_last_showall = "visualizza tutte le foto"
+const lang__gallery_title__ = "GALLERIA"
+const lang__gallery_tag__ = "tag"
+const lang__gallery_tag_all__ = "tutte le foto"
+const lang__gallery_tag_new__ = "nuove foto"
+const lang__gallery_tag_send__ = "visualizza"
+const lang__gallery_nophotos__ = "nessuna foto"
+const lang__gallery_last_photos__ = "queste sono le ultime %n foto" 	'%n numero di foto
+const lang__gallery_last_showall__ = "visualizza tutte le foto"
 
 
 '*** ERROR PAGE
-const crnLang_error_title = "ERRORE"
-const crnLang_error_back = "torna indietro"
-const crnLang_error_undefined = "errore non definito"
+const lang__error_title__ = "ERRORE"
+const lang__error_back__ = "torna indietro"
+const lang__error_undefined__ = "errore non definito"
 
-const crnLang_error_comment_title = "impossibile inviare il commento"
-const crnLang_error_comment_nophoto = "la foto indicata non esiste"
-const crnLang_error_comment_code = "il codice di controllo non corrisponde<br/>(se il codice &egrave; corretto, il problema potrebbe essere causato dai cookie disattivati)"
-const crnLang_error_comment_field = "&egrave; necessario indicare un nome, una email valida (che non verr&aacute; pubblicata) e un commento"
+const lang__error_comment_title__ = "impossibile inviare il commento"
+const lang__error_comment_nophoto__ = "la foto indicata non esiste"
+const lang__error_comment_code__ = "il codice di controllo non corrisponde<br/>(se il codice &egrave; corretto, il problema potrebbe essere causato dai cookie disattivati)"
+const lang__error_comment_field__ = "&egrave; necessario indicare un nome, una email valida (che non verr&aacute; pubblicata) e un commento"
 
-const crnLang_error_photo_title = "nessuna foto presente"
-const crnLang_error_photo_nophoto = "non &egrave; stata pubblicata ancora nessuna foto<br/>se sei l'amministratore vai alla pagina di <a href=""admin.asp"">admin</a> e comincia a pubblicare :)"
+const lang__error_photo_title__ = "nessuna foto presente"
+const lang__error_photo_nophoto__ = "non &egrave; stata pubblicata ancora nessuna foto<br/>se sei l'amministratore vai alla pagina di <a href=""admin.asp"">admin</a> e comincia a pubblicare :)"
 
-const crnLang_error_login_title = "impossibile eseguire il login"
-const crnLang_error_login_password = "la password non corrisponde"
-const crnLang_error_login_locked = "un altro admin è già collegato. IP: [ %ip ]<br/>se hai cancellato i cookie aspetta %t minuti e riprova"
+const lang__error_login_title__ = "impossibile eseguire il login"
+const lang__error_login_password__ = "la password non corrisponde"
+const lang__error_login_locked__ = "un altro admin è già collegato. IP: [ %ip ]<br/>se hai cancellato i cookie aspetta %t minuti e riprova"
 
 %>

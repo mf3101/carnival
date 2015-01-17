@@ -2,7 +2,7 @@
 '-----------------------------------------------------------------
 ' ******************** HELLO THIS IS CARNIVAL ********************
 '-----------------------------------------------------------------
-' Copyright (c) 2007-2008 Simone Cingano
+' Copyright (c) 2007-2011 Simone Cingano
 ' 
 ' Permission is hereby granted, free of charge, to any person
 ' obtaining a copy of this software and associated documentation
@@ -27,136 +27,177 @@
 '-----------------------------------------------------------------
 ' * @category        Carnival
 ' * @package         Carnival
-' * @author          Simone Cingano <simonecingano@imente.org>
-' * @copyright       2007-2008 Simone Cingano
+' * @author          Simone Cingano <info@carnivals.it>
+' * @copyright       2007-2011 Simone Cingano
 ' * @license         http://www.opensource.org/licenses/mit-license.php
-' * @version         SVN: $Id: service.xml.photo.asp 29 2008-07-04 14:03:45Z imente $
+' * @version         SVN: $Id: service.xml.photo.asp 114 2010-10-11 19:00:34Z imente $
 ' * @home            http://www.carnivals.it
 '-----------------------------------------------------------------
+
+Option Explicit
+'*****************************************************
+'ENVIROMENT BASE (senza inc.config.lang.asp)
 %><!--#include file = "includes/inc.config.asp"-->
 <!--#include file = "includes/inc.set.asp"-->
 <!--#include file = "includes/inc.dba.asp"-->
-<!--#include file = "includes/inc.func.asp"-->
-<%
+<!--#include file = "includes/inc.func.common.asp"-->
+<!--#include file = "includes/inc.func.common.io.asp"-->
+<!--#include file = "includes/inc.func.common.math.asp"-->
+<!--#include file = "includes/inc.func.common.file.asp"-->
+<!--#include file = "includes/inc.func.common.special.asp"--><%
+'*****************************************************
+'ENVIROMENT AGGIUNTIVO
+%><!--#include file = "includes/inc.func.photo.asp"-->
+<!--#include file = "includes/inc.func.rss.asp"--><%
+'*****************************************************
 
+'connette al db
 call connect()
 
-public output
+'verifica se ci sono foto da Pubblicare
+call checkPhotoPub()
+
+'***********************************************************************************
+
+'Prepara l'output
+
+Public output, contentoutput
 output = "<?xml version=""1.0"" encoding=""iso-8859-1""?>" & _
-		 "<carnival>"
+		 "<carnivalphotos>"
+		 
+'***********************************************************************************
 
-sub printPhoto(photoid, phototitle, photopub, isthumb)
-
-	output = output & "<photo>" & _
-						"<id>" & photoid & "</id>" & _
-						"<title><![CDATA[" & phototitle & "]]></title>"
-	if photoid <> 0 then
-		output = output & "<src>" & CARNIVAL_PUBLIC & CARNIVAL_PHOTOS & CARNIVAL_PHOTOPREFIX & photoid 
-		if isthumb then output = output & CARNIVAL_THUMBPOSTFIX
-		output = output &  ".jpg</src>"
+'Funzione di printoutput
+function printXMLPhoto(lng_PhotoId, str_PhotoTitle, dtm_PhotoPub, bln_IsCurrent)
+	dim str_Output
+	str_Output = str_Output & "<p" & IIF(bln_IsCurrent," current=""1""","") & ">" & _
+						"<i>" & lng_PhotoId & "</i>" & _
+						"<t><![CDATA[" & str_PhotoTitle & "]]></t>"
+	if lng_PhotoId <> 0 then
+		str_Output = str_Output & "<s>" & CARNIVAL_PHOTOPREFIX & lng_PhotoId 
+		if not bln_IsCurrent or blnOnlyThumbs then str_Output = str_Output & CARNIVAL_THUMBPOSTFIX
+		str_Output = str_Output &  ".jpg</s>"
 	else
-		output = output & "<src>-</src>"
+		str_Output = str_Output & "<s>-</s>"
 	end if
-	if photopub <> "" then
-		output = output & "<pub>" & formatGMTDate(photopub,0,"dd/mm/yyyy") & "</pub>"
+	if dtm_PhotoPub <> "" then
+		str_Output = str_Output & "<d>" & formatGMTDate(dtm_PhotoPub,0,"yyyy/mm/dd hh:nn:ss") & "</d>"
 	else
-		output = output & "<pub>-</pub>"
+		str_Output = str_Output & "<d>0</d>"
 	end if
-	output = output & "</photo>"
-end sub
+	str_Output = str_Output & "</p>"
+	
+	printXMLPhoto = str_Output
+	str_Output = null
+	
+end function
 
-dim tagid, setid, id, order
-tagid = cleanLong(request.QueryString("tag"))
-if trim(tagid) = "" then tagid = 0
-setid = cleanLong(request.QueryString("set"))
-if trim(setid) = "" then setid = 0
+'***********************************************************************************
 
-id = request.QueryString("id")
-if trim(id) = "" then
-	tagid = 0
-	setid = 0
-end if
+'Recupera i parametri
+dim lngTagId, lngSetId, lngPhotoId, dtmPhotoPub, lngPhotoOrder, strPhotoTitle, bytRange, strDirection, blnOnlyThumbs
+lngTagId = inputLong(request.QueryString("tag"))
+lngSetId = inputLong(request.QueryString("set"))
+lngPhotoId = inputLong(request.QueryString("id"))
+bytRange = inputByte(request.QueryString("range"))
+strDirection = normalize(request.QueryString("dir"),"next|prev","center")
+blnOnlyThumbs = inputBoolean(request.QueryString("thumbs"))
+if bytRange <= 0 or bytRange > 10 then bytRange = 1
 
+dim dtmPhotoPubLast, lngPhotoOrderLast, ii
 
+'***********************************************************************************
 
 'se l'id non è indicato seleziona l'ultima foto
-if id = 0 then
-
-	if tagid > 0 then
-		SQL = "SELECT TOP 1 tba_photo.photo_id " & _
-			  "FROM tba_rel INNER JOIN tba_photo ON tba_rel.rel_photo = tba_photo.photo_id " & _
-			  "WHERE tba_rel.rel_tag=" & tagid & " AND tba_photo.photo_active = 1 ORDER BY tba_rel.rel_photo DESC"
-	elseif setid > 0 then
-		SQL = "SELECT TOP 1 photo_id FROM tba_photo WHERE photo_active = 1 AND photo_set = " & setid & " ORDER BY photo_order, photo_id DESC"
-	else
-		SQL = "SELECT TOP 1 photo_id FROM tba_photo WHERE photo_active = 1 ORDER BY photo_id DESC"
+SQL = getLastPhotoSQL(lngPhotoId,lngTagId,lngSetId)
+set rs = dbManager.Execute(SQL)
+if rs.eof then
+	
+	'nessuna foto corrente (stampa tutti NULL)	
+	if isin(strDirection,"prev|center") then
+		for ii=1 to bytRange : contentoutput = contentoutput & printXMLPhoto(0,"-","",false) : next
+	end if
+	contentoutput = contentoutput &  printXMLPhoto(0,"-","",true)
+	if isin(strDirection,"next|center") then
+		for ii=1 to bytRange : contentoutput = contentoutput &  printXMLPhoto(0,"-","",false) : next
 	end if
 
 else
-	SQL = "SELECT photo_id, photo_order FROM tba_photo WHERE photo_id = " & id	
+
+	lngPhotoId = inputLong(rs("photo_id"))
+	strPhotoTitle = rs("photo_title")
+	dtmPhotoPub = inputDate(rs("photo_pub"))
+	lngPhotoOrder = inputLong(rs("photo_order"))
+	
+	'***********************************************************************************
+	
+	call checkPhoto(lngPhotoId)
+	
+	'necessari per la refreshsession (dichiarazioni presenti in inc.first.asp)
+	dim lngLastViewedPhotoId__, dtmLastViewedPhotoPub__, lngLastPhotoId__, dtmLastPhotoPub__
+	call refreshSession()
+	
+	'***********************************************************************************
+	
+	if isin(strDirection,"prev|center") then
+		dtmPhotoPubLast = dtmPhotoPub
+		lngPhotoOrderLast = lngPhotoOrder
+		'SELEZIONA FOTO PRECEDENTE
+		for ii=1 to bytRange
+			SQL = getPrevPhotoSQL(lngTagId,lngSetId,dtmPhotoPubLast,lngPhotoOrderLast)
+			set rs = dbManager.Execute(SQL)
+			if rs.eof then
+				'nessuna foto precedente
+				contentoutput = printXMLPhoto(0,"-","",false) & contentoutput
+			else
+				'foto trovata
+				dtmPhotoPubLast = inputDate(rs("photo_pub"))
+				lngPhotoOrderLast = inputLong(rs("photo_order"))
+				contentoutput = printXMLPhoto(rs("photo_id"),rs("photo_title"),rs("photo_pub"),false) & contentoutput
+			end if
+		next
+	end if
+	
+	'***********************************************************************************
+	
+	'SELEZIONA FOTO CORRENTE
+	
+	contentoutput = contentoutput & printXMLPhoto(lngPhotoId,strPhotoTitle,dtmPhotoPub,true)
+	
+	'***********************************************************************************
+	
+	'SELEZIONA FOTO SUCCESSIVA
+	
+	if isin(strDirection,"next|center") then
+		dtmPhotoPubLast = dtmPhotoPub
+		lngPhotoOrderLast = lngPhotoOrder
+		for ii=1 to bytRange
+			SQL = getNextPhotoSQL(lngTagId,lngSetId,dtmPhotoPubLast,lngPhotoOrderLast)
+			set rs = dbManager.Execute(SQL)
+			
+			if rs.eof then
+				'nessuna foto successiva
+				contentoutput = contentoutput & printXMLPhoto(0,"-","",false)
+			else
+				'foto trovata
+				dtmPhotoPubLast = inputDate(rs("photo_pub"))
+				lngPhotoOrderLast = inputLong(rs("photo_order"))
+				contentoutput = contentoutput & printXMLPhoto(rs("photo_id"),rs("photo_title"),rs("photo_pub"),false)
+			end if
+		next
+	end if
+	
 end if
 
-set rs = dbManager.conn.execute(SQL)
-id = cleanLong(rs("photo_id"))
-order = cleanLong(rs("photo_order"))
+'***********************************************************************************
 
-call checkPhoto(id)
-dim crnLastViewedPhoto, crnLastPhoto
-call refreshSession()
-
-'SELEZIONA FOTO PRECEDENTE
-if tagid > 0 then
-	SQL = "SELECT TOP 1 tba_photo.photo_id, tba_photo.photo_title, tba_photo.photo_pub " & _
-		  "FROM tba_rel INNER JOIN tba_photo ON tba_rel.rel_photo = tba_photo.photo_id " & _
-		  "WHERE tba_rel.rel_tag=" & tagid & " AND tba_rel.rel_photo < " & id & " AND tba_photo.photo_active = 1 ORDER BY tba_rel.rel_photo DESC"
-elseif setid > 0 then
-	SQL = "SELECT TOP 1 photo_id, photo_title, photo_pub FROM tba_photo WHERE ((photo_id < " & id & " AND photo_order = " & order & ") OR (photo_order > " & order & ")) AND (photo_active = 1) AND (photo_set = " & setid & ") ORDER BY photo_order ASC, photo_id DESC"
-else
-	SQL = "SELECT TOP 1 photo_id, photo_title, photo_pub FROM tba_photo WHERE photo_id < " & id & " AND photo_active = 1 ORDER BY photo_id DESC"
-end if
-set rs = dbManager.conn.execute(SQL)
-if rs.eof then
-	'nessuna foto precedente
-	call printPhoto(0,"-","",0)
-else
-	'foto trovata
-	call printPhoto(rs("photo_id"),rs("photo_title"),rs("photo_pub"),1)
-end if
-
-'SELEZIONA FOTO CORRENTE
-SQL = "SELECT photo_id, photo_title, photo_pub FROM tba_photo WHERE photo_active = 1 AND photo_id = " & id
-set rs = dbManager.conn.execute(SQL)
-if rs.eof then
-	call printPhoto(0,"-","",0)
-else
-	call printPhoto(rs("photo_id"),rs("photo_title"),rs("photo_pub"),0)
-end if
-
-'SELEZIONA FOTO SUCCESSIVA
-if tagid > 0 then
-	SQL = "SELECT TOP 1 tba_photo.photo_id, tba_photo.photo_title, tba_photo.photo_pub " & _
-		  "FROM tba_rel INNER JOIN tba_photo ON tba_rel.rel_photo = tba_photo.photo_id " & _
-		  "WHERE tba_rel.rel_tag=" & tagid & " AND tba_rel.rel_photo > " & id & " AND tba_photo.photo_active = 1 ORDER BY tba_rel.rel_photo ASC"
-elseif setid > 0 then
-	SQL = "SELECT TOP 1 photo_id, photo_title, photo_pub FROM tba_photo WHERE ((photo_id > " & id & " AND photo_order = " & order & ") OR (photo_order < " & order & ")) AND (photo_active = 1) AND (photo_set = " & setid & ") ORDER BY photo_order DESC, photo_id ASC"
-else
-	SQL = "SELECT TOP 1 photo_id, photo_title, photo_pub FROM tba_photo WHERE photo_id > " & id & " AND photo_active = 1 ORDER BY photo_id ASC"
-end if
-set rs = dbManager.conn.execute(SQL)
-if rs.eof then
-	'nessuna foto successiva
-	call printPhoto(0,"-","",0)
-else
-	'foto trovata
-	call printPhoto(rs("photo_id"),rs("photo_title"),rs("photo_pub"),1)
-end if
-
-		 
-output = output & "</carnival>"
+output = output & contentoutput & "</carnivalphotos>"
 
 response.ContentType = "text/xml"
 response.write output
 
-call disconnect()
+'***********************************************************************************
 
+'disconnette dal db
+call disconnect()
 %>

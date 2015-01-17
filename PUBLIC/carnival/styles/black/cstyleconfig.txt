@@ -1,8 +1,8 @@
 // CARNIVAL STYLE
 
-name = Light (Official Carnival Style) 1.0.3
+name = Light (Official Carnival Style) 1.0.5
 author = imente
-date = 28/06/2008
+date = 11/10/2010
 version = 1.0
 
 note = Icone 16px <a href="http://www.famfamfam.com/lab/icons/silk/">Silk Icons</a> | Icone 32px <a href="http://www.everaldo.com/crystal/">Crystal Clear</a> (licenza LGPL)
@@ -13,7 +13,7 @@ css_output_admin = admin.css
 
 images_path = images/
 
-page_islight = 1
+page_islight = 0
 page_photo_islight = 0
 
 font = tahoma,helvetica,serif

@@ -2,7 +2,7 @@
 '-----------------------------------------------------------------
 ' ******************** HELLO THIS IS CARNIVAL ********************
 '-----------------------------------------------------------------
-' Copyright (c) 2007-2008 Simone Cingano
+' Copyright (c) 2007-2011 Simone Cingano
 ' 
 ' Permission is hereby granted, free of charge, to any person
 ' obtaining a copy of this software and associated documentation
@@ -27,46 +27,46 @@
 '-----------------------------------------------------------------
 ' * @category        Carnival
 ' * @package         Carnival
-' * @author          Simone Cingano <simonecingano@imente.org>
-' * @copyright       2007-2008 Simone Cingano
+' * @author          Simone Cingano <info@carnivals.it>
+' * @copyright       2007-2011 Simone Cingano
 ' * @license         http://www.opensource.org/licenses/mit-license.php
-' * @version         SVN: $Id: inc.func.style.asp 8 2008-05-22 00:26:46Z imente $
+' * @version         SVN: $Id: inc.func.style.asp 114 2010-10-11 19:00:34Z imente $
 ' * @home            http://www.carnivals.it
 '-----------------------------------------------------------------
 
-function checkStyle(ByRef styleconfig)
+function checkStyle(ByRef str_StyleConfigContent)
 	
 	checkStyle = false
 
-	if not isnull(styleconfig) then
+	if not isnull(str_StyleConfigContent) then
 
-		dim crn_styleversion
-		dim crn_style_vers
-		dim crn_carnival_maxvers
-		dim crn_carnival_minvers
+		dim str_StyleConfigVersion
+		dim dbl_StyleVersion
+		dim dbl_CarnivalMaxVersion
+		dim dbl_CarnivalMinVersion
 	
-		crn_styleversion = getStyleVar("version",styleconfig)
+		str_StyleConfigVersion = getStyleVar("version",str_StyleConfigContent)
 		
-		if not isnull(crn_styleversion) then
+		if not isnull(str_StyleConfigVersion) then
 		
 			Dim Reg,Matches
 			Set Reg = New RegExp
 			Reg.Global = True
 			Reg.Ignorecase = True
-			Reg.pattern = "(\d+)(?:\.)?(\d+|)[ab]?(?:\.)?(\d+|)"
+			Reg.pattern = "(\d+)(?:\.)?(\d+|)(?:a|b|c|rc\d)?(?:\.)?(\d+|)"
 			
-			if reg.test(crn_styleversion) then
-				set Matches = reg.Execute(crn_styleversion)
-				crn_style_vers = cdbl(cstr(Matches(0).SubMatches(0)) & formatIntNumber(cstr(Matches(0).SubMatches(1)),1) & formatIntNumber(cstr(Matches(0).SubMatches(2)),3))
+			if reg.test(str_StyleConfigVersion) then
+				set Matches = reg.Execute(str_StyleConfigVersion)
+				dbl_StyleVersion = cdbl(cstr(Matches(0).SubMatches(0)) & fill(Matches(0).SubMatches(1),1,"0",false) & fill(Matches(0).SubMatches(2),3,"0",false))
 			end if
 			
 			set Matches = reg.Execute(CARNIVAL_STYLECOMPATIBILITY_MAXVERSION)
-			crn_carnival_maxvers = cdbl(cstr(Matches(0).SubMatches(0)) & cstr(Matches(0).SubMatches(1)) & formatIntNumber(cstr(Matches(0).SubMatches(2)),3))
+			dbl_CarnivalMaxVersion = cdbl(cstr(Matches(0).SubMatches(0)) & cstr(Matches(0).SubMatches(1)) & fill(Matches(0).SubMatches(2),3,"0",false))
 			
 			set Matches = reg.Execute(CARNIVAL_STYLECOMPATIBILITY_MINVERSION)
-			crn_carnival_minvers = cdbl(cstr(Matches(0).SubMatches(0)) & cstr(Matches(0).SubMatches(1)) & formatIntNumber(cstr(Matches(0).SubMatches(2)),3))
+			dbl_CarnivalMinVersion = cdbl(cstr(Matches(0).SubMatches(0)) & cstr(Matches(0).SubMatches(1)) & fill(Matches(0).SubMatches(2),3,"0",false))
 			
-			if (crn_style_vers >= crn_carnival_minvers and crn_style_vers <= crn_carnival_maxvers) then
+			if (dbl_StyleVersion >= dbl_CarnivalMinVersion and dbl_StyleVersion <= dbl_CarnivalMaxVersion) then
 				checkStyle = true
 			end if
 			
@@ -80,9 +80,9 @@ function checkStyle(ByRef styleconfig)
 
 end function
 
-function getStyleVar(var,ByRef styleconfig)
+function getStyleVar(str_VarName,ByRef str_StyleConfigContent)
 
-	if not isnull(styleconfig) and styleconfig <> "" then
+	if not isnull(str_StyleConfigContent) and str_StyleConfigContent <> "" then
 	
 		getStyleVar = null
 			
@@ -90,12 +90,12 @@ function getStyleVar(var,ByRef styleconfig)
 		Set Reg = New RegExp
 		Reg.Global = True
 		Reg.Ignorecase = True
-		Reg.pattern = "(?:[\r\n]|^)[\t\s]*" & var & "[\t\s]*=[\t\s]([^\t\r\n]+)"
+		Reg.pattern = "(?:[\r\n]|^)[\t\s]*" & str_VarName & "[\t\s]*=[\t\s]([^\t\r\n]+)"
 		
-		if Reg.test(styleconfig) then
+		if Reg.test(str_StyleConfigContent) then
 		
 			dim Matches
-			set Matches = reg.Execute(styleconfig)
+			set Matches = reg.Execute(str_StyleConfigContent)
 			getStyleVar = Matches(0).SubMatches(0)
 			set Matches = Nothing
 		
@@ -106,108 +106,90 @@ function getStyleVar(var,ByRef styleconfig)
 	end if
 end function
 
-function loadStyle(file)
-	Dim objFSO, objFile
-	file = Server.MapPath(file)
-	Set objFSO = Server.CreateObject("Scripting.FileSystemObject")
+function loadStyle(str_StyleFile)
+	Dim obj_FSO, obj_File
+	Set obj_FSO = Server.CreateObject("Scripting.FileSystemObject")
 	
 	on error resume next
-	Set objFile = objFSO.OpenTextFile(file, 1, false)
+	Set obj_File = obj_FSO.OpenTextFile(Server.MapPath(str_StyleFile), 1, false)
 	if err.number <> 0 then
 		loadStyle = null
 		exit function
 	end if
 	on error goto 0
 	
-	If Not objFile.AtEndOfStream Then
+	If Not obj_File.AtEndOfStream Then
 		' legge il file
-		loadStyle = objFile.ReadAll
+		loadStyle = obj_File.ReadAll
 	Else
 		' se il file non esiste
 		loadStyle = null
 	End If
 	
-	objFile.Close
-	Set objFile = Nothing
-	Set objFSO = Nothing
+	obj_File.Close
+	Set obj_File = Nothing
+	Set obj_FSO = Nothing
 end function
 
-function formatIntNumber(number,length)
+sub compileStyle(bln_Compress,str_InputFile,str_OutputFileMain,str_OutputFileAdmin,str_Font,str_HeaderColor,str_HeaderBackcolor,str_TitleColor,str_TitleMargin,str_TextLightColor,str_TextDarkColor,str_TextMenuColor,int_PhotoWidth,int_PhotoWidthL)
 
-	number = cstr(number)
+	dim str_InputFileContent, str_OutputFileContent
+	dim rstr_OutputFileContent	
 	
-	dim ii
-	for ii=0 to length-len(number)-1
-		formatIntNumber = formatIntNumber & "0"
-	next
-	formatIntNumber = left(formatIntNumber & number,length)
-	if formatIntNumber = "" then formatIntNumber = 0
-
-end function
-
-sub compileStyle(compress,input,output,outputadmin,font,header_color,header_backcolor,title_color,title_margin,text_light_color,text_dark_color,text_menu_color,photo_width,photo_width_l)
-
-	dim input_style, output_style
-	dim output_style_array	
+	Dim obj_FSO, obj_File
+	Set obj_FSO = Server.CreateObject("Scripting.FileSystemObject")
 	
-	Dim objFSO, objFile
-	Set objFSO = Server.CreateObject("Scripting.FileSystemObject")
+	'legge l'str_InputFile
+	Set obj_File = obj_FSO.OpenTextFile(Server.MapPath(str_InputFile), 1, true)
+	str_InputFileContent = ""
+	If Not obj_File.AtEndOfStream Then str_InputFileContent = obj_File.ReadAll
+	obj_File.Close
 	
-	input = Server.MapPath(input)
-	output = Server.MapPath(output)
-	outputadmin = Server.MapPath(outputadmin)
+	'modifica l'str_InputFile
+	str_OutputFileContent = str_InputFileContent
+	str_OutputFileContent = replace(str_OutputFileContent,"$font$",str_Font&"")
+	str_OutputFileContent = replace(str_OutputFileContent,"$header_color$",str_HeaderColor&"")
+	str_OutputFileContent = replace(str_OutputFileContent,"$header_backcolor$",str_HeaderBackcolor&"")
+	str_OutputFileContent = replace(str_OutputFileContent,"$title_color$",str_TitleColor&"")
+	str_OutputFileContent = replace(str_OutputFileContent,"$title_margin$",str_TitleMargin&"")
+	str_OutputFileContent = replace(str_OutputFileContent,"$text_light_color$",str_TextLightColor&"")
+	str_OutputFileContent = replace(str_OutputFileContent,"$text_dark_color$",str_TextDarkColor&"")
+	str_OutputFileContent = replace(str_OutputFileContent,"$text_menu_color$",str_TextMenuColor&"")
+	str_OutputFileContent = replace(str_OutputFileContent,"$photo_width$",int_PhotoWidth&"")
+	str_OutputFileContent = replace(str_OutputFileContent,"$photo_width_l$",int_PhotoWidthL&"")
 	
-	'legge l'input
-	Set objFile = objFSO.OpenTextFile(input, 1, true)
-	input_style = ""
-	If Not objFile.AtEndOfStream Then input_style = objFile.ReadAll
-	objFile.Close
+	rstr_OutputFileContent = split(str_OutputFileContent,"/*$ADMIN$*/")
 	
-	'modifica l'input
-	output_style = input_style
-	output_style = replace(output_style,"$font$",font&"")
-	output_style = replace(output_style,"$header_color$",header_color&"")
-	output_style = replace(output_style,"$header_backcolor$",header_backcolor&"")
-	output_style = replace(output_style,"$title_color$",title_color&"")
-	output_style = replace(output_style,"$title_margin$",title_margin&"")
-	output_style = replace(output_style,"$text_light_color$",text_light_color&"")
-	output_style = replace(output_style,"$text_dark_color$",text_dark_color&"")
-	output_style = replace(output_style,"$text_menu_color$",text_menu_color&"")
-	output_style = replace(output_style,"$photo_width$",photo_width&"")
-	output_style = replace(output_style,"$photo_width_l$",photo_width_l&"")
+	'scrive l'str_OutputFileMain
+	Set obj_File = obj_FSO.CreateTextFile(Server.MapPath(str_OutputFileMain), True)
+	obj_File.Write compressStyle(rstr_OutputFileContent(0),bln_Compress)
+	obj_File.Close	
 	
-	output_style_array = split(output_style,"/*$ADMIN$*/")
-	
-	'scrive l'output
-	Set objFile = objFSO.CreateTextFile(output, True)
-	objFile.Write compressStyle(output_style_array(0),compress)
-	objFile.Close	
-	
-	if ubound(output_style_array) = 1 then
-		'scrive l'output admin
-		Set objFile = objFSO.CreateTextFile(outputadmin, True)
-		objFile.Write compressStyle(output_style_array(1),compress)
-		objFile.Close
+	if ubound(rstr_OutputFileContent) = 1 then
+		'scrive l'str_OutputFileMain admin
+		Set obj_File = obj_FSO.CreateTextFile(Server.MapPath(str_OutputFileAdmin), True)
+		obj_File.Write compressStyle(rstr_OutputFileContent(1),bln_Compress)
+		obj_File.Close
 	end if	
 	
-	Set objFile = Nothing
-	Set objFSO = Nothing
+	Set obj_File = Nothing
+	Set obj_FSO = Nothing
 
 end sub
 
-function compressStyle(value,compress)
+function compressStyle(str_Value,bln_Compress)
 	dim Reg
 
-	if compress then
+	if bln_Compress then
 	
 		'elimina i commenti
 		dim inizio, fine
 		Do
-			inizio = InStr(1, value, "/*")
+			inizio = InStr(1, str_Value, "/*")
 			If inizio = 0 Then Exit Do
-			fine = InStr(inizio, value, "*/")
+			fine = InStr(inizio, str_Value, "*/")
 			If fine = 0 Then Exit Do
-			value = Left(value, inizio - 1) & " " & Right(value, Len(value) - fine - 1)
+			str_Value = Left(str_Value, inizio - 1) & " " & Right(str_Value, Len(str_Value) - fine - 1)
 		Loop
 		
 		Set Reg = New Regexp
@@ -216,18 +198,130 @@ function compressStyle(value,compress)
 		
 		'elimina tabulazione e ritorni
 		Reg.Pattern = "[\t\n\r]"
-		value = Reg.replace(value,"")
+		str_Value = Reg.replace(str_Value,"")
 		
 		'comprime spazi fra selettori e valori
 		Reg.Pattern = "[ ]*([{;])[ ]*"
-		value = Reg.replace(value,"$1")
+		str_Value = Reg.replace(str_Value,"$1")
 		
 		'comprime chiusura valori
 		Reg.Pattern = "}[ ]*"
-		value = Reg.replace(value,"} ")
+		str_Value = Reg.replace(str_Value,"} ")
 	  
 	end if
-	compressStyle = value
+	compressStyle = str_Value
+	set Reg = nothing
 
+end function
+
+function setStyle(byval str_StyleName,bln_Compress,bln_FullCompile)
+	dim str_StyleContent
+	str_StyleContent = loadStyle(CARNIVAL_PUBLIC & CARNIVAL_STYLES & str_StyleName & "/cstyleconfig.txt")
+	if isnull(str_StyleContent) or str_StyleContent = "" then 
+		setStyle = "style0"
+		exit function
+	end if
+	
+	dim str_InputFile,str_OutputFileMain,str_OutputFileAdmin,bln_Compatible, str_Images
+	dim str_Description
+	str_InputFile = getStyleVar("css_input",str_StyleContent)
+	str_OutputFileMain = getStyleVar("css_output_main",str_StyleContent)
+	str_OutputFileAdmin = getStyleVar("css_output_admin",str_StyleContent)
+	
+	dim str_Font,str_HeaderColor,str_HeaderBackcolor,str_TitleColor, lng_TitleMargin
+	dim str_TextLightColor, str_TextDarkColor, str_TextMenuColor,str_PhotoWidth,str_PhotoWidthL
+	dim bln_PhotoPageIsLight,bln_PageIsLight, str_Icons
+	
+	if not bln_FullCompile then
+		SQL = "SELECT config_style_font, config_style_header_color, config_style_header_backcolor, config_style_title_color,config_style_title_margin, config_style_text_light_color, config_style_text_dark_color, config_style_text_menu_color FROM tba_config"
+		set rs = dbManager.Execute(SQL)
+		str_Font = rs("config_style_font")
+		str_HeaderColor = rs("config_style_header_color")
+		str_HeaderBackcolor = rs("config_style_header_backcolor")
+		str_TitleColor = rs("config_style_title_color")
+		lng_TitleMargin = inputLong(rs("config_style_title_margin"))
+		str_TextLightColor = rs("config_style_text_light_color")
+		str_TextDarkColor = rs("config_style_text_dark_color")
+		str_TextMenuColor = rs("config_style_text_menu_color")
+		str_Icons = config__style_icons__
+	else
+		str_Font = inputStringD(request.QueryString("style-font-family"),0,50)
+		if str_Font = "" then str_Font = inputStringD(getStyleVar("font",str_StyleContent),0,50)
+		str_HeaderColor = inputStringD(request.QueryString("style-header-color"),0,7)
+		if str_HeaderColor = "" then str_HeaderColor = inputStringD(getStyleVar("header_color",str_StyleContent),0,7)
+		str_HeaderBackcolor = inputStringD(request.QueryString("style-header-backcolor"),0,7)
+		if str_HeaderBackcolor = "" then str_HeaderBackcolor = inputStringD(getStyleVar("header_backcolor",str_StyleContent),0,7)
+		str_TitleColor = inputStringD(request.QueryString("style-title-color"),0,7)
+		if str_TitleColor = "" then str_TitleColor = inputStringD(getStyleVar("title_color",str_StyleContent),0,7)
+		lng_TitleMargin = inputLong(request.QueryString("style-title-margin"))
+		if lng_TitleMargin = 0 then lng_TitleMargin = inputLong(getStyleVar("title_margin",str_StyleContent))
+		str_TextLightColor = inputStringD(request.QueryString("style-text-light-color"),0,7)
+		if str_TextLightColor = "" then str_TextLightColor = inputStringD(getStyleVar("text_light_color",str_StyleContent),0,7)
+		str_TextDarkColor = inputStringD(request.QueryString("style-text-dark-color"),0,7)
+		if str_TextDarkColor = "" then str_TextDarkColor = inputStringD(getStyleVar("text_dark_color",str_StyleContent),0,7)
+		str_TextMenuColor = inputStringD(request.QueryString("style-text-menu-color"),0,7)
+		if str_TextMenuColor = "" then str_TextMenuColor = inputStringD(getStyleVar("text_menu_color",str_StyleContent),0,7)
+		str_Icons = inputStringD(request.QueryString("style-icons"),0,50)
+	end if
+	
+	bln_PhotoPageIsLight = inputBoolean(getStyleVar("page_photo_islight",str_StyleContent))
+	bln_PageIsLight = inputBoolean(getStyleVar("page_islight",str_StyleContent))
+	
+	str_PhotoWidth = inputLong(getStyleVar("int_PhotoWidth",str_StyleContent))
+	if str_PhotoWidth = 0 then str_PhotoWidth = 640
+	
+	dim lng_Margin
+	str_PhotoWidthL = str_PhotoWidth
+	lng_Margin = getStyleVar("photo_margin",str_StyleContent)
+	if isnumeric(lng_Margin) then
+		lng_Margin = clng(lng_Margin)*2
+	else
+		lng_Margin = 5*2
+	end if
+	str_PhotoWidth = str_PhotoWidth+lng_Margin
+	str_PhotoWidthL = str_PhotoWidth-lng_Margin
+	set lng_Margin = nothing
+	
+	bln_Compatible = checkStyle(str_StyleContent)
+	str_Images = getStyleVar("images_path",str_StyleContent)
+	if not bln_Compatible then 
+		setStyle = "style1"
+		exit function
+	end if
+	if not fileExists(CARNIVAL_PUBLIC & CARNIVAL_STYLES & str_StyleName & "/" & str_InputFile) then 
+		setStyle = "style2"
+		exit function
+	end if
+	
+	call compileStyle(bln_Compress,CARNIVAL_PUBLIC & CARNIVAL_STYLES & str_StyleName & "/" & str_InputFile,CARNIVAL_PUBLIC & CARNIVAL_STYLES & str_StyleName & "/" & str_OutputFileMain,CARNIVAL_PUBLIC & CARNIVAL_STYLES & str_StyleName & "/" & str_OutputFileAdmin,str_Font,str_HeaderColor, str_HeaderBackcolor, str_TitleColor, lng_TitleMargin, str_TextLightColor,str_TextDarkColor,str_TextMenuColor,str_PhotoWidth,str_PhotoWidthL)
+	
+	str_Description = "<strong>" & getStyleVar("name",str_StyleContent) & "</strong> ( " & getStyleVar("author",str_StyleContent) & " " & getStyleVar("date",str_StyleContent) & " )<br/>" & getStyleVar("note",str_StyleContent)
+		
+	if bln_FullCompile then
+		
+		SQL = "UPDATE tba_config SET config_style = '" & formatDBString(str_StyleName,null) & "', " & _
+									"config_style_output_main = '" & formatDBString(str_OutputFileMain,null) & "', " & _
+									"config_style_output_admin = '" & formatDBString(str_OutputFileAdmin,null) & "', " & _
+									"config_style_font = '" & formatDBString(str_Font,null) & "', " & _
+									"config_style_images = '" & formatDBString(str_Images,null) & "', " & _
+									"config_style_header_color = '" & formatDBString(str_HeaderColor,null) & "', " & _
+									"config_style_header_backcolor = '" & formatDBString(str_HeaderBackcolor,null) & "', " & _
+									"config_style_title_color = '" & formatDBString(str_TitleColor,null) & "', " & _
+									"config_style_title_margin = " & lng_TitleMargin & ", " & _
+									"config_style_text_light_color = '" & formatDBString(str_TextLightColor,null) & "', " & _
+									"config_style_text_dark_color = '" & formatDBString(str_TextDarkColor,null) & "', " & _
+									"config_style_text_menu_color = '" & formatDBString(str_TextMenuColor,null) & "', " & _
+									"config_style_photopage_islight = " & formatDbBool(bln_PhotoPageIsLight) & ", " & _
+									"config_style_page_islight = " & formatDbBool(bln_PageIsLight) & ", " & _
+									"config_style_desc = '" & formatDBString(str_Description,null) & "', " & _
+									"config_style_icons = '" & formatDBString(str_Icons,null) & "'"
+		dbManager.Execute(SQL)
+	else
+		
+		'aggiorna solo il titolo e la descrizione
+		SQL = "UPDATE tba_config SET config_style = '" & formatDBString(str_StyleName,null) & "', " & _
+									"config_style_desc = '" & formatDBString(str_Description,null) & "'"
+		dbManager.Execute(SQL)
+	end if
 end function
 %>

@@ -2,7 +2,7 @@
 '-----------------------------------------------------------------
 ' ******************** HELLO THIS IS CARNIVAL ********************
 '-----------------------------------------------------------------
-' Copyright (c) 2007-2008 Simone Cingano
+' Copyright (c) 2007-2011 Simone Cingano
 ' 
 ' Permission is hereby granted, free of charge, to any person
 ' obtaining a copy of this software and associated documentation
@@ -27,25 +27,49 @@
 '-----------------------------------------------------------------
 ' * @category        Carnival
 ' * @package         Carnival
-' * @author          Simone Cingano <simonecingano@imente.org>
-' * @copyright       2007-2008 Simone Cingano
+' * @author          Simone Cingano <info@carnivals.it>
+' * @copyright       2007-2011 Simone Cingano
 ' * @license         http://www.opensource.org/licenses/mit-license.php
-' * @version         SVN: $Id: inc.bottom.asp 8 2008-05-22 00:26:46Z imente $
+' * @version         SVN: $Id: inc.bottom.asp 114 2010-10-11 19:00:34Z imente $
 ' * @home            http://www.carnivals.it
 '-----------------------------------------------------------------
 
-if not crnIsPhotoPage then %>
+if not blnIsPhotosPage__ then %>
 		<div class="clear"></div>
 		</div>
 	</div>
 	<div id="footer">
-	<div class="content"><%=carnival_title & " " & carnival_copyright%></div>
+	<div class="content"><%=config__title__ & " " & config__copyright__%></div>
 	<div class="border-bl"><div class="border-br"><div class="border"></div></div></div>
 	</div><%
-	end if %>
+end if %>
 </div>
-<% if carnival_bodyaddwhere = 1 then response.write carnival_bodyadd
-call ccv() %>
-</body>
+<% if config__bodyaddwhere__ = 1 then response.write config__bodyadd__
+call ccv()
+if CARNIVAL_DEBUGMODE then %>
+<div id="debugbox" style="overflow:hidden;overflow:auto;border-top:2px solid #000;background-color:#FFF;position:absolute;bottom:0;left:0;width:100%;height:150px;z-index:300;font-size:0.8em;"><div style="padding:5px;"><strong>DEBUG BOX</strong> [<a href="javascript:;" onclick="debugSwitch();">close</a>] [<a href="javascript:;" onclick="debugClear();">clear</a>]<hr/><div id="debugboxcontent"></div></div></div>
+<div id="debugboxopen" style="overflow:hidden;border-top:2px solid #000;background-color:#FFF;position:absolute;bottom:0;left:0;width:100%;height:25px;z-index:299;font-size:0.8em;"><div style="padding:5px;"><strong>DEBUG BOX</strong> [<a href="javascript:;" onclick="debugSwitch();">open</a>]</div></div>
+<script type="text/javascript">/*<![CDATA[*/
+function debugPrint(value) {
+	if (!debugging) return;
+	$('debugboxcontent').innerHTML+=value+'<hr/>';
+	$('debugbox').scrollTo(0,$('debugbox').getRealHeight());
+}
+function debugSwitch() {
+	switchDisplay('debugbox');
+}
+function debugClear() {
+	$('debugboxcontent').innerHTML = '';
+}
+debugClear();
+/*]]>*/
+</script>
+<% end if 
+%></body>
 </html>
-<% call disconnect() %>
+<% 
+'*****************************************************
+'* disconnette al db
+call disconnect() 
+'*****************************************************
+%>

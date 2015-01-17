@@ -2,7 +2,7 @@
 '-----------------------------------------------------------------
 ' ******************** HELLO THIS IS CARNIVAL ********************
 '-----------------------------------------------------------------
-' Copyright (c) 2007-2008 Simone Cingano
+' Copyright (c) 2007-2011 Simone Cingano
 ' 
 ' Permission is hereby granted, free of charge, to any person
 ' obtaining a copy of this software and associated documentation
@@ -27,37 +27,41 @@
 '-----------------------------------------------------------------
 ' * @category        Carnival
 ' * @package         Carnival
-' * @author          Simone Cingano <simonecingano@imente.org>
-' * @copyright       2007-2008 Simone Cingano
+' * @author          Simone Cingano <info@carnivals.it>
+' * @copyright       2007-2011 Simone Cingano
 ' * @license         http://www.opensource.org/licenses/mit-license.php
-' * @version         SVN: $Id: mod.admin.styleslogo.asp 19 2008-06-29 13:42:43Z imente $
+' * @version         SVN: $Id: mod.admin.styleslogo.asp 114 2010-10-11 19:00:34Z imente $
 ' * @home            http://www.carnivals.it
 '-----------------------------------------------------------------
+
+'*****************************************************
+'ENVIROMENT AGGIUNTIVO
 %><!--#include file = "inc.admin.check.asp"--><%
+'*****************************************************
 
-dim crn_optionlogo_light,crn_optionlogo_dark
+dim strOptionLogoLight,strOptionLogoDark
 
 
-crn_optionlogo_light = "<select name=""logo_light"" id=""logo_light"" onchange=""setCover('logo_light_box',this.value);"">" & vbcrlf & "<option value=""$TEXT$"">nessun logo</option>" & vbcrlf
-crn_optionlogo_dark = "<select name=""logo_dark"" id=""logo_dark"" onchange=""setCover('logo_dark_box',this.value);"">" & vbcrlf & "<option value=""$TEXT$"">nessun logo</option>" & vbcrlf
+strOptionLogoLight = "<select name=""logo_light"" id=""logo_light"" onchange=""setCover('logo_light_box',this.value);"">" & vbcrlf & "<option value=""$TEXT$"">nessun logo</option>" & vbcrlf
+strOptionLogoDark = "<select name=""logo_dark"" id=""logo_dark"" onchange=""setCover('logo_dark_box',this.value);"">" & vbcrlf & "<option value=""$TEXT$"">nessun logo</option>" & vbcrlf
 			
-dim objFSO, objFolder, File
-Set objFSO = CreateObject("Scripting.FileSystemObject")
-objFolder = server.MapPath(CARNIVAL_LOGOS)
+dim obj_FSO, obj_Folder, File
+Set obj_FSO = CreateObject("Scripting.FileSystemObject")
+obj_Folder = server.MapPath(CARNIVAL_LOGOS)
 
-Set objFolder = objFSO.GetFolder(objFolder)
+Set obj_Folder = obj_FSO.GetFolder(obj_Folder)
 
-For Each File in objFolder.Files
-	crn_optionlogo_light = crn_optionlogo_light & "<option value=""" & cleanOutputString(File.Name) & """"
-	crn_optionlogo_dark = crn_optionlogo_dark & "<option value=""" & cleanOutputString(File.Name) & """"
-	if carnival_logo_light = File.Name then crn_optionlogo_light = crn_optionlogo_light & " selected=""selected"""
-	if carnival_logo_dark = File.Name then crn_optionlogo_dark = crn_optionlogo_dark & " selected=""selected"""
-	crn_optionlogo_light = crn_optionlogo_light & ">" & cleanOutputString(File.Name) & "</option>"
-	crn_optionlogo_dark = crn_optionlogo_dark & ">" & cleanOutputString(File.Name) & "</option>"
+For Each File in obj_Folder.Files
+	strOptionLogoLight = strOptionLogoLight & "<option value=""" & outputHTMLString(File.Name) & """"
+	strOptionLogoDark = strOptionLogoDark & "<option value=""" & outputHTMLString(File.Name) & """"
+	if config__logo_light__ = File.Name then strOptionLogoLight = strOptionLogoLight & " selected=""selected"""
+	if config__logo_dark__ = File.Name then strOptionLogoDark = strOptionLogoDark & " selected=""selected"""
+	strOptionLogoLight = strOptionLogoLight & ">" & outputHTMLString(File.Name) & "</option>"
+	strOptionLogoDark = strOptionLogoDark & ">" & outputHTMLString(File.Name) & "</option>"
 Next
 
-crn_optionlogo_light = crn_optionlogo_light & "</select>"
-crn_optionlogo_dark = crn_optionlogo_dark & "</select>"
+strOptionLogoLight = strOptionLogoLight & "</select>"
+strOptionLogoDark = strOptionLogoDark & "</select>"
 
 
 %>
@@ -83,7 +87,7 @@ function setCover(id,value) {
 	
 	<div class="boxleft">
 		<div><label for="logo_light">Seleziona un logo fra quelli presenti</label>
-		<%=crn_optionlogo_light%></div>
+		<%=strOptionLogoLight%></div>
 	</div>
 	
 	<div class="boxright">
@@ -91,9 +95,9 @@ function setCover(id,value) {
 		<div class="styles-logo-light">
 			<div class="styles-logo">
 				<div class="logo"><div id="logo_light_box"><%
-				if carnival_logo_light <> "" then
+				if config__logo_light__ <> "" then
 				%>
-				<img src="<%=CARNIVAL_LOGOS & carnival_logo_light%>" alt="" /><%
+				<img src="<%=CARNIVAL_LOGOS & config__logo_light__%>" alt="" /><%
 				else
 				%>
 				<span>&lt;logo testuale&gt;</span><%
@@ -110,7 +114,7 @@ function setCover(id,value) {
 	
 	<div class="boxleft">
 		<div><label for="logo_dark">Seleziona un logo fra quelli presenti</label>
-		<%=crn_optionlogo_dark%></div>
+		<%=strOptionLogoDark%></div>
 	</div>
 	
 	<div class="boxright">
@@ -118,9 +122,9 @@ function setCover(id,value) {
 		<div class="styles-logo-dark">
 			<div class="styles-logo">
 				<div class="logo"><div id="logo_dark_box"><%
-				if carnival_logo_dark <> "" then
+				if config__logo_dark__ <> "" then
 				%>
-				<img src="<%=CARNIVAL_LOGOS & carnival_logo_dark%>" alt="" /><%
+				<img src="<%=CARNIVAL_LOGOS & config__logo_dark__%>" alt="" /><%
 				else
 				%>
 				<span>&lt;logo testuale&gt;</span><%
@@ -140,13 +144,13 @@ function setCover(id,value) {
 		<input type="hidden" value="styleslogo" name="from" id="from" />
 		<a href="admin.asp?module=styles">
 			<span>
-			<img src="<%=carnival_pathimages%>/lay-adm-ico-but-prev.gif" alt=""/> 
+			<img src="<%=getImagePath("lay-adm-ico-but-prev.gif")%>" alt=""/> 
 			indietro
 			</span>
 		</a>
 		<button type="submit">
 			<span class="a"><span class="b">
-			<img src="<%=carnival_pathimages%>/lay-adm-ico-but-accept.gif" alt=""/> 
+			<img src="<%=getImagePath("lay-adm-ico-but-accept.gif")%>" alt=""/> 
 			salva
 			</span></span>
 		</button>

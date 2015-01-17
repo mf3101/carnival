@@ -2,7 +2,7 @@
 '-----------------------------------------------------------------
 ' ******************** HELLO THIS IS CARNIVAL ********************
 '-----------------------------------------------------------------
-' Copyright (c) 2007-2008 Simone Cingano
+' Copyright (c) 2007-2011 Simone Cingano
 ' 
 ' Permission is hereby granted, free of charge, to any person
 ' obtaining a copy of this software and associated documentation
@@ -27,46 +27,55 @@
 '-----------------------------------------------------------------
 ' * @category        Carnival
 ' * @package         Carnival
-' * @author          Simone Cingano <simonecingano@imente.org>
-' * @copyright       2007-2008 Simone Cingano
+' * @author          Simone Cingano <info@carnivals.it>
+' * @copyright       2007-2011 Simone Cingano
 ' * @license         http://www.opensource.org/licenses/mit-license.php
-' * @version         SVN: $Id: comments.asp 18 2008-06-29 02:54:08Z imente $
+' * @version         SVN: $Id: comments.asp 114 2010-10-11 19:00:34Z imente $
 ' * @home            http://www.carnivals.it
 '-----------------------------------------------------------------
 
-crnIsCommentPage = true
+'*****************************************************
+'ENVIROMENT AGGIUNTIVO
+' nessun enviroment aggiuntivo
+'*****************************************************
 
-dim crn_viaJs, crn_showCommentForm
-crn_viaJs = false
-crn_showCommentForm = true
+dim strDBPhotoTitle, strDBPhotoDescription, lngDBPhotoViews
+dim blnDBPhotoCropped, blnDBPhotoElaborated, blnDBPhotoDownloadable
+dim strDBPhotoOriginal, lngDBPhotoSet
 
-crnPhotoId = cleanLong(request.QueryString("id"))
-if crnPhotoId < 0 then crnPhotoId = 0
+blnIsCommentsPage__ = true
 
-if crnPhotoId <> 0 then
-SQL = "SELECT photo_title, photo_description, photo_pub, photo_cropped, photo_elaborated, photo_views,photo_downloadable,photo_original,photo_set FROM tba_photo WHERE photo_id = " & crnPhotoId & " AND photo_active = 1"
-	set rs = dbManager.conn.execute(SQL)
+dim blnViaJavascript, blnShowCommentForm
+blnViaJavascript = false
+blnShowCommentForm = true
+
+lngCurrentPhotoId__ = inputLong(request.QueryString("id"))
+if lngCurrentPhotoId__ < 0 then lngCurrentPhotoId__ = 0
+
+if lngCurrentPhotoId__ <> 0 then
+SQL = "SELECT photo_title, photo_description, photo_pub, photo_cropped, photo_elaborated, photo_views,photo_downloadable,photo_original,photo_set FROM tba_photo WHERE photo_id = " & lngCurrentPhotoId__ & " AND photo_active = 1"
+	set rs = dbManager.Execute(SQL)
 	if rs.eof then response.Redirect("comments.asp")
-	crnPhotoTitle = server.HTMLEncode(rs("photo_title"))
-	crnPhotoDescription = server.HTMLEncode(rs("photo_description"))
-	crnPhotoPub = formatGMTDate(rs("photo_pub"),0,"dd/mm/yyyy")
-	crnPhotoCropped = rs("photo_cropped")
-	crnPhotoElaborated = rs("photo_elaborated")
-	crnPhotoViews = rs("photo_views")
-	crnPhotoDownloadable = rs("photo_downloadable")
-	crnPhotoOriginal = rs("photo_original")
-	crnPhotoSet = cleanLong(rs("photo_set"))
-	crnTitle = crnLang_comments_title_details
-	crnPageTitle = carnival_title & " ::: " & crnTitle & " > """ & crnPhotoTitle & """"
+	strDBPhotoTitle = server.HTMLEncode(rs("photo_title"))
+	strDBPhotoDescription = server.HTMLEncode(rs("photo_description"))
+	blnDBPhotoCropped = inputBoolean(rs("photo_cropped"))
+	blnDBPhotoElaborated = inputBoolean(rs("photo_elaborated"))
+	lngDBPhotoViews = rs("photo_views")
+	blnDBPhotoDownloadable = inputBoolean(rs("photo_downloadable"))
+	strDBPhotoOriginal = rs("photo_original")
+	lngDBPhotoSet = inputLong(rs("photo_set"))
+	
+	strPageTitle__ = lang__comments_title_details__
+	strPageTitleHead__ = config__title__ & " ::: " & strPageTitle__ & " > """ & strDBPhotoTitle & """"
 else
-	crnTitle = crnLang_comments_title_recent
-	crnPageTitle = carnival_title & " ::: " & crnTitle
+	strPageTitle__ = lang__comments_title_recent__
+	strPageTitleHead__ = config__title__ & " ::: " & strPageTitle__
 end if
 %><!--#include file = "includes/inc.top.asp"-->
-	<% if crnPhotoId <> 0 then%>
+	<% if lngCurrentPhotoId__ <> 0 then%>
 		<a id="detailshere"></a>
 		<div id="details-info">
-		<div class="title"><%=crnPhotoTitle%></div>
+		<div class="title"><%=strDBPhotoTitle%></div>
 		<!--#include file = "includes/gen.photoinfo.asp"-->
 		</div>
 		<hr/>

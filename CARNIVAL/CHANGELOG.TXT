@@ -1,25 +1,52 @@
-****************************************************************************
+**********************************************************      LEGENDA
+                                                             ---------------
+                       *** CARNIVAL ***                       ! info
+                                                              + new feature
+**********************************************************    > enhancement
+                                                              * bugfix
+                                                              T testing
+*** VERSION 1.0.0
+*** release date 11/10/2010
+--------------------------------------------------
 
-						   *** CARNIVAL ***
-								
+ + navigazione galleria dinamica [#15+#16]
+ + supporto mysql [#17]
+ + migrazione mdb <=> mysql [#18]
+ + pubblicazione automatica foto [#13+#58]
+ + statistiche in amministrazione [#8]
+ + email di notifica per nuovi commenti [#26]
+ + informazioni diagnostiche [#62]
+ > stabilizzazione codice [#42+#74+#55+#61+#25]
+ > migliorati setup e update [#53+#60]
+ > riordinamento codice [#42+#56+#61]
+ > ottimizzazione javascript [#34+#70+#74]
+ > ordinamento via ID [#54]
+ > ordinamento colonne [#45]
+ * bugfix slideshow [#46]
+ * bugfix baloons [#47]
+ * bugfix paginazione [#48]
+ * bugfix ricompilazione stili [#44]
+
+****************************************************************************
 ****************************************************************************
 
 *** VERSION 1.0c
-*** in development [svn:trunk/]
+*** release date 04/07/2008
 --------------------------------------------------
 
- + utilizzo licenza MIT [#1]
- > sistema di upgrade unificato [#20]
+ ! utilizzo licenza MIT [#1]
  + modalità photogallery/photoblog [#9]
- > paginazione record in admin [#6]
  + operazioni massive sui post [#37]
+ > sistema di upgrade unificato [#20]
+ > paginazione record in admin [#6]
  > aggiornamento di sicurezza/performance wbresize 0.41 [#39]
  > opzione wbresize disattivato
- * inc.func.exif problema antivirus [#4]
  > intestazioni files [#19]
+ * inc.func.exif problema antivirus [#4]
  * bugfix stili (safari e ff3)
  * bugfix/enhancements minori 
 
+****************************************************************************
 ****************************************************************************
 
 *** VERSION 1.0b
@@ -53,6 +80,7 @@
  > al "primo avvio" vai direttamente alla config
 
 ****************************************************************************
+****************************************************************************
 
 *** VERSION 1.0a
 *** release date 25/12/2007
@@ -60,4 +88,5 @@
 
  ! prima release funzionante [non pubblica]
 
+****************************************************************************
 ****************************************************************************

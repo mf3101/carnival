@@ -15,6 +15,9 @@ Class wbClouds
 	'// classe (opzionale) da assegnare al tag A (valido solo se baseUrl è valorizzato)
 	public aClass
 	
+	'// onclick (opzionale) da assegnare al tag A (valido solo se baseUrl è valorizzato)
+	public aOnClick
+	
 	'// classe (opzionale) da assegnare al tag SPAN
 	public spanClass
 	
@@ -42,6 +45,7 @@ Class wbClouds
 		'// imposta i valori di base
 		baseUrl = ""
 		aClass = ""
+		aOnClick = ""
 		spanClass = ""
 		percSize = 150 'minimo = 150*0.5=75, massimo = 150*2=300
 		space = "&nbsp;&nbsp;"
@@ -51,7 +55,7 @@ Class wbClouds
 	
 	'// svuota l'array ma non reimposta le opzioni
 	public sub clear()
-		redim cloud(2,0)
+		redim cloud(3,0)
 		maxentries = 0
 		minentries = -1
 	end sub
@@ -61,11 +65,12 @@ Class wbClouds
 	'//		tagName = il testo che verrà stampato
 	'//		tagEntries = il valore del tag (quanti record correlati)
 	'//		tagUrlAdd = una stringa da aggiungere al baseUrl nell'href dell'A
-	public sub add(tagName,tagEntries,tagUrlAdd)
-		redim preserve cloud(2,ubound(cloud,2)+1)
+	public sub add(tagName,tagId,tagEntries,tagUrlAdd)
+		redim preserve cloud(3,ubound(cloud,2)+1)
 		cloud(0,ubound(cloud,2)) = tagName
-		cloud(1,ubound(cloud,2)) = tagEntries
-		cloud(2,ubound(cloud,2)) = tagUrlAdd
+		cloud(1,ubound(cloud,2)) = tagId
+		cloud(2,ubound(cloud,2)) = tagEntries
+		cloud(3,ubound(cloud,2)) = tagUrlAdd
 		if tagEntries > maxentries then maxentries = tagEntries
 		if tagEntries < minentries or minentries = -1 then minentries = tagEntries
 	end sub
@@ -78,13 +83,14 @@ Class wbClouds
 				fontsize = percSize & "%"
 			else
 				'valori fra +0.5% e +2.0% di percsize
-				fontsize = int(percSize*(1.0+(1.5*(cloud(1,ii)-minentries)-(maxentries-minentries)/2)/(maxentries-minentries)))
+				fontsize = int(percSize*(1.0+(1.5*(cloud(2,ii)-minentries)-(maxentries-minentries)/2)/(maxentries-minentries)))
 				fontsize = replace(cstr(fontsize),",",".") & "%"
 			end if
 			response.write "<span style=""font-size:" & fontsize & """"
 			if spanClass <> "" then response.write " class=""" & spanClass & """"
-			if baseUrl <> "" then response.write "><a href=""" & baseUrl & cloud(2,ii) & """"
+			if baseUrl <> "" then response.write "><a href=""" & replacetext(baseUrl,cloud(0,ii),cloud(1,ii)) & cloud(3,ii) & """"
 			if baseUrl <> "" and aClass <> "" then response.write " class=""" & aClass & """"
+			if baseUrl <> "" and aOnClick <> "" then response.write " onclick=""" & replacetext(aOnClick,cloud(0,ii),cloud(1,ii)) & """"
 			response.write ">" & cloud(0,ii)
 			if baseUrl <> "" then response.write "</a>"
 			response.write "</span>"& space & vbcrlf
@@ -92,13 +98,21 @@ Class wbClouds
 		next
 	end sub
 	
+	private function replacetext(byval value,name,id)
+	
+		value = replace(value,"%id",id)
+		value = replace(value,"%name",name)
+		replacetext = value
+	
+	end function
+	
 	'// esegue l'ordinamento dei tag
 	'//		vector = "entries" ordina per occorrenze
 	'//				 "name" ordina per nome
 	'//		order = "asc" ordinamento crescente
 	'//				"desc" ordinamento decrescente
 	public sub sort(vector, order)
-		if vector = "entries" then vector = 1
+		if vector = "entries" then vector = 2
 		if vector = "name" then vector = 0
 		if vector <> 0 and vector <> 1 then exit sub
 		dim tmp,ii
@@ -117,16 +131,19 @@ Class wbClouds
 	'// scambia due elementi dell'array di posizione
 	private sub swap(argIndex1, argIndex2)
 	
-		dim val0, val1, val2
+		dim val0, val1, val2, val3
 		val0 = cloud(0,argIndex1)
 		val1 = cloud(1,argIndex1)
 		val2 = cloud(2,argIndex1)
+		val3 = cloud(3,argIndex1)
 		cloud(0,argIndex1) = cloud(0,argIndex2)
 		cloud(1,argIndex1) = cloud(1,argIndex2)
 		cloud(2,argIndex1) = cloud(2,argIndex2)
+		cloud(3,argIndex1) = cloud(3,argIndex2)
 		cloud(0,argIndex2) = val0
 		cloud(1,argIndex2) = val1
 		cloud(2,argIndex2) = val2
+		cloud(3,argIndex2) = val3
 	
 	end sub
 	

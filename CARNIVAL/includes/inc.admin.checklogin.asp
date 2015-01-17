@@ -2,7 +2,7 @@
 '-----------------------------------------------------------------
 ' ******************** HELLO THIS IS CARNIVAL ********************
 '-----------------------------------------------------------------
-' Copyright (c) 2007-2008 Simone Cingano
+' Copyright (c) 2007-2011 Simone Cingano
 ' 
 ' Permission is hereby granted, free of charge, to any person
 ' obtaining a copy of this software and associated documentation
@@ -27,26 +27,28 @@
 '-----------------------------------------------------------------
 ' * @category        Carnival
 ' * @package         Carnival
-' * @author          Simone Cingano <simonecingano@imente.org>
-' * @copyright       2007-2008 Simone Cingano
+' * @author          Simone Cingano <info@carnivals.it>
+' * @copyright       2007-2011 Simone Cingano
 ' * @license         http://www.opensource.org/licenses/mit-license.php
-' * @version         SVN: $Id: inc.admin.checklogin.asp 8 2008-05-22 00:26:46Z imente $
+' * @version         SVN: $Id: inc.admin.checklogin.asp 114 2010-10-11 19:00:34Z imente $
 ' * @home            http://www.carnivals.it
 '-----------------------------------------------------------------
-function crnFunc_AdminLoggedIn()
 
-	crnFunc_AdminLoggedIn = true
+function isAdminLogged()
+
+	isAdminLogged = true
 	
 	if  application(CARNIVAL_CODE & "_admin_key") = "" or _
 		application(CARNIVAL_CODE & "_admin_lastevent") = "" then
 		
-		crnFunc_AdminLoggedIn = false
+		isAdminLogged = false
 		
 	else
 	
-		if request.cookies(CARNIVAL_CODE & "adminkey") <> application(CARNIVAL_CODE & "_admin_key") _
-			or trim(request.cookies(CARNIVAL_CODE & "adminkey")) = "" _
-			or clng(datediff("n",application(CARNIVAL_CODE & "_admin_lastevent"),now)) > clng(CARNIVAL_SESSION_ADMIN_PERSIST) then crnFunc_AdminLoggedIn = false
+		if getCookie("adminkey") <> application(CARNIVAL_CODE & "_admin_key") _
+			or trim(getCookie("adminkey")) = "" _
+			or (clng(datediff("n",application(CARNIVAL_CODE & "_admin_lastevent"),now)) > clng(CARNIVAL_SESSION_ADMIN_PERSIST) _
+				and CARNIVAL_SESSION_ADMIN_PERSIST > 0)  then isAdminLogged = false
 			
 	end if
 	

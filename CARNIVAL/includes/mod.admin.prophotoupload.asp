@@ -2,7 +2,7 @@
 '-----------------------------------------------------------------
 ' ******************** HELLO THIS IS CARNIVAL ********************
 '-----------------------------------------------------------------
-' Copyright (c) 2007-2008 Simone Cingano
+' Copyright (c) 2007-2011 Simone Cingano
 ' 
 ' Permission is hereby granted, free of charge, to any person
 ' obtaining a copy of this software and associated documentation
@@ -27,40 +27,49 @@
 '-----------------------------------------------------------------
 ' * @category        Carnival
 ' * @package         Carnival
-' * @author          Simone Cingano <simonecingano@imente.org>
-' * @copyright       2007-2008 Simone Cingano
+' * @author          Simone Cingano <info@carnivals.it>
+' * @copyright       2007-2011 Simone Cingano
 ' * @license         http://www.opensource.org/licenses/mit-license.php
-' * @version         SVN: $Id: mod.admin.prophotoupload.asp 16 2008-06-28 12:25:27Z imente $
+' * @version         SVN: $Id: mod.admin.prophotoupload.asp 114 2010-10-11 19:00:34Z imente $
 ' * @home            http://www.carnivals.it
 '-----------------------------------------------------------------
-%><!--#include file = "inc.admin.check.asp"-->
-<!--#include file = "class.upload.asp"-->
-<%
-	dim crn_action, crn_type, crn_returnpage
-	crnPhotoId = cleanLong(request.QueryString("id"))
-	crn_action = normalize(trim(request.QueryString("action")),"edit","new")
-	crn_type = normalize(trim(request.QueryString("type")),"copy|new|thumb|photo","none")
-	crn_returnpage = cleanLong(request.QueryString("returnpage"))
 
-	SQL = "SELECT photo_original FROM tba_photo WHERE photo_id = " & crnPhotoId
-	set rs = dbManager.conn.execute(SQL)
+'*****************************************************
+'ENVIROMENT AGGIUNTIVO
+%><!--#include file = "inc.admin.check.asp"-->
+<!--#include file = "class.upload.asp"--><%
+'*****************************************************
+
+dim lngPhotoId, strDBPhotoOriginal, blnDBPhotoActive
+
+	dim strAction, strUploadType, strReturnQuerystring
+	lngPhotoId = inputLong(request.QueryString("id"))
+	strAction = normalize(trim(request.QueryString("action")),"edit","new")
+	strUploadType = normalize(trim(request.QueryString("type")),"copy|new|thumb|photo","none")
+	strReturnQuerystring = request.QueryString("returnpage")
+
+	SQL = "SELECT photo_original, photo_active FROM tba_photo WHERE photo_id = " & lngPhotoId
+	set rs = dbManager.Execute(SQL)
 	if rs.eof then  response.redirect("errors.asp?c=upload3")
-	crnPhotoOriginal = rs("photo_original")
+	strDBPhotoOriginal = rs("photo_original")
+	blnDBPhotoActive = inputBoolean(rs("photo_active"))
 	
-	if crn_type = "none" then response.redirect("errors.asp?c=upload3")
+	dim file
 	
-	if crn_type = "copy" then
+	if strUploadType = "none" then response.redirect("errors.asp?c=upload3")
 	
-		dim fso, file
-		Set fso = CreateObject("Scripting.FileSystemObject")
-		Set file = fso.GetFile(server.MapPath(CARNIVAL_PUBLIC & CARNIVAL_PHOTOS & CARNIVAL_PHOTOPREFIX & crnPhotoId & CARNIVAL_ORIGINALPOSTFIX & crnPhotoOriginal & ".jpg"))
-		file.Copy (server.MapPath(CARNIVAL_PUBLIC & CARNIVAL_PHOTOS & CARNIVAL_PHOTOPREFIX & crnPhotoId & ".jpg"))
+	if strUploadType = "copy" then
+	
+		dim obj_FSO
+		Set obj_FSO = CreateObject("Scripting.FileSystemObject")
+		Set file = obj_FSO.GetFile(server.MapPath(CARNIVAL_PUBLIC & CARNIVAL_PHOTOS & CARNIVAL_PHOTOPREFIX & lngPhotoId & CARNIVAL_ORIGINALPOSTFIX & strDBPhotoOriginal & ".jpg"))
+		file.Copy (server.MapPath(CARNIVAL_PUBLIC & CARNIVAL_PHOTOS & CARNIVAL_PHOTOPREFIX & lngPhotoId & IIF(blnDBPhotoActive,"",strDBPhotoOriginal) & ".jpg"))
 		set file = nothing
-		set fso = nothing
+		set obj_FSO = nothing
 	
 	else
 
-		dim crn_size, crn_extension, crn_height, crn_width
+		dim lngUploadSize, strUploadExtension, lngUploadHeight, lngUploadWidth
 		
 		Dim oUpload
 		Set oUpload = new cUpload
@@ -73,55 +82,54 @@
 		'* controllo upload
 		if oUpload.count = 0 then response.redirect("errors.asp?c=upload0")
 		
-		crn_size = cleanLong(oUpload.Files("size"))
-		if crn_size = 0 then response.redirect("errors.asp?c=upload1")
-		crn_extension = oUpload.Files("ext")
-		if crn_extension = "jpeg" then crn_extension = "jpg"
-		crn_height = cleanLong(oUpload.Files("height"))
-		crn_width = cleanLong(oUpload.Files("width"))
+		lngUploadSize = inputLong(oUpload.Files("size"))
+		if lngUploadSize = 0 then response.redirect("errors.asp?c=upload1")
+		strUploadExtension = oUpload.Files("ext")
+		if strUploadExtension = "jpeg" then strUploadExtension = "jpg"
+		lngUploadHeight = inputLong(oUpload.Files("height"))
+		lngUploadWidth = inputLong(oUpload.Files("width"))
 		
 		'* controllo formato
-		if crn_extension <> "jpg" then response.redirect("errors.asp?c=upload2")
+		if strUploadExtension <> "jpg" then response.redirect("errors.asp?c=upload2")
 		'* controllo dimensioni (size)
-		'if crn_size > (1000 * 1024) then response.redirect("upload_result.asp?error=2")
+		'if lngUploadSize > (1000 * 1024) then response.redirect("upload_result.asp?error=2")
 		'* controllo dimensioni (width|height)
-		'if crn_height > 1500 or crn_width > 1500 or crn_height = 0 or crn_width = 0 then response.redirect("upload_result.asp?error=3")
+		'if lngUploadHeight > 1500 or lngUploadWidth > 1500 or lngUploadHeight = 0 or lngUploadWidth = 0 then response.redirect("upload_result.asp?error=3")
 	
 		'* determina il nome del file caricato
-		dim crn_tmpfilepath, crn_filename
-		select case crn_type
+		dim strUploadFilenameFull, strUploadFilename
+		select case strUploadType
 			case "new"
-			crn_filename = CARNIVAL_PHOTOPREFIX & crnPhotoId & CARNIVAL_ORIGINALPOSTFIX & crnPhotoOriginal & "." & crn_extension
+			strUploadFilename = CARNIVAL_PHOTOPREFIX & lngPhotoId & CARNIVAL_ORIGINALPOSTFIX & strDBPhotoOriginal & "." & strUploadExtension
 			case "thumb"
-			crn_filename = CARNIVAL_PHOTOPREFIX & crnPhotoId & CARNIVAL_THUMBPOSTFIX & "." & crn_extension
+			strUploadFilename = CARNIVAL_PHOTOPREFIX & lngPhotoId & CARNIVAL_THUMBPOSTFIX & IIF(blnDBPhotoActive,"",strDBPhotoOriginal) & "." & strUploadExtension
 			case "photo"
-			crn_filename = CARNIVAL_PHOTOPREFIX & crnPhotoId & "." & crn_extension
+			strUploadFilename = CARNIVAL_PHOTOPREFIX & lngPhotoId & IIF(blnDBPhotoActive,"",strDBPhotoOriginal) & "." & strUploadExtension
 		end select
 		
 		'* se un file con lo stesso nome esiste viene eliminato
-		dim objFile
-		crn_tmpfilepath = server.MapPath(CARNIVAL_PUBLIC & CARNIVAL_PHOTOS & crn_filename)
-		if oUpload.Fso.Fileexists(crn_tmpfilepath) then
-			Set objFile=oUpload.Fso.GetFile(crn_tmpfilepath)
-			objFile.delete
+		strUploadFilenameFull = server.MapPath(CARNIVAL_PUBLIC & CARNIVAL_PHOTOS & strUploadFilename)
+		if oUpload.Fso.Fileexists(strUploadFilenameFull) then
+			Set file=oUpload.Fso.GetFile(strUploadFilenameFull)
+			file.delete
 		end if
-		set objFile = nothing
+		set file = nothing
 		
 		'* salva il nuovo file
-		call oUpload.SaveAs(crn_filename)
+		call oUpload.SaveAs(strUploadFilename)
 		Set oUpload = Nothing
 	
 	end if
 	
 	
 	'* prossima pagina
-	select case crn_type
+	select case strUploadType
 		case "new"
-		response.Redirect("admin.asp?module=photo-resize&id=" & crnPhotoId & "&action=" & crn_action & "&returnpage=" & crn_returnpage)
+		response.Redirect("admin.asp?module=photo-resize&id=" & lngPhotoId & "&action=" & strAction & "&returnpage=" & strReturnQuerystring)
 		case "copy", "photo"
-		response.Redirect("admin.asp?module=photo-thumb&id=" & crnPhotoId & "&action=" & crn_action & "&returnpage=" & crn_returnpage)
+		response.Redirect("admin.asp?module=photo-thumb&id=" & lngPhotoId & "&action=" & strAction & "&returnpage=" & strReturnQuerystring)
 		case "thumb"
-		response.Redirect("admin.asp?module=photo-check&id=" & crnPhotoId & "&action=" & crn_action & "&returnpage=" & crn_returnpage)
+		response.Redirect("admin.asp?module=photo-check&id=" & lngPhotoId & "&action=" & strAction & "&returnpage=" & strReturnQuerystring)
 	end select
 	
 %>

@@ -2,7 +2,7 @@
 '-----------------------------------------------------------------
 ' ******************** HELLO THIS IS CARNIVAL ********************
 '-----------------------------------------------------------------
-' Copyright (c) 2007-2008 Simone Cingano
+' Copyright (c) 2007-2011 Simone Cingano
 ' 
 ' Permission is hereby granted, free of charge, to any person
 ' obtaining a copy of this software and associated documentation
@@ -27,39 +27,43 @@
 '-----------------------------------------------------------------
 ' * @category        Carnival
 ' * @package         Carnival
-' * @author          Simone Cingano <simonecingano@imente.org>
-' * @copyright       2007-2008 Simone Cingano
+' * @author          Simone Cingano <info@carnivals.it>
+' * @copyright       2007-2011 Simone Cingano
 ' * @license         http://www.opensource.org/licenses/mit-license.php
-' * @version         SVN: $Id: inner.photoinfo.asp 18 2008-06-29 02:54:08Z imente $
+' * @version         SVN: $Id: inner.photoinfo.asp 114 2010-10-11 19:00:34Z imente $
 ' * @home            http://www.carnivals.it
 '-----------------------------------------------------------------
 
-crnPhotoId = cleanLong(request.QueryString("id"))
-dim crn_viaJs
-crn_viaJs = cstr(request.QueryString("js"))
-if crn_viaJs <> "1" then 
-	crn_viaJs = false
-else
-	crn_viaJs = true
-end if
-if crnPhotoId <= 0 then
+'*****************************************************
+'ENVIROMENT AGGIUNTIVO
+' nessun enviroment aggiuntivo
+'*****************************************************
+
+dim strDBPhotoTitle, strDBPhotoDescription, lngDBPhotoViews
+dim blnDBPhotoCropped, blnDBPhotoElaborated, blnDBPhotoDownloadable
+dim strDBPhotoOriginal, lngDBPhotoSet
+
+lngCurrentPhotoId__ = inputLong(request.QueryString("id"))
+dim blnViaJavascript
+blnViaJavascript = inputBoolean(request.QueryString("js"))
+if lngCurrentPhotoId__ <= 0 then
 %><b>errore:</b> id non valido<%
 response.end
 end if
 
-SQL = "SELECT photo_title, photo_description, photo_cropped, photo_elaborated, photo_views,photo_downloadable,photo_original,photo_set FROM tba_photo WHERE photo_id = " & crnPhotoId
-set rs = dbManager.conn.execute(SQL)
+SQL = "SELECT photo_title, photo_description, photo_cropped, photo_elaborated, photo_views,photo_downloadable,photo_original,photo_set FROM tba_photo WHERE photo_id = " & lngCurrentPhotoId__ & " AND photo_active = 1"
+set rs = dbManager.Execute(SQL)
 if rs.eof then
 %><b>errore:</b> id non valido<%
 response.end
 end if 
 dim title, description
-crnPhotoTitle = rs("photo_title")
-crnPhotoDescription = rs("photo_description")
-crnPhotoCropped = rs("photo_cropped")
-crnPhotoElaborated = rs("photo_elaborated")
-crnPhotoDownloadable = rs("photo_downloadable")
-crnPhotoOriginal = rs("photo_original")
-crnPhotoViews = rs("photo_views")
-crnPhotoSet = rs("photo_set")%>
+strDBPhotoTitle = rs("photo_title")
+strDBPhotoDescription = rs("photo_description")
+blnDBPhotoCropped = inputBoolean(rs("photo_cropped"))
+blnDBPhotoElaborated = inputBoolean(rs("photo_elaborated"))
+blnDBPhotoDownloadable = inputBoolean(rs("photo_downloadable"))
+strDBPhotoOriginal = rs("photo_original")
+lngDBPhotoViews = rs("photo_views")
+lngDBPhotoSet = rs("photo_set")%>
 <!--#include file = "includes/gen.photoinfo.asp"-->

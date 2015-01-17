@@ -2,7 +2,7 @@
 '-----------------------------------------------------------------
 ' ******************** HELLO THIS IS CARNIVAL ********************
 '-----------------------------------------------------------------
-' Copyright (c) 2007-2008 Simone Cingano
+' Copyright (c) 2007-2011 Simone Cingano
 ' 
 ' Permission is hereby granted, free of charge, to any person
 ' obtaining a copy of this software and associated documentation
@@ -27,32 +27,36 @@
 '-----------------------------------------------------------------
 ' * @category        Carnival
 ' * @package         Carnival
-' * @author          Simone Cingano <simonecingano@imente.org>
-' * @copyright       2007-2008 Simone Cingano
+' * @author          Simone Cingano <info@carnivals.it>
+' * @copyright       2007-2011 Simone Cingano
 ' * @license         http://www.opensource.org/licenses/mit-license.php
-' * @version         SVN: $Id: admin.asp 18 2008-06-29 02:54:08Z imente $
+' * @version         SVN: $Id: admin.asp 114 2010-10-11 19:00:34Z imente $
 ' * @home            http://www.carnivals.it
 '-----------------------------------------------------------------
-%>
-<!--#include file = "includes/inc.admin.checklogin.asp"--><%
-crnTitle = "ADMIN"
-crnPageTitle = carnival_title & " ::: " & crnTitle
-crnIsAdminPage = true
+
+'*****************************************************
+'ENVIROMENT AGGIUNTIVO
+%><!--#include file = "includes/inc.admin.checklogin.asp"--><%
+'*****************************************************
+
+strPageTitle__ = "ADMIN"
+strPageTitleHead__ = config__title__ & " ::: " & strPageTitle__
+blnIsAdminPage__ = true
 %><!--#include file = "includes/inc.top.asp"-->
 	<%
 	'* riceve il nome del modulo richiesto
-	dim crnModule
-	crnModule = request.QueryString("module")
+	dim strAdminModule
+	strAdminModule = request.QueryString("module")
 	'* se nessun modulo è richiesto, imposta quello di default
-	if crnModule = "" then crnModule = "home"
+	if strAdminModule = "" then strAdminModule = "home"
 	
 	'* LOGIN
 	'* se non è stato effettuato il login impone
 	'* il caricamento del modulo di login
-	crnIsAdminLogged = crnFunc_AdminLoggedIn
-	if not crnIsAdminLogged then crnModule = "login"
+	blnIsAdminLogged__ = isAdminLogged
+	if not blnIsAdminLogged__ then strAdminModule = "login"
 	
-	if crnModule = "login" then
+	if strAdminModule = "login" then
 
 		'* esegue il modulo di login
 		server.execute("includes/mod.admin.login.asp")
@@ -66,7 +70,7 @@ crnIsAdminPage = true
 		application.unlock
 	
 		'* esegue il modulo richiesto
-		select case crnModule
+		select case strAdminModule
 		
 		
 			case "photo-new"
@@ -92,12 +96,17 @@ crnIsAdminPage = true
 			case "info"
 			server.execute("includes/mod.admin.info.asp")
 			
+			case "stats"
+			server.execute("includes/mod.admin.stats.asp")
+			
 			case "tools"
 			server.execute("includes/mod.admin.tools.asp")
 			case "pro-tools"
 			server.execute("includes/mod.admin.protools.asp")
 			case "pro-db"
 			call disconnect() : server.execute("includes/mod.admin.protools.asp") : call connect()
+			case "infoapp"
+			server.execute("includes/mod.admin.infoapp.asp")
 			
 			case "config"
 			server.execute("includes/mod.admin.config.asp")
@@ -128,9 +137,6 @@ crnIsAdminPage = true
 			server.execute("includes/mod.admin.setedit.asp")
 			case "pro-set"
 			server.execute("includes/mod.admin.proset.asp")
-			
-			case "pro-rss"
-			server.execute("includes/mod.admin.prorss.asp")
 			
 			case else
 			server.execute("includes/mod.admin.home.asp")

@@ -3,7 +3,7 @@
 '-----------------------------------------------------------------
 ' ******************** HELLO THIS IS CARNIVAL ********************
 '-----------------------------------------------------------------
-' Copyright (c) 2007-2008 Simone Cingano
+' Copyright (c) 2007-2011 Simone Cingano
 ' 
 ' Permission is hereby granted, free of charge, to any person
 ' obtaining a copy of this software and associated documentation
@@ -28,10 +28,10 @@
 '-----------------------------------------------------------------
 ' * @category        Carnival
 ' * @package         Carnival
-' * @author          Simone Cingano <simonecingano@imente.org>
-' * @copyright       2007-2008 Simone Cingano
+' * @author          Simone Cingano <info@carnivals.it>
+' * @copyright       2007-2011 Simone Cingano
 ' * @license         http://www.opensource.org/licenses/mit-license.php
-' * @version         SVN: $Id: inc.first.asp 27 2008-07-04 12:22:52Z imente $
+' * @version         SVN: $Id: inc.first.asp 114 2010-10-11 19:00:34Z imente $
 ' * @home            http://www.carnivals.it
 '-----------------------------------------------------------------
 
@@ -39,115 +39,118 @@
 option explicit
 response.buffer = true
 
-'* variabili di servizio
-dim crnOscillator, crnCounter, crnPaginationLooper
-
-'* variabili per il calcolo del tempo impiegato
-'* per l'esecuzione della pagina
-'* START = inizio, END = fine, VALUE = differenza fine-inizio [intero in secondi]
-dim crnTimerStart, crnTimerEnd, crnTimerValue
-crnTimerStart = timer
-
-'* inclusioni comuni
-%><!--#include file = "class.include.asp"-->
-<!--#include file = "inc.config.asp"-->
+'*****************************************************
+'ENVIROMENT BASE
+%><!--#include file = "inc.config.asp"-->
 <!--#include file = "inc.config.lang.asp"-->
 <!--#include file = "inc.set.asp"-->
 <!--#include file = "inc.dba.asp"-->
-<!--#include file = "inc.func.asp"-->
-<!--#include file = "inc.utils.asp"-->
-<!--#include file = "inc.func.file.asp"--><%
+<!--#include file = "inc.func.common.asp"-->
+<!--#include file = "inc.func.common.io.asp"-->
+<!--#include file = "inc.func.common.math.asp"-->
+<!--#include file = "inc.func.common.file.asp"-->
+<!--#include file = "inc.func.common.special.asp"--><%
+'*****************************************************
 
+
+'*****************************************************
 '* connette al db
+
 	call connect()
 
+'*****************************************************
 '* variabili d'ambiente
-	'// definisce se i tag cloud in popup devono essere visualizzati
-	dim crnPopupTagCloud 		
-	crnPopupTagCloud = false
-	'// titolo della pagina (<title>)
-	dim crnPageTitle
-	crnPageTitle = ""
-	'// titolo nella pagina
-	dim crnTitle
-	crnTitle = ""
+
+	dim lngCounter__, lngPaginationLooper__					'// variabili di servizio
 	
-	'// recordsperpage
-	dim crnPaginationPerPage
-	crnPaginationPerPage = 20
+	dim strPageTitleHead__ : strPageTitleHead__ = "" 		'// titolo della pagina (<title>)
+	dim strPageTitle__ : strPageTitle__ = "" 				'// titolo nella pagina
 	
-	'// showTop
-	dim crnShowTop
-	crnShowTop = 20
-	'// photo
-	dim crnPhotoId, crnPhotoTitle, crnPhotoDescription, crnPhotoPub, crnPhotoViews, crnPhotoUrl,crnPhotoOrder
-	dim crnPhotoCropped, crnPhotoElaborated,crnPhotoDownloadable,crnPhotoOriginal,crnPhotoActive,crnPhotoSet
-	'// tag
-	dim crnTagId, crnTagName
-	'// set
-	dim crnSetId, crnSetName
-	dim crnIsPhotoPage, crnIsCommentPage
-	crnIsPhotoPage = false
-	crnIsCommentPage = false
+	dim intRecordsPerPage__ : intRecordsPerPage__ = 20		'// paginazione: record per pagina
+	dim intRecordsOnce__ : intRecordsOnce__ = 20			'// record visualizzati in pagina unica
 	
-	dim crnMenuComment
-	crnMenuComment = crnLang_menu_comments
+	dim blnIsPhotosPage__ : blnIsPhotosPage__ = false		'// pagina delle foto
+	dim blnIsCommentsPage__ : blnIsCommentsPage__ = false	'// pagina dei commenti
 	
-	dim crnIsAdminPage
-	crnIsAdminPage = false
+	dim blnIsAdminPage__ : blnIsAdminPage__ = false			'// pagina di amministrazione
+	dim blnIsAdminLogged__ : blnIsAdminLogged__ = false		'// admin collegato
 	
-	dim crnIsAdminLogged
-	crnIsAdminLogged = false
+	dim blnIsLightPage__ : blnIsLightPage__ = false			'// pagina con interfaccia chiara
 	
-	dim crnIsLightPage
-	crnIsLightPage = false
+	dim strMenuCommentText__ : strMenuCommentText__ = lang__menu_comments__
+
+	dim lngCurrentPhotoId__, lngCurrentSetId__				'// current photo/tag/set
+	dim lngCurrentTagId__, strCurrentTagName__
 	
-	dim crnLastViewedPhoto, crnLastPhoto
-	crnLastViewedPhoto = 0
-	crnLastPhoto = 0
+'*****************************************************
+'* verifica sessione
+	
+	dim lngLastViewedPhotoId__ : lngLastViewedPhotoId__ = 0		'// ultima foto nella precedente visita
+	dim dtmLastViewedPhotoPub__ : dtmLastViewedPhotoPub__ = now	'// data ultima foto nella precedente visita
+	dim lngLastPhotoId__ : lngLastPhotoId__ = 0					'// ultima foto nella visita corrente
+	dim dtmLastPhotoPub__ : dtmLastPhotoPub__ = now				'// data ultima foto nella visita corrente
 	call refreshSession()
 	
-	'// config
-	dim carnival_jsactive,carnival_exifactive,carnival_author,carnival_title,carnival_description
-	dim carnival_copyright,carnival_start,carnival_password,carnival_parent,carnival_about,carnival_headadd
-	dim carnival_bodyadd, carnival_bodyaddwhere
-	dim carnival_style,carnival_style_output_main,carnival_style_output_admin
-	dim carnival_style_images, carnival_style_photopage_islight, carnival_style_page_islight
-	dim carnival_logo_light, carnival_logo_dark
-	dim carnival_wbresizekey, carnival_aspnetactive
-	dim carnival_mode
-	SQL = "SELECT * FROM tba_config"
-	set rs = dbManager.conn.execute(SQL)
+'*****************************************************
+'* config
+
+	dim config__jsactive__, config__jsnavigatoractive__,config__exifactive__,config__author__,config__title__,config__description__
+	dim config__copyright__,config__start__,config__password__,config__parent__,config__about__,config__headadd__
+	dim config__bodyadd__, config__bodyaddwhere__
+	dim config__style__,config__style_output_main__,config__style_output_admin__, config__style_icons__
+	dim config__style_images__, config__style_photopage_islight__, config__style_page_islight__
+	dim config__logo_light__, config__logo_dark__
+	dim config__wbresizekey__, config__aspnetactive__
+	dim config__mail_component__, config__mail_address__, config__mail_host__, config__mail_port__
+	dim config__mail_user__, config__mail_password__, config__mail_ssl__, config__mail_auth__, config__mail_percomment__
+	dim config__mode__, config__autopub__, config__dbversion__
 	
+	SQL = "SELECT * FROM tba_config"
+	set rs = dbManager.Execute(SQL)
+	
+	'blocco applicazione
 	if isnull(rs("config_start")) then response.Redirect("critical.asp?c=03") 'setup me please
 	if trim(rs("config_dbversion")&"") <> CARNIVAL_VERSION then  response.Redirect("critical.asp?c=02") 'corrispondenza versioni
-	if cleanBool(rs("config_applicationblock")) then  response.Redirect("critical.asp?c=01") 'blocco applicazione
+	if inputBoolean(rs("config_applicationblock")) then  response.Redirect("critical.asp?c=01") 'blocco applicazione
 	
-	carnival_style = rs("config_style")
-	carnival_style_output_main = rs("config_style_output_main")
-	carnival_style_output_admin = rs("config_style_output_admin")
-	carnival_style_images = rs("config_style_images")
-	carnival_style_photopage_islight = cleanBool(rs("config_style_photopage_islight"))
-	carnival_style_page_islight = cleanBool(rs("config_style_page_islight"))
-	carnival_jsactive = cleanBool(rs("config_jsactive"))
-	carnival_exifactive =  cleanBool(rs("config_exifactive"))
-	carnival_author = rs("config_author")
-	carnival_title = rs("config_title")
-	carnival_description = rs("config_description")
-	carnival_copyright = rs("config_copyright")
-	carnival_start = cdate(rs("config_start"))
-	carnival_password = rs("config_password")
-	carnival_headadd = rs("config_headadd")
-	carnival_bodyadd = rs("config_bodyadd")
-	carnival_bodyaddwhere = cleanByte(rs("config_bodyaddwhere"))
-	carnival_parent = trim(rs("config_parent"))
-	carnival_about = cleanBool(rs("config_about"))
-	carnival_logo_light = rs("config_logo_light")
-	carnival_logo_dark = rs("config_logo_dark")
-	carnival_wbresizekey = rs("config_wbresizekey")
-	carnival_aspnetactive = cleanBool(rs("config_aspnetactive"))
-	carnival_mode = cleanByte(rs("config_mode"))
+	config__dbversion__ = rs("config_dbversion")
+	config__style__ = rs("config_style")
+	config__style_output_main__ = rs("config_style_output_main")
+	config__style_output_admin__ = rs("config_style_output_admin")
+	config__style_images__ = rs("config_style_images")
+	config__style_photopage_islight__ = inputBoolean(rs("config_style_photopage_islight"))
+	config__style_page_islight__ = inputBoolean(rs("config_style_page_islight"))
+	config__style_icons__ = rs("config_style_icons")
+	config__jsactive__ = inputBoolean(rs("config_jsactive"))
+	config__jsnavigatoractive__ = inputBoolean(rs("config_jsnavigatoractive"))
+	config__exifactive__ =  inputBoolean(rs("config_exifactive"))
+	config__author__ = rs("config_author")
+	config__title__ = rs("config_title")
+	config__description__ = rs("config_description")
+	config__copyright__ = rs("config_copyright")
+	config__start__ = cdate(rs("config_start"))
+	config__password__ = rs("config_password")
+	config__headadd__ = rs("config_headadd")
+	config__bodyadd__ = rs("config_bodyadd")
+	config__bodyaddwhere__ = inputByte(rs("config_bodyaddwhere"))
+	config__parent__ = trim(rs("config_parent"))
+	config__about__ = inputBoolean(rs("config_about"))
+	config__logo_light__ = rs("config_logo_light")
+	config__logo_dark__ = rs("config_logo_dark")
+	config__wbresizekey__ = rs("config_wbresizekey")
+	config__aspnetactive__ = inputBoolean(rs("config_aspnetactive"))
+	config__mode__ = inputByte(rs("config_mode"))
+	config__mail_component__ = rs("config_mail_component")
+	config__mail_address__ = rs("config_mail_address")
+	config__mail_host__ = rs("config_mail_host")
+	config__mail_port__ = rs("config_mail_port")
+	config__mail_user__ = rs("config_mail_user")
+	config__mail_password__ = rs("config_mail_password")
+	config__mail_ssl__ = inputByte(rs("config_mail_ssl"))
+	config__mail_auth__ = inputByte(rs("config_mail_auth"))
+	config__mail_percomment__ = inputBoolean(rs("config_mail_percomment"))
+	config__autopub__ = inputAutopub(rs("config_autopub"))
 	
-	dim carnival_pathimages
-	carnival_pathimages = CARNIVAL_PUBLIC & CARNIVAL_STYLES & carnival_style & "/" & carnival_style_images
+	dim config__pathimages__
+	config__pathimages__ = CARNIVAL_PUBLIC & CARNIVAL_STYLES & config__style__ & "/" & config__style_images__
 %>

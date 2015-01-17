@@ -2,7 +2,7 @@
 '-----------------------------------------------------------------
 ' ******************** HELLO THIS IS CARNIVAL ********************
 '-----------------------------------------------------------------
-' Copyright (c) 2007-2008 Simone Cingano
+' Copyright (c) 2007-2011 Simone Cingano
 ' 
 ' Permission is hereby granted, free of charge, to any person
 ' obtaining a copy of this software and associated documentation
@@ -27,113 +27,153 @@
 '-----------------------------------------------------------------
 ' * @category        Carnival
 ' * @package         Carnival
-' * @author          Simone Cingano <simonecingano@imente.org>
-' * @copyright       2007-2008 Simone Cingano
+' * @author          Simone Cingano <info@carnivals.it>
+' * @copyright       2007-2011 Simone Cingano
 ' * @license         http://www.opensource.org/licenses/mit-license.php
-' * @version         SVN: $Id: gen.comments.asp 25 2008-07-02 07:42:52Z imente $
+' * @version         SVN: $Id: gen.comments.asp 114 2010-10-11 19:00:34Z imente $
 ' * @home            http://www.carnivals.it
 '-----------------------------------------------------------------
-%><!--#include file = "inc.admin.checklogin.asp"-->
-<%
 
-dim crn_isadmin
-crn_isadmin = crnFunc_AdminLoggedIn()
+'*****************************************************
+'ENVIROMENT AGGIUNTIVO
+%><!--#include file = "inc.admin.checklogin.asp"--><%
+'*****************************************************
 
-dim crn_commentId, crn_commentName, crn_commentPhoto, crn_commentDate, crn_commentContent, crn_commentEmail, crn_commentUrl
-dim crn_commentCount, crn_commentCounter
+dim blnIsAdmin
+blnIsAdmin = isAdminLogged()
 
-if crnPhotoId <> 0 then
-	SQL = "SELECT Count(tba_comment.comment_id) AS comments FROM tba_comment WHERE comment_photo = " & crnPhotoId
+'se l'id non è impostato usa i commenti di tutte le foto
+dim blnWholeComments
+blnWholeComments = lngCurrentPhotoId__ = 0
+
+'variabili db
+dim lngDBCommentId, strDBCommentName, lngDBCommentPhoto
+dim dtmDBCommentDate, strDBCommentContent, strDBCommentEmail, strDBCommentUrl, blnDBCommentAdmin
+
+dim lngCommentCount		'commenti totali
+dim lngCommentCounter   'counter per indicare il numero del commento stampato
+
+'conta i commenti
+if not blnWholeComments then
+	SQL = "SELECT Count(tba_comment.comment_id) AS comments FROM tba_comment WHERE comment_photo = " & lngCurrentPhotoId__
 else
 	SQL = "SELECT Count(tba_comment.comment_id) AS comments " & _
 		  "FROM tba_comment LEFT JOIN tba_photo ON tba_comment.comment_photo = tba_photo.photo_id " & _
 		  "WHERE tba_photo.photo_active=1;"
 end if
-set rs = dbManager.conn.execute(SQL)
-crn_commentCount = rs("comments")
-crn_commentCounter = 1
-if crnPhotoId = 0 then crn_commentCounter = crn_commentCount
+set rs = dbManager.Execute(SQL)
+lngCommentCount = inputLong(rs("comments"))
+lngCommentCounter = 1
+if blnWholeComments then lngCommentCounter = lngCommentCount
 
 %><div class="commentact"><%
-if crn_commentCount = 0 then
-	%><div class="empty"><%=crnLang_comments_nocomment%></div></div><%
+if lngCommentCount = 0 then
+	%><div class="empty"><%=lang__comments_nocomment__%></div></div><%
 else
-	%><%=replace(crnLang_comments_comments,"%n",crn_commentCount)%><% 
-	if crnPhotoId <> 0 then 
-	%> - <img src="<%=carnival_pathimages%>lay-ico-act-comment.gif" alt="" class="icon" /><a <% if not crn_viaJs then %>href="#commenthere"<% else %>href="javascript:commentFormGo();"<% end if %>><%=crnLang_comments_postacomment%></a><% 
-	else
-	%><br/><%=replace(crnLang_comments_lastcomments,"%n",10)%><%
+	%><%=replace(lang__comments_comments__,"%n",lngCommentCount)%><% 
+	if not blnWholeComments then 
+	%> - <img src="<%=getImagePath("lay-ico-act-comment.gif")%>" alt="" class="icon" /><a <% if not blnViaJavascript then %>href="#commenthere"<% else %>href="javascript:commentFormGo();"<% end if %>><%=lang__comments_postacomment__%></a><%
 	end if %></div><%
 
-	if crnPhotoId <> 0 then
-		SQL = "SELECT comment_id, comment_name, comment_content, comment_email, comment_date, comment_url, comment_photo FROM tba_comment WHERE comment_photo = " & crnPhotoId & " ORDER BY comment_id"
+	if not blnWholeComments then
+		SQL = "SELECT comment_id, comment_name, comment_content, comment_email, comment_date, comment_url, comment_photo, comment_admin FROM tba_comment WHERE comment_photo = " & lngCurrentPhotoId__ & " ORDER BY comment_id"
 	else
-		SQL = "SELECT TOP 10 comment_id, comment_name, comment_content, comment_email, comment_date, comment_url, comment_photo " & _
+		SQL = "SELECT comment_id, comment_name, comment_content, comment_email, comment_date, comment_url, comment_photo, comment_admin " & _
 		  "FROM tba_comment LEFT JOIN tba_photo ON tba_comment.comment_photo = tba_photo.photo_id " & _
 		  "WHERE tba_photo.photo_active=1 " & _
 		  "ORDER BY comment_id DESC"
 	end if
 	
-	set rs = dbManager.conn.execute(SQL)
-	while not rs.eof
-		crn_commentId = server.htmlencode(rs("comment_id"))
-		crn_commentName = server.htmlencode(rs("comment_name"))
-		crn_commentContent = applyCode(server.htmlencode(rs("comment_content")))
-		crn_commentEmail = server.htmlencode(rs("comment_email"))
-		crn_commentDate = formatGMTDate(rs("comment_date"),0,"dd/mm/yyyy hh:nn:ss")
-		crn_commentUrl = server.htmlencode(rs("comment_url"))
-		crn_commentPhoto = rs("comment_photo")
-		%><hr /><div class="comment"><%
-		if crnPhotoId = 0 then
-			%><div class="photo"><a href="photo.asp?id=<%=crn_commentPhoto%>"><img src="<%=CARNIVAL_PUBLIC & CARNIVAL_PHOTOS & CARNIVAL_PHOTOPREFIX & crn_commentPhoto & CARNIVAL_THUMBPOSTFIX%>.jpg" alt="photo" /></a></div><%
-		end if
-	%>	<% if crn_isadmin then %><div class="delete"><a href="<% if not crn_viaJs then %>comments_pro.asp?id=<%=crn_commentId%>&amp;action=delete<% else %>javascript:;<% end if %>" onclick="if (!confirm('il commento verr&agrave; cancellato definitivamente\nvuoi veramente continuare?')) <% if not crn_viaJs then %>return false;<% else %>{ return false; } else { deleteComment(<%=crn_commentId%>); }<% end if %>"><img src="<%=carnival_pathimages%>lay-adm-ico-act-delcomment.gif" alt="<%=crnLang_comments_delete%>" class="icon" /><%=crnLang_comments_delete%></a></div><% end if %><div class="header"><span class="id">#<%=crn_commentCounter%></span><img src="<%=carnival_pathimages%>lay-ico-comment.gif" alt="" class="icon" /><span class="date"><%=crn_commentDate%></span> - <span class="name"><%
-	if crn_commentUrl <> "" then
-	%><a href="<%=crn_commentUrl%>"><%=crn_commentName%></a><%
-	else
-	%><%=crn_commentName%><%
-	end if
 	
-	%><% if crn_isadmin then %><small> [<em><a href="mailto:<%=crn_commentEmail%>"><%=crn_commentEmail%></a></em>]</small><% end if %></span>:</div><div class="comment"><%=crn_commentContent%></div></div><div class="clear"></div>
-		<%
-		if crnPhotoId = 0 then
-			crn_commentCounter = crn_commentCounter - 1
+	set dbPagination = new Class_ASPDbPagination
+
+	if dbPagination.Paginate(dbManager.conn, dbManager.database, IIF(blnWholeComments,10,-1), null, SQL) then
+		lngPaginationLooper__ = 0
+		if not blnWholeComments then
+			lngCommentCounter = dbPagination.Record
 		else
-			crn_commentCounter = crn_commentCounter + 1
+			lngCommentCounter = lngCommentCounter-dbPagination.Record+1
 		end if
-		rs.movenext
-	wend
+		
+		while not dbPagination.recordset.eof and ((lngPaginationLooper__ < dbPagination.RecordsPerPage) or (dbPagination.RecordsPerPage = 0 ))
+		
+			lngDBCommentId = server.htmlencode(dbPagination.recordset("comment_id"))
+			strDBCommentName = server.htmlencode(dbPagination.recordset("comment_name"))
+			strDBCommentContent = outBBCode(server.htmlencode(dbPagination.recordset("comment_content")))
+			strDBCommentEmail = trim(server.htmlencode(dbPagination.recordset("comment_email")))
+			dtmDBCommentDate = formatGMTDate(dbPagination.recordset("comment_date"),0,"dd/mm/yyyy hh:nn:ss")
+			strDBCommentUrl = trim(server.htmlencode(dbPagination.recordset("comment_url")))
+			lngDBCommentPhoto = dbPagination.recordset("comment_photo")
+			blnDBCommentAdmin = inputBoolean(dbPagination.recordset("comment_admin"))
+			%><hr /><div class="comment"><%
+			if blnWholeComments then
+				%><div class="photo"><a href="photo.asp?id=<%=lngDBCommentPhoto%>"><img src="<%=CARNIVAL_PUBLIC & CARNIVAL_PHOTOS & CARNIVAL_PHOTOPREFIX & lngDBCommentPhoto & CARNIVAL_THUMBPOSTFIX%>.jpg" alt="photo" /></a></div><%
+			end if
+		%>	<% if blnIsAdmin then %><div class="delete"><a href="<% if not blnViaJavascript then %>comments_pro.asp?id=<%=lngDBCommentId%>&amp;action=delete<% else %>javascript:;<% end if %>" onclick="if (!confirm('il commento verr&agrave; cancellato definitivamente\nvuoi veramente continuare?')) <% if not blnViaJavascript then %>return false;<% else %>{ return false; } else { deleteComment(<%=lngDBCommentId%>); }<% end if %>"><img src="<%=getImagePath("lay-adm-ico-act-delcomment.gif")%>" alt="<%=lang__comments_delete__%>" class="icon" /><%=lang__comments_delete__%></a></div><% end if %><div class="header<% if blnDBCommentAdmin then %> admin<% end if %>"><span class="id">#<%=lngCommentCounter%></span><img src="<%=getImagePath("lay-ico-comment.gif")%>" alt="" class="icon" /><span class="date"><%=dtmDBCommentDate%></span> - <span class="name"><%
+		if strDBCommentUrl <> "" then
+		%><a href="<%=strDBCommentUrl%>"><%=strDBCommentName%></a><%
+		else
+		%><%=strDBCommentName%><%
+		end if
+		if blnDBCommentAdmin then %><small> [admin]</small><% end if
+		
+		%><% if blnIsAdmin and not blnDBCommentAdmin then %><small> [<em><a href="mailto:<%=strDBCommentEmail%>"><%=strDBCommentEmail%></a></em>]</small><% end if %></span>:</div><div class="comment"><%=strDBCommentContent%></div></div><div class="clear"></div>
+			<%
+		if not blnWholeComments then
+			lngCommentCounter = lngCommentCounter+1
+		else
+			lngCommentCounter = lngCommentCounter-1
+		end if
+			
+			dbPagination.recordset.movenext
+			lngPaginationLooper__ = lngPaginationLooper__ + 1
+		wend
+		dbPagination.recordset.close
+		
+		if blnWholeComments then
+		%><hr/><div class="pagenavigator"><div class="title">Pagine</div><div class="box"><%
+		
+		response.write dbPagination.printNavigator("<div class=""s"">mostra commenti da %RS a %RE di %RT</div><div class=""n"">%PC pagine [ %PN ]</div>",null,IIF(blnWholeComments,"","&amp;id=" & lngCurrentPhotoId__ & "#commentshere"),false)
+		
+		%></div></div><% 
+		end if
+	end if
 end if
 
-if crnPhotoId <> 0 then
+if not blnWholeComments then
 	'form
 	%>
 	<div><a id="commenthere"></a></div><hr/>
-	<% if crn_viaJs then %><div class="commentact"><a href="javascript:commentForm();"><img src="<%=carnival_pathimages%>lay-ico-act-comment.gif" alt="" class="icon" /><%=crnLang_comments_postacomment%></a></div><% end if %>
-	<div id="commentform"<% if crn_viaJs and not crn_showCommentForm then %> style="display:none;"<% end if %>>
-	<form id="formcomment" action="comments_pro.asp" class="comment" method="post"<% if crn_viaJs then %> onsubmit="submitComment();return false;"<% end if%>>
-		<div class="field"><label for="name"><%=crnLang_comments_form_name%></label><input class="text" type="text" name="name" id="name" value="<%=cleanOutputString(request.Cookies(CARNIVAL_CODE & "comment")("name"))%>" /></div>
-		<div class="field"><label for="url"><%=crnLang_comments_form_url%></label><input class="text" type="text" name="url" id="url" value="<%
-		if request.Cookies(CARNIVAL_CODE & "comment")("url") = "" then
+	<% if blnViaJavascript then %><div class="commentact"><a href="javascript:commentForm();"><img src="<%=getImagePath("lay-ico-act-comment.gif")%>" alt="" class="icon" /><%=lang__comments_postacomment__%></a></div><% end if %>
+	<div id="commentform"<% if blnViaJavascript and not blnShowCommentForm then %> style="display:none;overflow:hidden;"<% end if %>>
+	<form id="formcomment" action="comments_pro.asp" class="comment" method="post"<% if blnViaJavascript then %> onsubmit="submitComment();return false;"<% end if%>>
+		<div class="field"><label for="name"><%=lang__comments_form_name__%></label><input class="text" type="text" name="name" id="name" value="<%=outputHTMLString(getSubCookie("comment","name"))%>" /></div>
+		<% if not blnIsAdmin then %><div class="field"><label for="url"><%=lang__comments_form_url__%></label><input class="text" type="text" name="url" id="url" value="<%
+		if getSubCookie("comment","url") = "" then
 			response.write "http://"
 		else
-			response.write cleanOutputString(request.Cookies(CARNIVAL_CODE & "comment")("url"))
+			response.write outputHTMLString(getSubCookie("comment","url"))
 		end if%>" /></div>
-		<div class="field"><label for="email"><%=crnLang_comments_form_email%></label><input class="text" type="text" name="email" id="email" value="<%=cleanOutputString(request.Cookies(CARNIVAL_CODE & "comment")("email"))%>" /></div>
-		<div class="field"><label for="securitycode"><%=crnLang_comments_form_captcha%></label>
+		<div class="field"><label for="email"><%=lang__comments_form_email__%></label><input class="text" type="text" name="email" id="email" value="<%=outputHTMLString(getSubCookie("comment","email"))%>" /></div>
+		<div class="field"><label for="securitycode"><%=lang__comments_form_captcha__%></label>
 		<!-- START WBSECURITY -->
 		<img id="wbscode" src="includes/service.wbsecurity.asp?c=<%=noCache%>" style="vertical-align:middle;" alt="code" width="112" height="21" /><br/>
 		<input type="text" id="securitycode" name="securitycode" maxlength="6" class="text" />
 		</div>
 		<!-- END WBSECURITY -->
-		<div class="field"><label for="comment"><%=crnLang_comments_form_comment%></label><textarea name="comment" id="comment" rows="10" cols="30"><%
-		if request.Cookies(CARNIVAL_CODE & "comment")("id") = crnPhotoId then
-			response.write cleanOutputString(request.Cookies(CARNIVAL_CODE & "comment")("comment"))
+        <% else %>
+        <input type="hidden" name="url" id="url" value="" />
+        <input type="hidden" name="email" id="email" value="" />
+        <input type="hidden" name="securitycode" id="securitycode" value="" />
+		<% end if %>
+		<div class="field"><label for="comment"><%=lang__comments_form_comment__%></label><textarea name="comment" id="comment" rows="10" cols="30"><%
+		if inputLong(getSubCookie("comment","id")) = lngCurrentPhotoId__ then
+			response.write outputHTMLString(getSubCookie("comment","comment"))
 		end if
 		%></textarea>
-		<div class="info"><%=crnLang_comments_form_extra%></div>
-		<div class="field"><input type="hidden" name="photoid" id="photoid" value="<%=crnPhotoId%>" /><input type="submit" value="<%=crnLang_comments_form_send%>" class="submit" /></div>
-		</div>		
+		<div class="info"><%=lang__comments_form_extra__%></div>
+		<div class="field"><input type="hidden" name="photoid" id="photoid" value="<%=lngCurrentPhotoId__%>" /><input type="submit" value="<%=lang__comments_form_send__%>" class="submit" /></div>
+		</div>
 	</form>
 	</div><%
 end if

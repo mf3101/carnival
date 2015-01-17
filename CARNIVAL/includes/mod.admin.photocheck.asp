@@ -2,7 +2,7 @@
 '-----------------------------------------------------------------
 ' ******************** HELLO THIS IS CARNIVAL ********************
 '-----------------------------------------------------------------
-' Copyright (c) 2007-2008 Simone Cingano
+' Copyright (c) 2007-2011 Simone Cingano
 ' 
 ' Permission is hereby granted, free of charge, to any person
 ' obtaining a copy of this software and associated documentation
@@ -27,54 +27,60 @@
 '-----------------------------------------------------------------
 ' * @category        Carnival
 ' * @package         Carnival
-' * @author          Simone Cingano <simonecingano@imente.org>
-' * @copyright       2007-2008 Simone Cingano
+' * @author          Simone Cingano <info@carnivals.it>
+' * @copyright       2007-2011 Simone Cingano
 ' * @license         http://www.opensource.org/licenses/mit-license.php
-' * @version         SVN: $Id: mod.admin.photocheck.asp 16 2008-06-28 12:25:27Z imente $
+' * @version         SVN: $Id: mod.admin.photocheck.asp 114 2010-10-11 19:00:34Z imente $
 ' * @home            http://www.carnivals.it
 '-----------------------------------------------------------------
-%><!--#include file = "inc.admin.check.asp"-->
-<%
-dim crn_returnpage
-crnPhotoId = cleanLong(request.QueryString("id"))
-crn_returnpage = cleanLong(request.QueryString("returnpage"))
 
-SQL = "SELECT photo_original FROM tba_photo WHERE photo_id = " & crnPhotoId
-set rs = dbManager.conn.execute(SQL)
+'*****************************************************
+'ENVIROMENT AGGIUNTIVO
+%><!--#include file = "inc.admin.check.asp"--><%
+'*****************************************************
+
+dim strReturnQuerystring
+lngCurrentPhotoId__ = inputLong(request.QueryString("id"))
+strReturnQuerystring = request.QueryString("returnpage")
+
+dim strPhotoOriginal, blnPhotoActive
+SQL = "SELECT photo_original, photo_active FROM tba_photo WHERE photo_id = " & lngCurrentPhotoId__
+set rs = dbManager.Execute(SQL)
 if rs.eof then  response.redirect("errors.asp?c=post0")
-crnPhotoOriginal = rs("photo_original")
+strPhotoOriginal = rs("photo_original")
+blnPhotoActive = inputBoolean(rs("photo_active"))
 
-dim crn_action
-crn_action = normalize(request.QueryString("action"),"edit","new")
+dim strAction
+strAction = normalize(request.QueryString("action"),"edit","new")
 %>
 	<h2>Controllo foto</h2>
 	<div class="page-description"><p>L'immagine originale, l'immagine da visualizzare e la miniatura sono state caricate o create correttamente.<br />
 	Controllare che le tre immagine corrispondano e siano delle dimensioni desiderate; se non sono corrette &egrave; possibile caricarne altre.</p></div>
 	<div class="cnbuttons">
 	<div class="nbuttons">
-	<% if crn_action = "edit" then %>
-		<a href="admin.asp?module=photo-list&amp;page=<%=crn_returnpage%>">
+	<% if strAction = "edit" then %>
+		<a href="admin.asp?module=photo-list&amp;<%=readyToQuerystring(strReturnQuerystring)%>">
 			<span>
-			<img src="<%=carnival_pathimages%>/lay-adm-ico-but-next.gif" alt=""/> 
+			<img src="<%=getImagePath("lay-adm-ico-but-next.gif")%>" alt=""/> 
 			continua
 			</span>
 		</a>
-		<a href="admin.asp?module=photo-upload&amp;id=<%=crnPhotoId%>&amp;action=edit&amp;returnpage=<%=crn_returnpage%>">
+		<a href="admin.asp?module=photo-upload&amp;id=<%=lngCurrentPhotoId__%>&amp;action=edit&amp;returnpage=<%=strReturnQuerystring%>">
 			<span>
-			<img src="<%=carnival_pathimages%>/lay-adm-ico-but-upload.gif" alt=""/> 
+			<img src="<%=getImagePath("lay-adm-ico-but-upload.gif")%>" alt=""/> 
 			carica immagini differenti
 			</span>
 		</a>
 	<% else %>
-		<a href="admin.asp?module=photo-edit&amp;id=<%=crnPhotoId%>&amp;action=new">
+		<a href="admin.asp?module=photo-edit&amp;id=<%=lngCurrentPhotoId__%>&amp;action=new">
 			<span>
-			<img src="<%=carnival_pathimages%>/lay-adm-ico-but-next.gif" alt=""/> 
+			<img src="<%=getImagePath("lay-adm-ico-but-next.gif")%>" alt=""/> 
 			continua
 			</span>
 		</a>
-		<a href="admin.asp?module=photo-upload&amp;id=<%=crnPhotoId%>&amp;action=new">
+		<a href="admin.asp?module=photo-upload&amp;id=<%=lngCurrentPhotoId__%>&amp;action=new">
 			<span>
-			<img src="<%=carnival_pathimages%>/lay-adm-ico-but-upload.gif" alt=""/> 
+			<img src="<%=getImagePath("lay-adm-ico-but-upload.gif")%>" alt=""/> 
 			carica immagini differenti
 			</span>
 		</a>
@@ -85,16 +91,16 @@ crn_action = normalize(request.QueryString("action"),"edit","new")
 	<div class="check-box">
 		<div class="check-title">miniatura (altezza massima 90px)</div>
 		<p>questa miniatura verrà utilizzata per la galleria e i dettagli</p>
-		<div class="check-photo"><img src="<%=CARNIVAL_PUBLIC & CARNIVAL_PHOTOS & CARNIVAL_PHOTOPREFIX & crnPhotoId & CARNIVAL_THUMBPOSTFIX & ".jpg?nc=" & noCache%>" alt="original photo" /></div>
+		<div class="check-photo"><img src="<%=CARNIVAL_PUBLIC & CARNIVAL_PHOTOS & CARNIVAL_PHOTOPREFIX & lngCurrentPhotoId__ & CARNIVAL_THUMBPOSTFIX & IIF(blnPhotoActive,"",strPhotoOriginal) & ".jpg?nc=" & noCache%>" alt="original photo" /></div>
 		<hr/>
 		<div class="check-title">immagine da visualizzare (altezza massima 480px)</div>
 		<p>questa foto viene visualizzata sul photoblog</p>
 		<p class="alert">ATTENZIONE: la foto NON è stata tagliata,<br/>semplicemente se &egrave; pi&ugrave; larga di 700pixel non viene visualizzata interamente!</p>
-		<div class="check-photo"><img src="<%=CARNIVAL_PUBLIC & CARNIVAL_PHOTOS & CARNIVAL_PHOTOPREFIX & crnPhotoId & ".jpg?nc=" & noCache%>" alt="original photo" /></div>
+		<div class="check-photo"><img src="<%=CARNIVAL_PUBLIC & CARNIVAL_PHOTOS & CARNIVAL_PHOTOPREFIX & lngCurrentPhotoId__ & IIF(blnPhotoActive,"",strPhotoOriginal) & ".jpg?nc=" & noCache%>" alt="original photo" /></div>
 		<hr/>
 		<div class="check-title">immagine originale (dimensioni personalizzate, alta risoluzione)</div>
 		<p>questa foto non viene visualizzata direttamente sul photoblog</p>
 		<p class="alert">ATTENZIONE: la foto NON è stata tagliata,<br/>semplicemente se &egrave; pi&ugrave; larga di 700pixel non viene visualizzata interamente!</p>
-		<div class="check-photo"><img src="<%=CARNIVAL_PUBLIC & CARNIVAL_PHOTOS & CARNIVAL_PHOTOPREFIX & crnPhotoId & CARNIVAL_ORIGINALPOSTFIX & crnPhotoOriginal & ".jpg?nc=" & noCache%>" alt="original photo" /></div>
+		<div class="check-photo"><img src="<%=CARNIVAL_PUBLIC & CARNIVAL_PHOTOS & CARNIVAL_PHOTOPREFIX & lngCurrentPhotoId__ & CARNIVAL_ORIGINALPOSTFIX & strPhotoOriginal & ".jpg?nc=" & noCache%>" alt="original photo" /></div>
 	</div>
 	<div class="clear"></div>

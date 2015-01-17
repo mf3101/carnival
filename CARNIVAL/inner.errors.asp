@@ -2,7 +2,7 @@
 '-----------------------------------------------------------------
 ' ******************** HELLO THIS IS CARNIVAL ********************
 '-----------------------------------------------------------------
-' Copyright (c) 2007-2008 Simone Cingano
+' Copyright (c) 2007-2011 Simone Cingano
 ' 
 ' Permission is hereby granted, free of charge, to any person
 ' obtaining a copy of this software and associated documentation
@@ -27,22 +27,27 @@
 '-----------------------------------------------------------------
 ' * @category        Carnival
 ' * @package         Carnival
-' * @author          Simone Cingano <simonecingano@imente.org>
-' * @copyright       2007-2008 Simone Cingano
+' * @author          Simone Cingano <info@carnivals.it>
+' * @copyright       2007-2011 Simone Cingano
 ' * @license         http://www.opensource.org/licenses/mit-license.php
-' * @version         SVN: $Id: inner.errors.asp 8 2008-05-22 00:26:46Z imente $
+' * @version         SVN: $Id: inner.errors.asp 114 2010-10-11 19:00:34Z imente $
 ' * @home            http://www.carnivals.it
 '-----------------------------------------------------------------
 
-dim crn_errorCode, crn_id, crn_viaJs
-crn_errorCode = request.QueryString("c")
-crn_id = cleanLong(request.QueryString("id"))
-if crn_id < 0 then crn_id = 0
-crn_viaJs = true
+'*****************************************************
+'ENVIROMENT AGGIUNTIVO
+' nessun enviroment aggiuntivo
+'*****************************************************
+
+dim strErrorCode, lngId, blnViaJavascript
+strErrorCode = request.QueryString("c")
+lngId = inputLong(request.QueryString("id"))
+if lngId < 0 then lngId = 0
+blnViaJavascript = true
 
 %><!--#include file = "includes/gen.errors.asp"-->
 	<div id="error" class="light">
-		<div class="title"><%=crn_errTitle%></div>
-		<div class="description"><%=crn_errDescription%></div>
-		<div class="link"><%=crn_errLink%></div>
+		<div class="title"><%=strErrorTitle%></div>
+		<div class="description"><%=strErrorDescription%></div>
+		<div class="link"><%=strErrorLink%></div>
 	</div>

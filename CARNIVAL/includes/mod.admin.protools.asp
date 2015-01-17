@@ -2,7 +2,7 @@
 '-----------------------------------------------------------------
 ' ******************** HELLO THIS IS CARNIVAL ********************
 '-----------------------------------------------------------------
-' Copyright (c) 2007-2008 Simone Cingano
+' Copyright (c) 2007-2011 Simone Cingano
 ' 
 ' Permission is hereby granted, free of charge, to any person
 ' obtaining a copy of this software and associated documentation
@@ -27,112 +27,86 @@
 '-----------------------------------------------------------------
 ' * @category        Carnival
 ' * @package         Carnival
-' * @author          Simone Cingano <simonecingano@imente.org>
-' * @copyright       2007-2008 Simone Cingano
+' * @author          Simone Cingano <info@carnivals.it>
+' * @copyright       2007-2011 Simone Cingano
 ' * @license         http://www.opensource.org/licenses/mit-license.php
-' * @version         SVN: $Id: mod.admin.protools.asp 27 2008-07-04 12:22:52Z imente $
+' * @version         SVN: $Id: mod.admin.protools.asp 114 2010-10-11 19:00:34Z imente $
 ' * @home            http://www.carnivals.it
 '-----------------------------------------------------------------
+
+'*****************************************************
+'ENVIROMENT AGGIUNTIVO
 %><!--#include file = "inc.admin.check.asp"-->
-<%
-dim crn_action
-crn_action = normalize(request.QueryString("action"),"wbresize|aspneton|aspnetoff|dbclean|dbcompress|statsthison|statsthisoff|ccvon|ccvoff","")
-dim crn_db
-dim crn_done
+<!--#include file = "inc.func.services.asp"-->
+<!--#include file = "inc.func.rss.asp"--><%
+'*****************************************************
 
-dim crn_objFso, crn_objFolder, crn_objFiles, crn_objFile,aspnetactive
+dim strAction,  strDone
+strAction = normalize(request.QueryString("action"),"wbresize|aspneton|aspnetoff|dbclean|dbcompress|statsthison|statsthisoff|ccvon|ccvoff|rss","")
 
-select case crn_action
-	case "wbresize"
+dim strDatabase
+
+dim obj_Fso, obj_Folder, obj_Files, obj_File
+
+select case strAction
+	case "wbresize","aspneton"
 		
-		dim wbresize,wbresizekey
-		wbresizekey = createKey(32)
-		wbresize = openFile(server.MapPath(CARNIVAL_PUBLIC & CARNIVAL_SERVICES & "wbresize.aspx"))
-		
-		Dim Reg,Mathes
-		Set Reg = New RegExp
-		Reg.Global = True
-		Reg.Ignorecase = True
-		Reg.pattern = "(string baseAddress = ""[^""]+"";)"
-		wbresize = Reg.replace(wbresize,"string baseAddress = """ & CARNIVAL_HOME & """;")
-		Reg.pattern = "(string keyCheck = ""[^""]+"";)"
-		wbresize = Reg.replace(wbresize,"string keyCheck = """ & wbresizekey & """;")
-		Reg.pattern = "(string errorRedirect = ""[^""]+"";)"
-		wbresize = Reg.replace(wbresize,"string errorRedirect = """ & CARNIVAL_HOME & "errors.asp?c=wbresize"";")
-		set Reg = nothing
-		
-		call writeFile(server.MapPath(CARNIVAL_PUBLIC & CARNIVAL_SERVICES & "wbresize.aspx"),wbresize)
-		wbresize = ""
-		
-		aspnetactive = checkAspnetActive(absoluteUrl(CARNIVAL_HOME,CARNIVAL_PUBLIC&CARNIVAL_SERVICES&"test.aspx"))
-		
-		SQL = "UPDATE tba_config SET config_wbresizekey = '" & wbresizekey & "', config_aspnetactive = " & formatDbBool(aspnetactive) & ""
-		dbManager.conn.execute(SQL)
-		
-		crn_done = "wbresize"
-		if not(aspnetactive) then crn_done = "aspnet"
-		
-	case "aspneton"
-		aspnetactive = checkAspnetActive(absoluteUrl(CARNIVAL_HOME,CARNIVAL_PUBLIC&CARNIVAL_SERVICES&"test.aspx"))
-		
-		if aspnetactive then
-			SQL = "UPDATE tba_config SET config_aspnetactive = 1"
-			dbManager.conn.execute(SQL)
-			response.Redirect("admin.asp?module=pro-tools&action=wbresize")
-		else
-			crn_done = "aspnetfail"
-		end if
+		strDone = "wbresize"
+		if not(aspnetOn()) then strDone = "aspnetfail"
 		
 	case "aspnetoff"
 		'call deleteFile(server.MapPath(CARNIVAL_PUBLIC & CARNIVAL_SERVICES & "wbresize.aspx"))
-		SQL = "UPDATE tba_config SET config_aspnetactive = 0"
-		dbManager.conn.execute(SQL)
-		crn_done = "aspnetoff"
+		call aspnetOff()
+		strDone = "aspnetoff"
+		
+	case "rss"
+		call compileRss()
+		strDone = "rss"
 		
 	case "dbclean"
-		crn_done = "dbclean"
+		if CARNIVAL_DATABASE_TYPE <> "mdb" then response.Redirect("admin.asp?module=tools")
+		strDone = "dbclean"
 		
 		on error resume next
 		
+		dim strDatabasefolder
+		strDatabasefolder = getFolderFromPath(server.MapPath(CARNIVAL_DATABASE))
+		strDatabase = getFileFromPath(server.MapPath(CARNIVAL_DATABASE))
 		
+		set obj_Fso = CreateObject("Scripting.FileSystemObject")
+		Set obj_Folder = obj_Fso.GetFolder(strDatabasefolder)  
+		Set obj_Files = obj_Folder.Files 
 		
-		dim crn_dbfolder
-		crn_dbfolder = getFolderFromPath(server.MapPath(CARNIVAL_DATABASE))
-		crn_db = getFileFromPath(server.MapPath(CARNIVAL_DATABASE))
-		
-		set crn_objFso = CreateObject("Scripting.FileSystemObject")
-		Set crn_objFolder = crn_objFso.GetFolder(crn_dbfolder)  
-		Set crn_objFiles = crn_objFolder.Files 
-		
-		crn_db = replace(crn_db,".mdb","")&"_"		
-		For Each crn_objFile in crn_objFiles	
-		   if left(crn_objFile.name,len(crn_db)) = crn_db then _
-			 crn_objFso.DeleteFile(crn_dbfolder & "/" & crn_objFile.name)
+		strDatabase = replace(strDatabase,".mdb","")&"_"		
+		For Each obj_File in obj_Files	
+		   if left(obj_File.name,len(strDatabase)) = strDatabase then _
+			 obj_Fso.DeleteFile(strDatabasefolder & "/" & obj_File.name)
 		Next
 	
 		if err.number <> 0 then response.Redirect("errors.asp?c=tools1")
 		on error goto 0
 	
 	case "dbcompress"
-		crn_done = "dbcompress"
+		if CARNIVAL_DATABASE_TYPE <> "mdb" then response.Redirect("admin.asp?module=tools")
+		strDone = "dbcompress"
 		
 		call disconnect()
 		
 		on error resume next
-		dim crn_backupdb
-		crn_db = server.MapPath(CARNIVAL_DATABASE)
-		crn_backupdb = replace(crn_db,".mdb",formatGMTDate(now,0,"_yyyymmdd_hhnnss") & ".mdb")
+		dim strDatabaseBackup
+		strDatabase = server.MapPath(CARNIVAL_DATABASE)
+		strDatabaseBackup = replace(strDatabase,".mdb",formatGMTDate(now,0,"_yyyymmdd_hhnnss") & ".mdb")
 		
 		' backuppo il db
-		Set crn_objFso = Server.CreateObject("Scripting.FileSystemObject")
-		call crn_objFso.MoveFile(crn_db,crn_backupdb)
-		Set crn_objFso = Nothing
+		Set obj_Fso = Server.CreateObject("Scripting.FileSystemObject")
+		call obj_Fso.MoveFile(strDatabase,strDatabaseBackup)
+		Set obj_Fso = Nothing
 
 		'comprimo il database 
-		dim crn_objDb
-		Set crn_objDb = CreateObject("DAO.DBEngine.36") 
-		call crn_objDb.CompactDatabase(crn_backupdb, crn_db)
-		Set crn_objDb=Nothing
+		dim obj_DAODb
+		Set obj_DAODb = CreateObject("DAO.DBEngine.36") 
+		call obj_DAODb.CompactDatabase(strDatabaseBackup, strDatabase)
+		Set obj_DAODb=Nothing
 		
 		if err.number <> 0 then response.Redirect("errors.asp?c=tools0")
 		
@@ -141,26 +115,26 @@ select case crn_action
 		call connect()
 	
 	case "statsthison"
-		crn_done = "statsthison"
+		strDone = "statsthison"
 		call setCookie("exclude","0",now+365)
 		
 	case "statsthisoff"
-		crn_done = "statsthisoff"
+		strDone = "statsthisoff"
 		call setCookie("exclude","1",now+365)
 	
 	case "ccvon", "ccvoff"
-		dim crn_ccv
-		crn_done = crn_action
-		if crn_action = "ccvon" then
-			crn_ccv = 1
-		elseif crn_action = "ccvoff" then
-			crn_ccv = 0
+		dim bytCv
+		strDone = strAction
+		if strAction = "cc"&"von" then
+			bytCv = 1
+		elseif strAction = "cc"&"voff" then
+			bytCv = 0
 		end if
-		SQL = "UPDATE tba_config SET config_ccv = " & crn_ccv & ""
-		dbManager.conn.execute(SQL)
+		SQL = "UPDATE tba_config SET config_cc"&"v = " & bytCv & ""
+		dbManager.Execute(SQL)
 		
 end select
 
-response.Redirect("admin.asp?module=tools&done=" & crn_done)
+response.Redirect("admin.asp?module=tools&done=" & strDone)
 
 %>

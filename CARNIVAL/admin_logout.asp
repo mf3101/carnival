@@ -1,9 +1,8 @@
-<!--#include file = "includes/inc.first.asp"-->
-<%
+<!--#include file = "includes/inc.first.asp"--><%
 '-----------------------------------------------------------------
 ' ******************** HELLO THIS IS CARNIVAL ********************
 '-----------------------------------------------------------------
-' Copyright (c) 2007-2008 Simone Cingano
+' Copyright (c) 2007-2011 Simone Cingano
 ' 
 ' Permission is hereby granted, free of charge, to any person
 ' obtaining a copy of this software and associated documentation
@@ -28,12 +27,17 @@
 '-----------------------------------------------------------------
 ' * @category        Carnival
 ' * @package         Carnival
-' * @author          Simone Cingano <simonecingano@imente.org>
-' * @copyright       2007-2008 Simone Cingano
+' * @author          Simone Cingano <info@carnivals.it>
+' * @copyright       2007-2011 Simone Cingano
 ' * @license         http://www.opensource.org/licenses/mit-license.php
-' * @version         SVN: $Id: admin_logout.asp 8 2008-05-22 00:26:46Z imente $
+' * @version         SVN: $Id: admin_logout.asp 114 2010-10-11 19:00:34Z imente $
 ' * @home            http://www.carnivals.it
 '-----------------------------------------------------------------
+
+'*****************************************************
+'ENVIROMENT AGGIUNTIVO
+' nessun enviroment aggiuntivo
+'*****************************************************
 
 '* distrugge i dati contenuti nelle variabili APPLICATION
 application(CARNIVAL_CODE & "_admin_lastevent") = ""
@@ -41,7 +45,7 @@ application(CARNIVAL_CODE & "_admin_key") = ""
 application(CARNIVAL_CODE & "_admin_ip") = ""
 
 '* distrugge il cookie sul computer dell'utente
-Response.cookies(CARNIVAL_CODE & "adminkey") = ""
+call setCookie("adminkey","",0)
 
 '* rimanda all'admin dove verrà caricato il modulo di login
 response.redirect("admin.asp")
